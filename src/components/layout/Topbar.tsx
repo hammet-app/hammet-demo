@@ -30,7 +30,7 @@ export default function Topbar({ activeScreen, currentUser, onNavigate }: Topbar
           </svg>
         </div>
         <span className={styles.logoText}>
-          hammetLABS <em>AI Studies</em>
+          HammetLabs <em>AI Studies</em>
         </span>
       </div>
 

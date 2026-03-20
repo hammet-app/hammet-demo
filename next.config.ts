@@ -1,4 +1,5 @@
 const withSerwist = require('@serwist/next').default;
+console.log(withSerwist)
 
 const withPWA = withSerwist({
   swSrc: 'src/app/sw.ts',

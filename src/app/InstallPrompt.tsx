@@ -17,6 +17,10 @@ import { useEffect, useState } from 'react'
 import styles from './InstallPrompt.module.css'
 
 type Platform = 'android' | 'ios' | 'other'
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>
+}
 
 function detectPlatform(): Platform {
   if (typeof navigator === 'undefined') return 'other'
@@ -37,7 +41,7 @@ function isInStandaloneMode(): boolean {
 
 export default function InstallPrompt() {
   const [platform, setPlatform] = useState<Platform>('other')
-  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null)
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showPrompt, setShowPrompt] = useState(false)
   const [showIOSInstructions, setShowIOSInstructions] = useState(false)
   const [dismissed, setDismissed] = useState(false)
@@ -55,8 +59,9 @@ export default function InstallPrompt() {
     if (p === 'android') {
       // Intercept the native install prompt
       const handler = (e: Event) => {
-        e.preventDefault()
-        setDeferredPrompt(e)
+        const promptEvent = e as BeforeInstallPromptEvent
+        promptEvent.preventDefault()
+        setDeferredPrompt(promptEvent)
         // Wait 30 seconds before showing — let the student load at least one lesson
         setTimeout(() => setShowPrompt(true), 30_000)
       }

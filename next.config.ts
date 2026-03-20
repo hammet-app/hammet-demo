@@ -1,5 +1,5 @@
 // next.config.js
-const { withSerwist } = require('@serwist/next').default;
+const withSerwist = require('@serwist/next').default;
 
 const withPWA = withSerwist({
   // Source service worker file you author

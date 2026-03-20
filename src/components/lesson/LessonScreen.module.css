@@ -1,0 +1,185 @@
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+  padding: 28px 32px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Sidebar */
+.progressCard { margin-bottom: 14px; }
+.progressMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-soft);
+}
+.progressPct { font-weight: 600; color: var(--purple); }
+
+.moduleList { list-style: none; }
+.moduleItem {
+  padding: 10px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.moduleItem:hover { background: var(--surface); }
+.active  { background: var(--purple-xlight); }
+.locked  { opacity: 0.6; cursor: default; }
+
+.modNum {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  background: var(--border);
+  color: var(--text-soft);
+}
+.modNum_done   { background: var(--success-mid); color: #fff; }
+.modNum_active { background: var(--purple); color: #fff; }
+.modNum_locked { background: var(--border); color: var(--text-soft); }
+
+.modTitle { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+.modMeta  { font-size: 11px; color: var(--text-soft); margin-top: 1px; }
+.active .modMeta { color: var(--purple); }
+
+/* Lesson card */
+.lessonCard {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.lessonHeader {
+  background: linear-gradient(135deg, var(--purple-dark) 0%, var(--purple) 100%);
+  padding: 20px 24px;
+  color: #fff;
+}
+.lessonHeader h2 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 21px;
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+.lessonHeader p { font-size: 13px; opacity: 0.75; }
+
+.headerBadges { display: flex; gap: 8px; margin-bottom: 10px; }
+.badgeGlass {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.badgeCyan {
+  background: rgba(6,182,212,0.25);
+  color: var(--cyan);
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.lessonBody { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+
+.bodyText { font-size: 14px; color: var(--text-mid); line-height: 1.75; }
+
+.toolBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--cyan-light);
+  border: 1px solid #A5F3FC;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.toolIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.toolName  { font-size: 13px; color: var(--cyan-dark); font-weight: 500; }
+.toolMeta  { font-size: 12px; color: var(--text-soft); }
+
+.activityBlock {
+  background: var(--purple-xlight);
+  border-left: 3px solid var(--purple);
+  border-radius: 0 8px 8px 0;
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--purple-dark);
+  line-height: 1.65;
+}
+.actLabel {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--purple);
+  margin-bottom: 6px;
+}
+
+.reflectionBlock label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.reflectionHint { font-weight: 400; color: var(--text-soft); }
+.reflectionBlock textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--text);
+  resize: vertical;
+  min-height: 100px;
+  outline: none;
+  transition: border 0.15s;
+}
+.reflectionBlock textarea:focus { border-color: var(--purple); }
+
+.lessonFooter {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+}
+.offlinePill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--success-mid);
+  font-weight: 500;
+}
+.dotGreen {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success-mid);
+}
+.footerActions { display: flex; gap: 8px; }

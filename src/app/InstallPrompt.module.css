@@ -1,0 +1,140 @@
+/* components/pwa/InstallPrompt.module.css */
+
+/* ── Android banner — fixed to bottom of screen ── */
+.banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--purple-dark);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 999;
+  /* Slide up from bottom */
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.bannerIcon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--purple);
+}
+
+.bannerText { flex: 1; }
+.bannerTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+.bannerMeta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.bannerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btnInstall {
+  background: var(--cyan);
+  color: var(--purple-dark);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s;
+}
+.btnInstall:hover { background: #22D3EE; }
+
+.btnDismiss {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  padding: 7px 4px;
+}
+.btnDismiss:hover { color: rgba(255, 255, 255, 0.85); }
+
+/* ── iOS instruction sheet — fixed to bottom ── */
+.iosSheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-top: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  padding: 12px 20px 32px;
+  z-index: 999;
+  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.iosHandle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+}
+
+.iosTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--purple-dark);
+  margin-bottom: 6px;
+}
+
+.iosMeta {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.55;
+  margin-bottom: 16px;
+}
+
+.iosList {
+  padding-left: 18px;
+  margin-bottom: 20px;
+}
+.iosList li {
+  font-size: 13px;
+  color: var(--text-mid);
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+.iosList strong { color: var(--text); }
+
+.iosDismiss {
+  width: 100%;
+  background: var(--purple);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s;
+}
+.iosDismiss:hover { background: var(--purple-mid); }

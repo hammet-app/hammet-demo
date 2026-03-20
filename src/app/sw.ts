@@ -3,6 +3,8 @@
 // It runs in the browser's service worker context — not in React, not in Node.
 // Do not import React or Next.js here.
 
+/// <reference lib="webworker" />
+
 import { defaultCache } from '@serwist/next/worker'
 import type { PrecacheEntry } from '@serwist/precaching'
 import { installSerwist } from '@serwist/sw'
@@ -18,7 +20,6 @@ declare const self: ServiceWorkerGlobalScope & {
 // Serwist automatically injects the list of built assets into __SW_MANIFEST.
 // These are cached on install — the app shell is always available offline.
 installSerwist({
-  self,
   precacheEntries: self.__SW_MANIFEST,
   skipWaiting: true,           // activate new SW immediately on update
   clientsClaim: true,          // take control of all open tabs immediately

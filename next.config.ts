@@ -1,9 +1,9 @@
 // next.config.js
-const { withSerwist } = require('@serwist/next')
+const { withSerwist } = require('@serwist/next').default;
 
 const withPWA = withSerwist({
   // Source service worker file you author
-  swSrc: 'app/sw.ts',
+  swSrc: 'src/app/sw.ts',
   // Compiled output — must live in /public so the browser can fetch it
   swDest: 'public/sw.js',
   // Disable in development — stale cache makes hot reload painful

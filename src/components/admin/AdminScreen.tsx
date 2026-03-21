@@ -5,7 +5,7 @@ const CHECKLIST = [
   { done: true,  title: 'School account created',       detail: 'Kings College Demo School · Pilot tier' },
   { done: true,  title: 'Teacher assigned',             detail: 'Mr. Babatunde Afolabi · SS1A & SS1B' },
   { done: true,  title: '28 students enrolled',         detail: 'SS1A · Term 1 modules unlocked' },
-  { done: false, title: 'PWA installed on student devices', detail: 'Visit app.hammetlabs.com on each device and tap "Add to Home Screen"' },
+  { done: false, title: 'PWA installed on student devices', detail: 'Visit hammet.hammetlabs.com on each device and tap "Add to Home Screen"' },
   { done: false, title: 'Run first lesson',             detail: 'Week 1 · Session 1 is ready. Teacher guide has been sent.' },
 ]
 

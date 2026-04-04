@@ -6,6 +6,10 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { SWRegister } from '@/components/pwa'
+import { Geist } from "next/font/google";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 export const metadata: Metadata = {
   title: 'AI Studies by Hammet',
@@ -47,7 +51,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={cn("font-sans", geist.variable)}>
       <body> <SWRegister /> {children}</body>
     </html>
   )

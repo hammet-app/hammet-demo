@@ -59,7 +59,7 @@ function Nav() {
         {/* Logo */}
         <a href="/" className="flex items-center gap-2 shrink-0">
           <Image
-            src="/logo.png"
+            src="/favicon.ico"
             alt="HammetLabs"
             width={140}
             height={36}
@@ -783,7 +783,7 @@ function Footer() {
           {/* Brand col */}
           <div className="md:col-span-2">
             <Image
-              src="/logo.png"
+              src="/favicon.ico"
               alt="HammetLabs"
               width={130}
               height={34}

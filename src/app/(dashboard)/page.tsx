@@ -1,11 +1,32 @@
-"use client"
-export const dynamic = "force-dynamic";
-import { DashboardRedirect } from "@/components/layout/auth-guard";
+// src/app/(dashboard)/page.tsx
+"use client";
 
-/**
- * /dashboard — immediately redirects to the role-appropriate page.
- * File location: src/app/(dashboard)/page.tsx
- */
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth/auth-context";
+import { getPrimaryRole } from "@/lib/utils/roles";
+
+const ROLE_ROUTES: Record<string, string> = {
+  hammet_admin: "/hammet",
+  school_admin: "/admin",
+  teacher:      "/teacher/classes",
+  student:      "/student/lessons",
+};
+
 export default function DashboardPage() {
-  return <DashboardRedirect />;
+  const { user, isResolved } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isResolved) return;
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+    const role = getPrimaryRole(user.roles);
+    router.replace(ROLE_ROUTES[role] ?? "/login");
+  }, [isResolved, user, router]);
+
+  // Render nothing — AuthGuard in the layout already shows the skeleton
+  return null;
 }

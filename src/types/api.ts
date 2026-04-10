@@ -1,16 +1,6 @@
-// ============================================================
-// HammetLabs — AI Studies
-// API Contract Types
-// ============================================================
-
 export type SubmissionStatus = "submitted" | "approved" | "flagged";
 export type UserStatus = "pending" | "active" | "suspended";
-
-export type UserRole =
-  | "student"
-  | "teacher"
-  | "school_admin"
-  | "hammet_admin";
+export type UserRole = "student" | "teacher" | "school_admin" | "hammet_admin";
 
 export type AssignedClass = {
   level: string;
@@ -18,15 +8,7 @@ export type AssignedClass = {
   term: number;
 };
 
-// ============================================================
-// AUTH
-// ============================================================
-
-export type LoginRequest = {
-  email: string;
-  password: string;
-};
-
+export type LoginRequest = { email: string; password: string };
 export type LoginResponse = {
   access_token: string;
   user: {
@@ -40,13 +22,8 @@ export type LoginResponse = {
   };
 };
 
-export type RefreshResponse = {
-  access_token: string;
-};
-
-export type LogoutResponse = {
-  message: string;
-};
+export type RefreshResponse = { access_token: string };
+export type LogoutResponse = { message: string };
 
 export type RegisterSchoolRequest = {
   name: string;
@@ -54,7 +31,6 @@ export type RegisterSchoolRequest = {
   admin_full_name: string;
   admin_email: string;
 };
-
 export type RegisterSchoolResponse = {
   school_id: string;
   admin_id: string;
@@ -67,11 +43,7 @@ export type RegisterTeacherRequest = {
   roles: string[];
   assigned_classes: AssignedClass[];
 };
-
-export type RegisterTeacherResponse = {
-  teacher_id: string;
-  message: string;
-};
+export type RegisterTeacherResponse = { teacher_id: string; message: string };
 
 export type RegisterStudentRequest = {
   full_name: string;
@@ -81,21 +53,13 @@ export type RegisterStudentRequest = {
   parent_email: string;
   parent_phone: string;
 };
-
-export type RegisterStudentResponse = {
-  student_id: string;
-  message: string;
-};
+export type RegisterStudentResponse = { student_id: string; message: string };
 
 export type BulkRegisterResponse = {
   total: number;
   succeeded: number;
   failed: number;
-  errors: {
-    row: number;
-    email: string;
-    reason: string;
-  }[];
+  errors: { row: number; email: string; reason: string }[];
 };
 
 export type ClaimAccountRequest =
@@ -107,10 +71,5 @@ export type ClaimAccountResponse = {
   user: LoginResponse["user"];
 };
 
-export type ResendVerificationRequest = {
-  email: string;
-};
-
-export type ResendVerificationResponse = {
-  message: string;
-};
+export type ResendVerificationRequest = { email: string };
+export type ResendVerificationResponse = { message: string };

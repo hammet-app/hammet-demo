@@ -18,7 +18,7 @@ export interface LocalSubmission {
   localId:        string    // client-generated UUID — dedup key on server
   studentId:      string
   moduleId:       string
-  reflectionText: string
+  reflectionText?: string
   fileUrl?:       string
   submittedAt:    string    // ISO timestamp
   status:         'pending_sync' | 'synced' | 'failed'
@@ -30,7 +30,7 @@ export interface LocalPortfolioEntry {
   studentId:    string
   moduleTitle:  string
   submittedAt:  string
-  reflectionText: string
+  reflectionText?: string
   skills:       string[]
 }
 
@@ -85,7 +85,7 @@ export async function submitLesson({
   studentId:      string
   moduleId:       string
   moduleTitle:    string
-  reflectionText: string
+  reflectionText?: string
   fileUrl?:       string
 }): Promise<{ success: boolean; synced: boolean }> {
   const localId     = crypto.randomUUID()

@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "next.config.js"  ],
+, "next.config.js", "../New folder/demoData.ts", "../New folder/files (2)/page.tsx"  ],
   "exclude": ["node_modules"]
 }

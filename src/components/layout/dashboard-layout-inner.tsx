@@ -8,7 +8,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Topbar } from "@/components/layout/topbar";
+import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getPrimaryRole } from "@/lib/utils/roles";

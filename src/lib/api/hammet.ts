@@ -10,7 +10,7 @@ import type {
 import type {
   SchoolsListResponse,
   DeactivateSchoolResponse,
-} from "../../../../New folder/files/hammet-api-types";
+} from "@/lib/api/api-types";
 
 // ------------------------------------------------------------
 // SCHOOLS

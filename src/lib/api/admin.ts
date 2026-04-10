@@ -12,11 +12,9 @@ import type {
   PromotionConfirmResponse,
   ModulesResponse,
   CurriculumModule,
-} from "./api-types";
-import type {
-  SchoolProfileV2,
-  AdminStudentsResponseV2,
-} from "../../../../New folder/files/admin-api-types";
+  SchoolProfile,
+  AdminStudentsResponse,
+} from "@/lib/api/api-types";
 
 // ------------------------------------------------------------
 // SCHOOL
@@ -25,8 +23,8 @@ import type {
 export async function getSchoolProfile(
   token: string,
   onRefresh: () => Promise<string | null>
-): Promise<SchoolProfileV2> {
-  return apiClient.get<SchoolProfileV2>("/admin/school", token, { onRefresh });
+): Promise<SchoolProfile> {
+  return apiClient.get<SchoolProfile>("/admin/school", token, { onRefresh });
 }
 
 // ------------------------------------------------------------
@@ -36,8 +34,8 @@ export async function getSchoolProfile(
 export async function getAdminStudents(
   token: string,
   onRefresh: () => Promise<string | null>
-): Promise<AdminStudentsResponseV2> {
-  return apiClient.get<AdminStudentsResponseV2>("/admin/students", token, {
+): Promise<AdminStudentsResponse> {
+  return apiClient.get<AdminStudentsResponse>("/admin/students", token, {
     onRefresh,
   });
 }

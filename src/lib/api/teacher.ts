@@ -7,7 +7,7 @@ import type {
   SubmissionReviewResponse,
   FlagSubmissionRequest,
   StudentDetail,
-} from "./api-types";
+} from "@/lib/api/api-types";
 
 export async function getTeacherClasses(
   token: string,

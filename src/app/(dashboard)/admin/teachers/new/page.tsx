@@ -118,7 +118,7 @@ export default function NewTeacherPage() {
 
     getSchoolProfile(accessToken, refreshToken)
       .then((p) => {
-        setAvailableArms(p.available_arms);
+        setAvailableArms(p.available_arms ?? []);
         setCurrentTerm(p.term);
         setClasses([
           { _id: uid(), level: "", arm: "", term: String(p.term) },

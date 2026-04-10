@@ -787,7 +787,7 @@ function Footer() {
               alt="HammetLabs"
               width={130}
               height={34}
-              className="h-8 w-auto mb-4 brightness-0 invert"
+              className="h-8 w-auto mb-4"
             />
             <p className="text-gray-400 text-xs font-bold tracking-widest uppercase mb-4">
               AI Curriculum Infrastructure for Nigerian Secondary Schools.

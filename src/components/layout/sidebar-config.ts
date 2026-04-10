@@ -63,7 +63,7 @@ export const navConfig: Record<UserRole, NavEntry[]> = {
     { type: "item",    label: "Teachers",       href: "/admin/teachers",       icon: User },
     { type: "item",    label: "Parent Links",   href: "/admin/parent-links",   icon: Link2 },
     { type: "section", label: "End of Year" },
-    { type: "item",    label: "Class Promotion",href: "/admin/promotion",      icon: ArrowUp },
+    { type: "item",    label: "Class Promotion",href: "/admin/students/promote",      icon: ArrowUp },
     { type: "divider" },
     { type: "item",    label: "Sign Out",       action: "logout",          icon: LogOut, danger: true },
   ],

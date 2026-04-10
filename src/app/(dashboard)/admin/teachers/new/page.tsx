@@ -9,7 +9,7 @@ import { AuthInput } from "@/components/ui/auth-input";
 import { FieldError } from "@/components/ui/auth-shell";
 import type { AssignedClass } from "@/lib/api/api-types";
 
-const LEVELS = ["JS1", "JS2", "JS3", "SS1", "SS2", "SS3"];
+const LEVELS = ["JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3"];
 
 type ClassRow = { level: string; arm: string; term: string };
 type FormErrors = {

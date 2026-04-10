@@ -1,3 +1,4 @@
+"use client"
 import { DashboardRedirect } from "@/components/layout/auth-guard";
 
 /**

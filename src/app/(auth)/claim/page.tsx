@@ -1,5 +1,3 @@
-"use client";
-
 import { Suspense } from "react";
 import ClaimContent from "@/components/layout/claim-content";
 

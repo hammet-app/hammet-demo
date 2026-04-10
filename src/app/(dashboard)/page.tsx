@@ -1,4 +1,5 @@
 "use client"
+export const dynamic = "force-dynamic";
 import { DashboardRedirect } from "@/components/layout/auth-guard";
 
 /**

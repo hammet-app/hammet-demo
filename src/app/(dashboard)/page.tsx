@@ -1,6 +1,5 @@
 // src/app/(dashboard)/page.tsx
 "use client";
-
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -21,12 +20,12 @@ export default function DashboardPage() {
     if (!isResolved) return;
     if (!user) {
       router.replace("/login");
-      return;
+    } else {
+      const role = getPrimaryRole(user.roles);
+      router.replace(ROLE_ROUTES[role] ?? "/login");
     }
-    const role = getPrimaryRole(user.roles);
-    router.replace(ROLE_ROUTES[role] ?? "/login");
   }, [isResolved, user, router]);
 
-  // Render nothing — AuthGuard in the layout already shows the skeleton
-  return null;
+  // Returning a div helps ensure the manifest registers a valid client entry point
+  return <div className="hidden" aria-hidden="true" />;
 }

@@ -217,7 +217,7 @@ export default function ClaimContent() {
       {invite && (
         <div className="flex items-center gap-2 bg-purple-light rounded-[8px] px-3 py-2 mb-5">
           <div className="w-6 h-6 rounded-full bg-purple-mid flex items-center justify-center text-[10px] font-bold text-white shrink-0">
-            {invite?.full_name?.[0]?.toUpperCase()}
+            {invite?.full_name?.[0]?.toUpperCase() || ""}
           </div>
           <div className="min-w-0">
             <p className="text-[12px] font-medium text-purple-dark truncate">

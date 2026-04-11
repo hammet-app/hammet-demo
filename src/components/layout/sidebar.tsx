@@ -8,9 +8,11 @@ import type { NavItem } from "./sidebar-config";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 
 interface SidebarProps {
-  role: UserRole;
+  roles: UserRole[];
+  activeRole: UserRole
   activePath: string;
   /** Called when a nav item is clicked — use to close the drawer on mobile */
   onNavigate?: () => void;
@@ -18,11 +20,20 @@ interface SidebarProps {
 }
 
 export function Sidebar({ role, activePath, onNavigate, className }: SidebarProps) {
-  const entries = navConfig[role];
 
-  const {logout} = useAuth();
+
+  const {logout, user} = useAuth();
+  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    if (user?.roles?.length && !activeRole) {
+      setActiveRole(user.roles[0])
+    }
+  }, [user])
+
+  if (!user || !activeRole) return null;
+  const entries = navConfig[activeRole];
   return (
     <aside
       className={cn(
@@ -30,6 +41,24 @@ export function Sidebar({ role, activePath, onNavigate, className }: SidebarProp
         className
       )}
     >
+
+      {user.roles.length > 1 && (
+        <div className="px-4 py-3">
+          <select
+            value={activeRole}
+            onChange={(e) => setActiveRole(e.target.value as UserRole)}
+            className="w-full bg-white/10 text-white px-2 py-1 rounded"
+          >
+            {user.roles.map((role) => (
+              <option key={role} value={role}>
+                {role}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      
       <nav className="flex-1 py-4">
         {entries.map((entry, i) => {
           if (entry.type === "section") {

@@ -59,7 +59,7 @@ export default function ClaimContent() {
     }
 
     apiClient
-      .get<InviteInfo>(`/auth/claim?token=${token}`)
+      .get<InviteInfo>(`/auth/claim/token=${token}`)
       .then((data) => {
         setInvite(data);
         setStep("form");
@@ -230,7 +230,7 @@ export default function ClaimContent() {
         </div>
       )}
 
-      {errors.form && <AuthAlert message={errors.form} />}
+      
     {/**
       
       {isTeacher && (
@@ -315,6 +315,8 @@ export default function ClaimContent() {
             "Activate account"
           )}
         </button>
+
+        {errors.form && <AuthAlert message={errors.form} />}
       </form>
     </AuthShell>
   );

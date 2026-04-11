@@ -71,7 +71,7 @@ export const navConfig: Record<UserRole, NavEntry[]> = {
   hammet_admin: [
     { type: "item",    label: "Platform Overview", href: "/hammet",                icon: Home },
     { type: "section", label: "Schools" },
-    { type: "item",    label: "All Schools",        href: "/hammet/schools",        icon: Building2 },
+    //{ type: "item",    label: "All Schools",        href: "/hammet",        icon: Building2 },
     { type: "item",    label: "Register School",    href: "/hammet/schools/new",    icon: Plus },
     { type: "section", label: "Curriculum" },
     { type: "item",    label: "Modules",            href: "/hammet/modules",        icon: BookOpen },

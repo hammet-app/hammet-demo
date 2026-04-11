@@ -145,13 +145,6 @@ export default function NewSchoolPage() {
     >
       <form onSubmit={handleSubmit} className="max-w-xl flex flex-col gap-8">
 
-        {/* Error */}
-        {errors.form && (
-          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-            {errors.form}
-          </div>
-        )}
-
         {/* SCHOOL INFO */}
         <div className="flex flex-col gap-4">
           <p className="text-xs uppercase text-muted">School Info</p>
@@ -285,6 +278,14 @@ export default function NewSchoolPage() {
             "Register school"
           )}
         </button>
+
+        {/* Error */}
+        {errors.form && (
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+            {errors.form}
+          </div>
+        )}
+        
       </form>
     </PageShell>
   );

@@ -69,10 +69,8 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Request failed" }));
-    console.log(err.error?.message)
-    console.log(err.error?.detail)
-    throw new ApiError(res.status, (err.error?.message ||err.error?.detail) ?? "Request failed");
+    const err = await res.json().catch(() => ({ detail: "Request failed" }))
+    throw new ApiError(res.status, (err.error?.message ||err.detail) ?? "Request failed");
   }
 
   // 204 No Content

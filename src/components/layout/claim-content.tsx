@@ -14,7 +14,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { getDefaultRoute } from "@/lib/auth/routes";
-import type { ClaimAccountResponse } from "@/lib/api/api-types";
+import type { ClaimAccountRequest, ClaimAccountResponse } from "@/lib/api/api-types";
 import type { UserRole } from "@/lib/utils/roles";
 import { cn } from "@/lib/utils/utils";
 import { validatePassword } from "@/utils/password";
@@ -25,7 +25,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 interface InviteInfo {
   full_name: string;
   email: string;
-  role: string; // "student" | "teacher" | "school_admin"
+  role: UserRole[]; // "student" | "teacher" | "school_admin"
 }
 
 type ClaimStep = "loading" | "invalid" | "form" | "success";
@@ -68,7 +68,7 @@ export default function ClaimContent() {
   }, [token]);
 
   const isTeacher =
-    invite?.role === "teacher" || invite?.role === "school_admin";
+    invite?.role[0] === "teacher" || invite?.role[0] === "school_admin";
 
   // ── Validation ──
   function validate(): boolean {
@@ -105,7 +105,8 @@ export default function ClaimContent() {
       const data = await apiClient.post<ClaimAccountResponse>("/auth/claim", {
         token,
         password,
-      });
+        deviceId: getDeviceId()
+      } satisfies ClaimAccountRequest);
 
       setSession(data.user, data.access_token);
       setStep("success");
@@ -115,17 +116,17 @@ export default function ClaimContent() {
       }, 1500);
     } catch (err) {
       if (err instanceof ApiError) {
-        if (err.status === 400) {
+        if (err.status === 400 || err.status === 422) {
           setErrors({
-            form: "This invite link has expired or already been used.",
+            form: err.message || "Invalid request",
+          });
+        } else if (err.status === 401) {
+          setErrors({
+            form: "This invite link is invalid or expired.",
           });
         } else {
           setErrors({ form: "Something went wrong. Please try again." });
         }
-      } else {
-        setErrors({
-          form: "Unable to connect. Check your internet connection.",
-        });
       }
     } finally {
       setIsSubmitting(false);
@@ -223,7 +224,7 @@ export default function ClaimContent() {
               {invite.email}
             </p>
             <p className="text-[11px] text-purple capitalize">
-              {invite.role.replace("_", " ")}
+              {invite.role[0].replace("_", " ")}
             </p>
           </div>
         </div>

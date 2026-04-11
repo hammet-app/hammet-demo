@@ -25,7 +25,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 interface InviteInfo {
   full_name: string;
   email: string;
-  role: UserRole[]; // "student" | "teacher" | "school_admin"
+  roles: UserRole[]; // "student" | "teacher" | "school_admin"
 }
 
 type ClaimStep = "loading" | "invalid" | "form" | "success";
@@ -67,8 +67,8 @@ export default function ClaimContent() {
       .catch(() => setStep("invalid"));
   }, [token]);
 
-  const isTeacher =
-    invite?.role[0] === "teacher" || invite?.role[0] === "school_admin";
+  {/**const isTeacher =
+    invite?.roles[0] === "teacher" || invite?.roles[0] === "school_admin";*/}
 
   // ── Validation ──
   function validate(): boolean {
@@ -217,14 +217,14 @@ export default function ClaimContent() {
       {invite && (
         <div className="flex items-center gap-2 bg-purple-light rounded-[8px] px-3 py-2 mb-5">
           <div className="w-6 h-6 rounded-full bg-purple-mid flex items-center justify-center text-[10px] font-bold text-white shrink-0">
-            {invite.full_name[0].toUpperCase()}
+            {invite?.full_name?.[0]?.toUpperCase()}
           </div>
           <div className="min-w-0">
             <p className="text-[12px] font-medium text-purple-dark truncate">
               {invite.email}
             </p>
             <p className="text-[11px] text-purple capitalize">
-              {invite.role[0].replace("_", " ")}
+              {invite?.roles?.[0]?.replace("_", " ")}
             </p>
           </div>
         </div>

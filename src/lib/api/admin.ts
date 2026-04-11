@@ -10,7 +10,7 @@ import type {
   PromotionPreviewResponse,
   PromotionConfirmRequest,
   PromotionConfirmResponse,
-  ModulesResponse,
+  AdminModulesResponse,
   CurriculumModule,
   SchoolProfile,
   AdminStudentsResponse,
@@ -187,18 +187,15 @@ export async function registerTeacher(
 // MODULES (read-only — published only, student-facing endpoint)
 // ------------------------------------------------------------
 
-export async function getModulesForLevel(
-  term: number,
-  level: string,
+export async function getAdminModules(
   token: string,
   onRefresh: () => Promise<string | null>
-): Promise<ModulesResponse> {
-  return apiClient.get<ModulesResponse>(
-    `/modules?term=${term}&level=${encodeURIComponent(level)}`,
-    token,
-    { onRefresh }
-  );
+): Promise<AdminModulesResponse> {
+  return apiClient.get<AdminModulesResponse>("/admin/modules", token, {
+    onRefresh,
+  });
 }
+
 
 export async function getModuleDetail(
   moduleId: string,

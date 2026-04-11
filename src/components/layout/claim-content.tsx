@@ -59,7 +59,7 @@ export default function ClaimContent() {
     }
 
     apiClient
-      .get<InviteInfo>(`/auth/claim/token=${token}`)
+      .get<InviteInfo>(`/auth/claim/${token}`)
       .then((data) => {
         setInvite(data);
         setStep("form");

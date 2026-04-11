@@ -134,7 +134,7 @@ export default function ClaimContent() {
   }
 
   // ── Google OAuth — redirect to backend init endpoint ──
-  function handleGoogleClaim() {
+  {/**function handleGoogleClaim() {
     if (!invite?.email) return;
 
     setIsGoogleLoading(true);
@@ -199,7 +199,7 @@ export default function ClaimContent() {
         </div>
       </AuthShell>
     );
-  }
+  }*/}
 
   // ── Form ──
   return (
@@ -231,8 +231,8 @@ export default function ClaimContent() {
       )}
 
       {errors.form && <AuthAlert message={errors.form} />}
-
-      {/* Google button — teachers and admins only */}
+    {/**
+      
       {isTeacher && (
         <>
           <button
@@ -262,7 +262,8 @@ export default function ClaimContent() {
           <AuthDivider />
         </>
       )}
-
+      */}
+        
       {/* Password form */}
       <form
         onSubmit={handlePasswordClaim}

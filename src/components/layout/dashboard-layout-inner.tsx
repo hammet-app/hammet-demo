@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Sheet,
@@ -29,20 +29,29 @@ export function DashboardLayoutInner({
   const { user } = useAuth();
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
+   
 
   // AuthGuard guarantees user is non-null by the time we render here
-  if (!user) return null;
+  if (!user || !user.roles) return null;
 
-  const role = getPrimaryRole(user.roles as UserRole[]);
+  const roles = user.roles as UserRole[];
+  const [activeRole, setActiveRole] = useState<UserRole>(roles[0]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <Topbar user={user} onMenuClick={() => setDrawerOpen(true)} />
+      <Topbar 
+        user={user} 
+        activeRole={activeRole}
+        onMenuClick={() => setDrawerOpen(true)} 
+        />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop sidebar */}
         <div className="hidden md:block shrink-0">
-          <Sidebar role={role} activePath={pathname} />
+          <Sidebar 
+          roles={roles} 
+          activeRole={activeRole}
+          activePath={pathname} />
         </div>
 
         {/* Page content */}
@@ -61,7 +70,8 @@ export function DashboardLayoutInner({
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>
           <Sidebar
-            role={role}
+            roles={roles}
+            activeRole={activeRole}
             activePath={pathname}
             onNavigate={() => setDrawerOpen(false)}
             className="h-full"

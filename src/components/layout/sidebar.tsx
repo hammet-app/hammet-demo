@@ -12,15 +12,14 @@ import { useEffect, useState } from "react";
 
 interface SidebarProps {
   roles: UserRole[];
-  activeRole: UserRole
+  activeRole: UserRole;
   activePath: string;
   /** Called when a nav item is clicked — use to close the drawer on mobile */
   onNavigate?: () => void;
   className?: string;
 }
 
-export function Sidebar({ role, activePath, onNavigate, className }: SidebarProps) {
-
+export function Sidebar({ roles, activePath, onNavigate, className }: SidebarProps) {
 
   const {logout, user} = useAuth();
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
@@ -58,7 +57,7 @@ export function Sidebar({ role, activePath, onNavigate, className }: SidebarProp
         </div>
       )}
 
-      
+
       <nav className="flex-1 py-4">
         {entries.map((entry, i) => {
           if (entry.type === "section") {

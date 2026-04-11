@@ -7,6 +7,7 @@ import type { UserRole } from "@/lib/utils/roles";
 
 interface TopbarProps {
   user: AuthUser;
+  activeRole: UserRole;
   onMenuClick: () => void;
   className?: string;
 }
@@ -25,9 +26,9 @@ const avatarStyles: Record<UserRole, string> = {
   hammet_admin:  "bg-warning text-text-primary",
 };
 
-export function Topbar({ user, onMenuClick, className }: TopbarProps) {
-  const primaryRole = getPrimaryRole(user.roles as UserRole[]);
+export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps) {
   const initials = getInitials(user.full_name);
+  const primaryRole = activeRole;
   const roleLabel = getRoleLabel(primaryRole);
 
   const metaLine =

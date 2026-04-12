@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Sheet,
@@ -11,16 +11,8 @@ import {
 import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getPrimaryRole } from "@/lib/utils/roles";
 import type { UserRole } from "@/lib/utils/roles";
 
-/**
- * Inner dashboard layout — reads user from AuthContext so it needs
- * no props. Renders Topbar, desktop Sidebar, and mobile Sheet drawer.
- *
- * Kept separate from the (dashboard) group layout.tsx so it can be
- * a Client Component without forcing the group layout server → client.
- */
 export function DashboardLayoutInner({
   children,
 }: {
@@ -29,29 +21,31 @@ export function DashboardLayoutInner({
   const { user } = useAuth();
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
-   
 
-  // AuthGuard guarantees user is non-null by the time we render here
   if (!user || !user.roles) return null;
 
   const roles = user.roles as UserRole[];
-  const [activeRole, setActiveRole] = useState<UserRole>(roles[0]);
+
+  // ✅ Single source of truth
+  const [activeRole, setActiveRole] = useState<UserRole>(() => roles[0]);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">
-      <Topbar 
-        user={user} 
+      <Topbar
+        user={user}
         activeRole={activeRole}
-        onMenuClick={() => setDrawerOpen(true)} 
-        />
+        onMenuClick={() => setDrawerOpen(true)}
+      />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Desktop sidebar */}
         <div className="hidden md:block shrink-0">
-          <Sidebar 
-          roles={roles} 
-          activeRole={activeRole}
-          activePath={pathname} />
+          <Sidebar
+            roles={roles}
+            activeRole={activeRole}
+            setActiveRole={setActiveRole}
+            activePath={pathname}
+          />
         </div>
 
         {/* Page content */}
@@ -69,9 +63,11 @@ export function DashboardLayoutInner({
           <SheetHeader className="sr-only">
             <SheetTitle>Navigation</SheetTitle>
           </SheetHeader>
+
           <Sidebar
             roles={roles}
             activeRole={activeRole}
+            setActiveRole={setActiveRole}
             activePath={pathname}
             onNavigate={() => setDrawerOpen(false)}
             className="h-full"

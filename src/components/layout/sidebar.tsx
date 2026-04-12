@@ -2,37 +2,37 @@
 
 import { cn } from "@/lib/utils/utils";
 import { navConfig } from "./sidebar-config";
-import Link from "next/link"
+import Link from "next/link";
 import type { UserRole } from "@/lib/utils/roles";
 import type { NavItem } from "./sidebar-config";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
 
 interface SidebarProps {
   roles: UserRole[];
   activeRole: UserRole;
+  setActiveRole: (role: UserRole) => void;
   activePath: string;
-  /** Called when a nav item is clicked — use to close the drawer on mobile */
   onNavigate?: () => void;
   className?: string;
 }
 
-export function Sidebar({ roles, activePath, onNavigate, className }: SidebarProps) {
-
-  const {logout, user} = useAuth();
-  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
+export function Sidebar({
+  roles,
+  activeRole,
+  setActiveRole,
+  activePath,
+  onNavigate,
+  className,
+}: SidebarProps) {
+  const { logout, user } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (user?.roles?.length && !activeRole) {
-      setActiveRole(user.roles[0])
-    }
-  }, [user])
+  if (!user) return null;
 
-  if (!user || !activeRole) return null;
   const entries = navConfig[activeRole];
+
   return (
     <aside
       className={cn(
@@ -40,15 +40,15 @@ export function Sidebar({ roles, activePath, onNavigate, className }: SidebarPro
         className
       )}
     >
-
-      {user.roles.length > 1 && (
+      {/* Role switcher */}
+      {roles.length > 1 && (
         <div className="px-4 py-3">
           <select
             value={activeRole}
             onChange={(e) => setActiveRole(e.target.value as UserRole)}
             className="w-full bg-white/10 text-white px-2 py-1 rounded"
           >
-            {user.roles.map((role) => (
+            {roles.map((role) => (
               <option key={role} value={role}>
                 {role}
               </option>
@@ -56,7 +56,6 @@ export function Sidebar({ roles, activePath, onNavigate, className }: SidebarPro
           </select>
         </div>
       )}
-
 
       <nav className="flex-1 py-4">
         {entries.map((entry, i) => {
@@ -80,43 +79,41 @@ export function Sidebar({ roles, activePath, onNavigate, className }: SidebarPro
             );
           }
 
-          /* NavItem */
           const item = entry as NavItem;
-          const isActive = activePath === item.href || activePath.startsWith(item.href + "/");
+          const isActive =
+            activePath === item.href ||
+            activePath.startsWith(item.href + "/");
           const Icon = item.icon;
 
-         
-        if (item.action === "logout") {
-          return (
-            <Button
-              key={item.label}
-              variant="ghost"
-              onClick={() => {
-                logout();
-                router.push("/login");
-              }}
-              className={cn(
-                "w-full justify-start gap-2.5 px-5 py-[9px] text-[13.5px]",
-                "text-red-400 hover:text-red-300 hover:bg-red-500/[0.12]"
-              )}
-            >
-              <Icon size={16} />
-              <span className="leading-none">{item.label}</span>
-            </Button>
-          );
-        }
+          if (item.action === "logout") {
+            return (
+              <Button
+                key={item.label}
+                variant="ghost"
+                onClick={() => {
+                  logout();
+                  router.push("/login");
+                }}
+                className={cn(
+                  "w-full justify-start gap-2.5 px-5 py-[9px] text-[13.5px]",
+                  "text-red-400 hover:text-red-300 hover:bg-red-500/[0.12]"
+                )}
+              >
+                <Icon size={16} />
+                <span className="leading-none">{item.label}</span>
+              </Button>
+            );
+          }
 
-          if (item.href){
-
+          if (item.href) {
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-2.5 px-5 py-[9px] text-[13.5px] font-normal",
+                  "flex items-center gap-2.5 px-5 py-[9px] text-[13.5px]",
                   "border-l-[3px] border-transparent transition-colors duration-100",
-                  "no-underline",
                   isActive
                     ? "bg-white/10 text-white border-l-cyan font-medium"
                     : item.danger
@@ -126,14 +123,15 @@ export function Sidebar({ roles, activePath, onNavigate, className }: SidebarPro
               >
                 <Icon size={16} className="shrink-0" />
                 <span className="flex-1 leading-none">{item.label}</span>
+
                 {item.badge != null && item.badge > 0 && (
                   <span className="ml-auto bg-cyan text-purple-dark text-[10px] font-bold px-1.5 py-[1px] rounded-full min-w-[18px] text-center leading-[16px]">
                     {item.badge}
                   </span>
                 )}
               </Link>
-          );
-        }
+            );
+          }
         })}
       </nav>
     </aside>

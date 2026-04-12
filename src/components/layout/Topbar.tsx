@@ -53,7 +53,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
       </button>
 
       {/* Logo */}
-      <a href="/" className="flex items-center gap-2 shrink-0 no-underline">
+      <a href="/favicon.ico" className="flex items-center gap-2 shrink-0 no-underline">
         <div className="w-7 h-7 rounded-[7px] bg-cyan flex items-center justify-center">
           <LogoMark />
         </div>

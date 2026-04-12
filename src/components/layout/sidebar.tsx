@@ -8,6 +8,7 @@ import type { NavItem } from "./sidebar-config";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { getDashboardRoute } from "@/lib/auth/routes";
 
 interface SidebarProps {
   roles: UserRole[];
@@ -45,7 +46,12 @@ export function Sidebar({
         <div className="px-4 py-3">
           <select
             value={activeRole}
-            onChange={(e) => setActiveRole(e.target.value as UserRole)}
+            onChange={(e) => {
+              const newRole = e.target.value as UserRole;
+
+              setActiveRole(newRole);
+              router.push(getDashboardRoute(newRole));
+            }}
             className="w-full bg-white/10 text-white px-2 py-1 rounded"
           >
             {roles.map((role) => (

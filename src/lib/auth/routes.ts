@@ -18,3 +18,10 @@ export function getDefaultRoute(roles: UserRole[]): string {
   if (roles.includes("teacher"))      return ROLE_DEFAULT_ROUTES.teacher;
   return ROLE_DEFAULT_ROUTES.student;
 }
+
+export function getDashboardRoute(role: UserRole): string {
+  if (role === "hammet_admin") return ROLE_DEFAULT_ROUTES.hammet_admin;
+  if (role === "school_admin") return ROLE_DEFAULT_ROUTES.school_admin;
+  if (role === "teacher")      return ROLE_DEFAULT_ROUTES.teacher;
+  return ROLE_DEFAULT_ROUTES.student;
+}

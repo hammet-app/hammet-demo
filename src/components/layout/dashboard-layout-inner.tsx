@@ -26,7 +26,6 @@ export function DashboardLayoutInner({
 
   const roles = user.roles as UserRole[];
 
-  // ✅ Single source of truth
   const [activeRole, setActiveRole] = useState<UserRole>(() => roles[0]);
 
   return (

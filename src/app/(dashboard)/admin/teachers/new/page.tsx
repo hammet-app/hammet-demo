@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSchoolProfile, registerTeacher } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { FieldError } from "@/components/ui/auth-shell";
-import type { AssignedClass } from "@/lib/api/api-types";
 
 const LEVELS = ["JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3"];
 
-type ClassRow = { level: string; arm: string; term: string };
+type ClassRow = { level: string; arm: string };
 type FormErrors = {
   full_name?: string;
   email?: string;
@@ -38,11 +36,11 @@ function ClassAssignmentRow({
   canRemove: boolean;
 }) {
   const selectClass =
-    "flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-page)] px-3 py-2.5 text-sm text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-purple)] focus:border-transparent transition appearance-none";
+    "flex-1 rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-page)] px-3 py-2.5 text-sm";
 
   return (
     <div className="flex items-center gap-2">
-      <span className="w-5 text-xs text-[var(--color-text-muted)] text-center shrink-0">
+      <span className="w-5 text-xs text-center shrink-0">
         {index + 1}
       </span>
 
@@ -53,10 +51,12 @@ function ClassAssignmentRow({
         className={selectClass}
       >
         <option value="">Level</option>
-        {LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
+        {LEVELS.map((l) => (
+          <option key={l} value={l}>{l}</option>
+        ))}
       </select>
 
-      {/* Arm — only if school has arms */}
+      {/* Arm */}
       {availableArms.length > 0 && (
         <select
           value={row.arm}
@@ -64,30 +64,19 @@ function ClassAssignmentRow({
           className={selectClass}
         >
           <option value="">Arm</option>
-          {availableArms.map((a) => <option key={a} value={a}>{a}</option>)}
+          {availableArms.map((a) => (
+            <option key={a} value={a}>{a}</option>
+          ))}
         </select>
       )}
-
-      {/* Term */}
-      <select
-        value={row.term}
-        onChange={(e) => onChange({ ...row, term: e.target.value })}
-        className={selectClass}
-      >
-        <option value="">Term</option>
-        {[1, 2, 3].map((t) => <option key={t} value={String(t)}>Term {t}</option>)}
-      </select>
 
       {/* Remove */}
       <button
         onClick={onRemove}
         disabled={!canRemove}
-        className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-50 disabled:opacity-25 disabled:cursor-not-allowed transition-colors shrink-0"
-        aria-label="Remove class"
+        className="p-1.5 disabled:opacity-25"
       >
-        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-        </svg>
+        ✕
       </button>
     </div>
   );
@@ -95,17 +84,15 @@ function ClassAssignmentRow({
 
 export default function NewTeacherPage() {
   const { accessToken, refreshToken } = useAuth();
-  const router = useRouter();
 
   const [availableArms, setAvailableArms] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentTerm, setCurrentTerm] = useState<number>(1);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [roles, setRoles] = useState<string[]>(["teacher"]);
   const [classes, setClasses] = useState<(ClassRow & { _id: string })[]>([
-    { _id: uid(), level: "", arm: "", term: "" },
+    { _id: uid(), level: "", arm: "" },
   ]);
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -119,25 +106,23 @@ export default function NewTeacherPage() {
     getSchoolProfile(accessToken, refreshToken)
       .then((p) => {
         setAvailableArms(p.available_arms ?? []);
-        setCurrentTerm(p.term);
-        setClasses([
-          { _id: uid(), level: "", arm: "", term: String(p.term) },
-        ]);
+        setClasses([{ _id: uid(), level: "", arm: "" }]);
       })
       .catch(() => setAvailableArms([]))
       .finally(() => setIsLoading(false));
   }, [accessToken, refreshToken]);
 
   function updateClass(index: number, updated: ClassRow) {
-    setClasses((prev) => prev.map((c, i) => (i === index ? { ...c, ...updated } : c)));
-    if (errors.classes) setErrors((p) => ({ ...p, classes: undefined }));
+    setClasses((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, ...updated } : c))
+    );
+    if (errors.classes) {
+      setErrors((p) => ({ ...p, classes: undefined }));
+    }
   }
 
   function addClass() {
-    setClasses((prev) => [
-      ...prev,
-      { _id: uid(), level: "", arm: "", term: String(currentTerm) },
-    ]);
+    setClasses((prev) => [...prev, { _id: uid(), level: "", arm: "" }]);
   }
 
   function removeClass(index: number) {
@@ -146,53 +131,64 @@ export default function NewTeacherPage() {
 
   function validate(): FormErrors {
     const errs: FormErrors = {};
+
     if (!fullName.trim()) errs.full_name = "Full name is required.";
+
     if (!email.trim()) {
       errs.email = "Email is required.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errs.email = "Enter a valid email address.";
+      errs.email = "Enter a valid email.";
     }
-    // Validate all class rows are complete
+
     const hasIncomplete = classes.some(
-      (c) => !c.level || !c.term || (availableArms.length > 0 && !c.arm)
+      (c) => !c.level || (availableArms.length > 0 && !c.arm)
     );
-    if (hasIncomplete)
+
+    if (hasIncomplete) {
       errs.classes = "Complete all class fields or remove incomplete rows.";
+    }
+
     return errs;
   }
 
   async function handleSubmit() {
     const errs = validate();
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+
     if (!accessToken) return;
 
-    const assignedClasses: AssignedClass[] = classes.map((c) => ({
-      level: c.level,
-      arm: availableArms.length > 0 ? c.arm || null : null,
-      term: Number(c.term),
-    }));
+    const classLevels = classes.map((c) => c.level);
+    const classArms =
+      availableArms.length > 0
+        ? classes.map((c) => c.arm)
+        : null;
 
     setSubmitting(true);
     setServerError(null);
+
     try {
-      await registerTeacher(
-        {
-          full_name: fullName.trim(),
-          email: email.trim(),
-          roles: isAdmin ? ["teacher", "school_admin"] : ["teacher"],
-          assigned_classes: assignedClasses,
-        },
-        accessToken,
-        refreshToken
-      );
+      await registerTeacher({
+        full_name: fullName.trim(),
+        email: email.trim(),
+        roles,
+        class_level: classLevels,
+        class_arm: classArms,
+      },
+      accessToken,
+      refreshToken
+    );
+      
+
       setSuccess(fullName.trim());
       setFullName("");
       setEmail("");
-      setIsAdmin(false);
-      setClasses([{ _id: uid(), level: "", arm: "", term: String(currentTerm) }]);
+      setClasses([{ _id: uid(), level: "", arm: "" }]);
       setErrors({});
     } catch {
-      setServerError("Failed to register teacher. Please try again.");
+      setServerError("Failed to register teacher.");
     } finally {
       setSubmitting(false);
     }
@@ -201,36 +197,22 @@ export default function NewTeacherPage() {
   return (
     <PageShell
       title="Register Teacher"
-      description="An invite link will be emailed to the teacher."
+      description="An invite link will be emailed."
       backHref="/admin/teachers"
     >
       {isLoading ? (
         <ListSkeleton rows={4} />
       ) : (
         <div className="max-w-md flex flex-col gap-6">
-          {success && (
-            <div className="px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
-              {success} registered. Invite email sent.
-            </div>
-          )}
+          {success && <div>{success} registered.</div>}
+          {serverError && <div>{serverError}</div>}
 
-          {serverError && (
-            <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-              {serverError}
-            </div>
-          )}
-
-          {/* Teacher details */}
-          <div className="bg-[var(--color-bg-card)] border rounded-2xl p-6 flex flex-col gap-5">
+          <div className="p-6 border rounded-2xl flex flex-col gap-5">
             <AuthInput
               id="full-name"
               label="Full name"
               value={fullName}
-              onChange={(e) => {
-                setFullName(e);
-                if (errors.full_name)
-                  setErrors((p) => ({ ...p, full_name: undefined }));
-              }}
+              onChange={setFullName}
             />
             <FieldError message={errors.full_name} />
 
@@ -238,25 +220,25 @@ export default function NewTeacherPage() {
               id="email"
               label="Email"
               value={email}
-              onChange={(e) => {
-                setEmail(e);
-                if (errors.email)
-                  setErrors((p) => ({ ...p, email: undefined }));
-              }}
+              onChange={setEmail}
             />
             <FieldError message={errors.email} />
-
-            {/* Admin toggle */}
-            <button
-              onClick={() => setIsAdmin((v) => !v)}
-              className="text-sm"
-            >
-              {isAdmin ? "✓ Admin" : "Make admin"}
-            </button>
           </div>
 
-          {/* Classes */}
-          <div className="bg-[var(--color-bg-card)] border rounded-2xl p-6 flex flex-col gap-4">
+          <button
+            onClick={() => {
+              setRoles((prev) =>
+                prev.includes("school_admin")
+                  ? prev.filter((r) => r !== "school_admin")
+                  : [...prev, "school_admin"]
+              );
+            }}
+            className="text-sm"
+          >
+            {roles.includes("school_admin") ? "✓ Admin" : "Make admin"}
+          </button>
+
+          <div className="p-6 border rounded-2xl flex flex-col gap-4">
             {errors.classes && (
               <p className="text-xs text-red-600">{errors.classes}</p>
             )}
@@ -281,7 +263,7 @@ export default function NewTeacherPage() {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full bg-[var(--color-purple)] text-white py-3 rounded-xl"
+            className="w-full bg-purple-600 text-white py-3 rounded-xl"
           >
             {submitting ? "Registering…" : "Register teacher"}
           </button>

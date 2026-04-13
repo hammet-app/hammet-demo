@@ -103,8 +103,10 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
 
 function LogoMark() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
-      <path d="M8 1L2 5v6l6 4 6-4V5L8 1zm0 2l4 2.7V10L8 12.7 4 10V5.7L8 3z" />
-    </svg>
+    <img
+      src="/favicon.ico"
+      alt="logo"
+      className="w-8 h-8"
+    />
   );
 }

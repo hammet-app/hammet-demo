@@ -19,6 +19,55 @@ interface RequestOptions {
   onRefresh?: () => Promise<string | null>;
 }
 
+async function requestForm<T>(
+  path: string,
+  formData: FormData,
+  options: RequestOptions = {}
+): Promise<T> {
+  const { token, onRefresh } = options;
+
+  const headers: Record<string, string> = {};
+
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const makeRequest = (authToken?: string | null) =>
+    fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      credentials: "include",
+      headers: authToken
+        ? { Authorization: `Bearer ${authToken}` }
+        : headers,
+      body: formData, // 🚨 NO JSON.stringify, NO content-type
+    });
+
+  let res = await makeRequest(token);
+
+  // ── retry on 401 ──
+  if (res.status === 401 && onRefresh) {
+    const newToken = await onRefresh();
+    if (newToken) {
+      res = await makeRequest(newToken);
+    } else {
+      throw new ApiError(401, null, "Session expired");
+    }
+  }
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Request failed" }));
+    throw new ApiError(
+      res.status,
+      err,
+      (err.error?.message || err.detail) ?? "Request failed"
+    );
+  }
+
+  if (res.status === 204) return undefined as T;
+
+  return res.json() as Promise<T>;
+}
+
 async function request<T>(
   method: HttpMethod,
   path: string,
@@ -58,19 +107,27 @@ async function request<T>(
 
       if (!retryRes.ok) {
         const err = await retryRes.json().catch(() => ({ detail: "Request failed" }));
-        throw new ApiError(retryRes.status, err.detail ?? "Request failed");
+        throw new ApiError(
+          res.status,
+          err,
+          err.error?.message || err.detail || "Request failed"
+        );
       }
 
       return retryRes.json() as Promise<T>;
     }
 
     // Refresh failed — throw so the dashboard guard can redirect to login
-    throw new ApiError(401, "Session expired");
+    throw new ApiError(401, null, "Session expired");
   }
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Request failed" }))
-    throw new ApiError(res.status, (err.error?.message ||err.detail) ?? "Request failed");
+    throw new ApiError(
+      res.status,
+      err,
+      (err.error?.message || err.detail) ?? "Request failed"
+    );
   }
 
   // 204 No Content
@@ -91,13 +148,16 @@ export const apiClient = {
 
   delete: <T>(path: string, token?: string | null, options?: RequestOptions) =>
     request<T>("DELETE", path, undefined, { token, ...options }),
+
+  postForm: <T>(path: string, form: FormData, token?: string | null, options?: RequestOptions) => 
+    requestForm<T>(path, form, { token, ...options }),
 };
 
 // ─── ApiError ────────────────────────────────────────────────
-
-export class ApiError extends Error {
+export class ApiError<T = unknown> extends Error {
   constructor(
     public readonly status: number,
+    public readonly data: T | null,
     message: string
   ) {
     super(message);

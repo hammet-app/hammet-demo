@@ -112,7 +112,8 @@ export type RegisterTeacherRequest = {
   full_name: string;
   email: string;
   roles: string[];              // e.g. ["teacher"] or ["teacher", "school_admin"]
-  assigned_classes: AssignedClass[];
+  class_level: string[];
+  class_arm: string[] | null;
 };
 
 export type RegisterTeacherResponse = {

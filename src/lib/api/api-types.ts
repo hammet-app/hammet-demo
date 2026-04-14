@@ -17,6 +17,9 @@ export type CurriculumModuleBlock = {
     | "heading"
     | "body"
     | "activity"
+    | "image"
+    | "task"
+    | "subtitle"
     | "ai_prompt"
     | "reflection"
     | "video_embed"
@@ -25,6 +28,7 @@ export type CurriculumModuleBlock = {
   tool_name?: string;
   url?: string;
   required?: boolean;
+  is_valid?: boolean;
 };
 
 // Re-export full api-types here as you build them out.

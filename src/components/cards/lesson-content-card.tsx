@@ -1,25 +1,271 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { cn } from "@/lib/utils/utils";
-import { ChevronLeft, ChevronRight, ExternalLink, Play, MessageSquare, HelpCircle } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  MessageSquare,
+  HelpCircle,
+  CheckSquare,
+  AlertTriangle,
+  ImageOff,
+} from "lucide-react";
 import type { CurriculumModuleBlock } from "@/lib/api/api-types";
 
-function getEmbedUrl(url?: string) {
-  if (!url) return "";
+// ── YouTube URL → embed URL ───────────────────────────────────────────────────
 
+function getEmbedUrl(url?: string): string {
+  if (!url) return "";
   if (url.includes("youtube.com/watch")) {
     const id = new URL(url).searchParams.get("v");
-    return `https://www.youtube.com/embed/${id}`;
+    return id ? `https://www.youtube.com/embed/${id}` : url;
   }
-
   if (url.includes("youtu.be/")) {
-    const id = url.split("youtu.be/")[1];
-    return `https://www.youtube.com/embed/${id}`;
+    const id = url.split("youtu.be/")[1]?.split("?")[0];
+    return id ? `https://www.youtube.com/embed/${id}` : url;
   }
-
   return url;
 }
+
+// ── Block subcomponents ───────────────────────────────────────────────────────
+
+function HeadingBlock({ block }: { block: CurriculumModuleBlock }) {
+  return (
+    <h2
+      className="text-[15px] font-bold text-text-primary pb-1.5 border-b-2 border-purple-light"
+      style={{ fontFamily: "var(--font-head)" }}
+    >
+      {block.content}
+    </h2>
+  );
+}
+
+function SubtitleBlock({ block }: { block: CurriculumModuleBlock }) {
+  return (
+    <p
+      className="text-[13px] font-semibold text-text-secondary uppercase tracking-wider"
+      style={{ fontFamily: "var(--font-head)" }}
+    >
+      {block.content}
+    </p>
+  );
+}
+
+function BodyBlock({ block }: { block: CurriculumModuleBlock }) {
+  return (
+    <p
+      className="text-[13.5px] text-text-secondary leading-relaxed"
+      dangerouslySetInnerHTML={{ __html: block.content }}
+    />
+  );
+}
+
+function ImageBlock({ block }: { block: CurriculumModuleBlock }) {
+  const invalid = block.is_valid === false || !block.url;
+
+  if (invalid) {
+    return (
+      <div className="flex items-center gap-3 border border-dashed border-warning/60 bg-warning/5 rounded-[10px] px-4 py-3.5">
+        <ImageOff size={18} className="text-warning shrink-0" />
+        <div>
+          <p className="text-[12px] font-semibold text-warning">Image unavailable</p>
+          {block.content && (
+            <p className="text-[11px] text-text-muted mt-0.5">{block.content}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <figure className="rounded-[10px] overflow-hidden border border-border">
+      <img
+        src={block.url || block.content}
+        alt={block.content || "Lesson image"}
+        className="w-full h-auto object-cover"
+        loading="lazy"
+        onError={(e) => {
+          const target = e.currentTarget;
+          target.style.display = "none";
+          const fallback = target.nextElementSibling as HTMLElement | null;
+          if (fallback) fallback.style.display = "flex";
+        }}
+      />
+      <div
+        className="hidden items-center gap-2 bg-bg-page px-4 py-3 text-[12px] text-text-muted"
+        aria-hidden="true"
+      >
+        <ImageOff size={14} />
+        <span>Could not load image</span>
+      </div>
+      {block.content && (
+        <figcaption className="text-[11px] text-text-muted px-3.5 py-2 border-t border-border bg-bg-page">
+          {block.content}
+        </figcaption>
+      )}
+    </figure>
+  );
+}
+
+function RequiredBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-danger">
+      <span className="w-1 h-1 rounded-full bg-danger" />
+      Required
+    </span>
+  );
+}
+
+function ActivityBlock({ block }: { block: CurriculumModuleBlock }) {
+  return (
+    <div className="border-l-[3px] border-purple-mid bg-purple-light rounded-r-[10px] px-3.5 py-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-purple-mid">
+          Your activity
+        </p>
+        {block.required && <RequiredBadge />}
+      </div>
+      <p className="text-[13px] text-purple-dark leading-relaxed">{block.content}</p>
+    </div>
+  );
+}
+
+function ReflectionBlock({ block }: { block: CurriculumModuleBlock }) {
+  return (
+    <div className="border-l-[3px] border-text-muted bg-gray-50 rounded-r-[10px] px-3.5 py-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
+          Reflection prompt
+        </p>
+        {block.required && <RequiredBadge />}
+      </div>
+      <p className="text-[13px] text-text-secondary leading-relaxed">{block.content}</p>
+    </div>
+  );
+}
+
+function TaskBlock({ block }: { block: CurriculumModuleBlock }) {
+  return (
+    <div className="border border-purple-mid/30 bg-purple-light/50 rounded-[10px] px-3.5 py-3 flex gap-3 items-start">
+      <div className="w-7 h-7 rounded-[7px] bg-purple-mid/15 text-purple-mid flex items-center justify-center shrink-0 mt-0.5">
+        <CheckSquare size={14} />
+      </div>
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-purple-mid mb-1.5">
+          Task
+        </p>
+        <p className="text-[13px] text-purple-dark leading-relaxed">{block.content}</p>
+      </div>
+    </div>
+  );
+}
+
+function AiPromptBlock({ block }: { block: CurriculumModuleBlock }) {
+  return (
+    <div className="border border-cyan bg-cyan-light rounded-[10px] px-3.5 py-3 flex gap-3 items-start">
+      <div className="w-8 h-8 rounded-[8px] bg-cyan text-purple-dark flex items-center justify-center shrink-0">
+        <HelpCircle size={16} />
+      </div>
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-dark mb-1">
+          AI prompt tip
+        </p>
+        <p className="text-[13px] text-cyan-dark leading-relaxed">{block.content}</p>
+      </div>
+    </div>
+  );
+}
+
+function VideoEmbedBlock({ block }: { block: CurriculumModuleBlock }) {
+  if (!block.url) {
+    return (
+      <div className="flex items-center gap-3 border border-dashed border-warning/60 bg-warning/5 rounded-[10px] px-4 py-3.5">
+        <AlertTriangle size={16} className="text-warning shrink-0" />
+        <p className="text-[12px] text-warning font-medium">Video URL missing</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border border-border rounded-[10px] overflow-hidden">
+      <div className="aspect-video w-full">
+        <iframe
+          src={getEmbedUrl(block.url)}
+          className="w-full h-full"
+          allowFullScreen
+          title={block.content || "Lesson video"}
+        />
+      </div>
+      {block.content && (
+        <p className="text-[12px] text-text-muted px-3.5 py-2.5 border-t border-border">
+          {block.content}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ToolLinkBlock({ block }: { block: CurriculumModuleBlock }) {
+  if (!block.url) {
+    return (
+      <div className="flex items-center gap-3 border border-dashed border-warning/60 bg-warning/5 rounded-[10px] px-4 py-3.5">
+        <AlertTriangle size={16} className="text-warning shrink-0" />
+        <p className="text-[12px] text-warning font-medium">Tool link missing</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border border-border rounded-[10px] px-3.5 py-3 flex items-center gap-3">
+      <div className="w-9 h-9 rounded-[9px] bg-cyan-light text-cyan-dark flex items-center justify-center shrink-0">
+        <ExternalLink size={18} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[13.5px] font-semibold text-cyan truncate">
+          {block.tool_name || block.content}
+        </p>
+        <p className="text-[11px] text-text-muted truncate">{block.url}</p>
+      </div>
+      <a
+        href={block.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 text-[12px] font-semibold bg-cyan text-purple-dark px-3 py-1.5 rounded-[8px] hover:bg-cyan-dark hover:text-white transition-colors shrink-0"
+      >
+        Open tool
+        <ExternalLink size={11} />
+      </a>
+    </div>
+  );
+}
+
+// ── Block dispatcher ──────────────────────────────────────────────────────────
+
+function Block({ block }: { block: CurriculumModuleBlock }) {
+  switch (block.type) {
+    case "heading":     return <HeadingBlock block={block} />;
+    case "subtitle":    return <SubtitleBlock block={block} />;
+    case "body":        return <BodyBlock block={block} />;
+    case "image":       return <ImageBlock block={block} />;
+    case "activity":    return <ActivityBlock block={block} />;
+    case "reflection":  return <ReflectionBlock block={block} />;
+    case "task":        return <TaskBlock block={block} />;
+    case "ai_prompt":   return <AiPromptBlock block={block} />;
+    case "video_embed": return <VideoEmbedBlock block={block} />;
+    case "tool_link":   return <ToolLinkBlock block={block} />;
+    default:
+      if (process.env.NODE_ENV === "development") {
+        console.warn(`[LessonContentCard] Unknown block type: "${(block as CurriculumModuleBlock).type}"`);
+      }
+      return null;
+  }
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+const REFLECTION_MIN = 4;
+const REFLECTION_MAX = 10;
 
 interface LessonContentCardProps {
   title: string;
@@ -28,20 +274,15 @@ interface LessonContentCardProps {
   term: number;
   toolName?: string;
   blocks: CurriculumModuleBlock[];
-  /** Current reflection text (controlled from parent) */
   reflectionText: string;
   onReflectionChange: (text: string) => void;
-  /** Whether the lesson has been saved offline */
   savedOffline?: boolean;
   onPrevious?: () => void;
   onSubmit: () => void;
   isSubmitting?: boolean;
   className?: string;
-  submitLabel?:string
+  submitLabel?: string;
 }
-
-const REFLECTION_MIN = 4;
-const REFLECTION_MAX = 10;
 
 export function LessonContentCard({
   title,
@@ -59,9 +300,10 @@ export function LessonContentCard({
   className,
   submitLabel,
 }: LessonContentCardProps) {
-  const wordCount = reflectionText.trim() === ""
-    ? 0
-    : reflectionText.trim().split(/\s+/).length;
+  const wordCount =
+    reflectionText.trim() === ""
+      ? 0
+      : reflectionText.trim().split(/\s+/).length;
 
   const wordCountColor =
     wordCount >= REFLECTION_MIN && wordCount <= REFLECTION_MAX
@@ -73,7 +315,7 @@ export function LessonContentCard({
   return (
     <div className={cn("bg-bg-card border border-border rounded-[14px] overflow-hidden", className)}>
 
-      {/* ── Header ── */}
+      {/* Header */}
       <div className="bg-purple-dark px-6 py-5 flex flex-col gap-2.5">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full bg-white/[0.12] text-white/85 tracking-wide">
@@ -96,13 +338,13 @@ export function LessonContentCard({
         )}
       </div>
 
-      {/* ── Body ── */}
+      {/* Blocks — rendered in backend order */}
       <div className="px-6 py-6 flex flex-col gap-5">
         {blocks.map((block, i) => (
           <Block key={i} block={block} />
         ))}
 
-        {/* Reflection textarea — always last */}
+        {/* Reflection answer textarea — always last, after all content blocks */}
         <div className="flex flex-col gap-2">
           <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
             <MessageSquare size={14} className="text-purple-mid" />
@@ -129,7 +371,7 @@ export function LessonContentCard({
         </div>
       </div>
 
-      {/* ── Footer ── */}
+      {/* Footer */}
       <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-1.5 text-[12px] text-success">
           <span className="w-[7px] h-[7px] rounded-full bg-success shrink-0" />
@@ -156,117 +398,11 @@ export function LessonContentCard({
                 : "bg-purple/50 text-white/60 cursor-not-allowed"
             )}
           >
-            {isSubmitting ? "Submitting…" :(submitLabel ?? "Submit & continue")}
+            {isSubmitting ? "Submitting…" : (submitLabel ?? "Submit & continue")}
             {!isSubmitting && <ChevronRight size={14} />}
           </button>
         </div>
       </div>
     </div>
   );
-}
-
-/* ── Individual block renderers ── */
-
-function Block({ block }: { block: CurriculumModuleBlock }) {
-  switch (block.type) {
-    case "heading":
-      return (
-        <h2
-          className="text-[15px] font-bold text-text-primary pb-1.5 border-b-2 border-purple-light"
-          style={{ fontFamily: "var(--font-head)" }}
-        >
-          {block.content}
-        </h2>
-      );
-
-    case "body":
-      return (
-        <p
-          className="text-[13.5px] text-text-secondary leading-relaxed"
-          dangerouslySetInnerHTML={{ __html: block.content }}
-        />
-      );
-
-    case "activity":
-      return (
-        <div className="border-l-[3px] border-purple-mid bg-purple-light rounded-r-[10px] px-3.5 py-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-purple-mid mb-1.5">
-            Your activity
-          </p>
-          <p className="text-[13px] text-purple-dark leading-relaxed">{block.content}</p>
-        </div>
-      );
-
-    case "ai_prompt":
-      return (
-        <div className="border border-cyan bg-cyan-light rounded-[10px] px-3.5 py-3 flex gap-3 items-start">
-          <div className="w-8 h-8 rounded-[8px] bg-cyan text-purple-dark flex items-center justify-center shrink-0">
-            <HelpCircle size={16} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-cyan-dark mb-1">
-              AI prompt tip
-            </p>
-            <p className="text-[13px] text-cyan-dark leading-relaxed">{block.content}</p>
-          </div>
-        </div>
-      );
-
-    case "tool_link":
-      return (
-        <div className="border border-border rounded-[10px] px-3.5 py-3 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-[9px] bg-cyan-light text-cyan-dark flex items-center justify-center shrink-0">
-            <ExternalLink size={18} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13.5px] font-semibold text-cyan truncate">{block.tool_name}</p>
-            <p className="text-[11px] text-text-muted truncate">{block.url}</p>
-          </div>
-          <a
-            href={block.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-[12px] font-semibold bg-cyan text-purple-dark px-3 py-1.5 rounded-[8px] hover:bg-cyan-dark hover:text-white transition-colors shrink-0"
-          >
-            Open tool
-            <ExternalLink size={11} />
-          </a>
-        </div>
-      );
-
-    case "video_embed":
-      return (
-        <div className="border border-border rounded-[10px] overflow-hidden">
-          <div className="aspect-video w-full">
-            <iframe
-              src={getEmbedUrl(block.url)}
-              className="w-full h-full"
-              allowFullScreen
-            />
-          </div>
-
-          {block.content && (
-            <p className="text-[12px] text-text-muted px-3.5 py-2.5 border-t border-border">
-              {block.content}
-            </p>
-          )}
-        </div>
-      );
-
-    case "reflection":
-      /* The main reflection textarea is rendered separately above.
-         If Angel adds an extra reflection block as a prompt/label,
-         render it as an activity-style hint. */
-      return (
-        <div className="border-l-[3px] border-text-muted bg-gray-50 rounded-r-[10px] px-3.5 py-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1.5">
-            Reflection prompt
-          </p>
-          <p className="text-[13px] text-text-secondary leading-relaxed">{block.content}</p>
-        </div>
-      );
-
-    default:
-      return null;
-  }
 }

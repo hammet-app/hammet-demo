@@ -13,8 +13,21 @@ import {
 } from "lucide-react";
 import type { CurriculumModuleBlock } from "@/lib/api/api-types";
 
-// ── YouTube URL → embed URL ───────────────────────────────────────────────────
+// ── Formatter (ONLY used for body) ────────────────────────────────────────────
+function formatInlineText(text?: string): string {
+  if (!text) return "";
 
+  const formatted = text
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
+    .replace(/!(.*?)!/g, "<em>$1</em>"); // Italics
+
+  return formatted
+    .split(/(?<=[.!?])\s+/)
+    .map(sentence => `<span class="block mb-2">${sentence}</span>`)
+    .join("");
+}
+
+// ── YouTube URL → embed URL ───────────────────────────────────────────────────
 function getEmbedUrl(url?: string): string {
   if (!url) return "";
   if (url.includes("youtube.com/watch")) {
@@ -56,7 +69,9 @@ function BodyBlock({ block }: { block: CurriculumModuleBlock }) {
   return (
     <p
       className="text-[13.5px] text-text-secondary leading-relaxed"
-      dangerouslySetInnerHTML={{ __html: block.content }}
+      dangerouslySetInnerHTML={{
+        __html: formatInlineText(block.content),
+      }}
     />
   );
 }
@@ -244,21 +259,17 @@ function ToolLinkBlock({ block }: { block: CurriculumModuleBlock }) {
 
 function Block({ block }: { block: CurriculumModuleBlock }) {
   switch (block.type) {
-    case "heading":     return <HeadingBlock block={block} />;
-    case "subheading":    return <SubheadingBlock block={block} />;
-    case "body":        return <BodyBlock block={block} />;
-    case "image":       return <ImageBlock block={block} />;
-    case "activity":    return <ActivityBlock block={block} />;
-    case "reflection":  return <ReflectionBlock block={block} />;
-    case "task":        return <TaskBlock block={block} />;
-    case "ai_prompt":   return <AiPromptBlock block={block} />;
+    case "heading": return <HeadingBlock block={block} />;
+    case "subheading": return <SubheadingBlock block={block} />;
+    case "body": return <BodyBlock block={block} />;
+    case "image": return <ImageBlock block={block} />;
+    case "activity": return <ActivityBlock block={block} />;
+    case "reflection": return <ReflectionBlock block={block} />;
+    case "task": return <TaskBlock block={block} />;
+    case "ai_prompt": return <AiPromptBlock block={block} />;
     case "video_embed": return <VideoEmbedBlock block={block} />;
-    case "tool_link":   return <ToolLinkBlock block={block} />;
-    default:
-      if (process.env.NODE_ENV === "development") {
-        console.warn(`[LessonContentCard] Unknown block type: "${(block as CurriculumModuleBlock).type}"`);
-      }
-      return null;
+    case "tool_link": return <ToolLinkBlock block={block} />;
+    default: return null;
   }
 }
 

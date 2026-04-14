@@ -19,7 +19,7 @@ export type CurriculumModuleBlock = {
     | "activity"
     | "image"
     | "task"
-    | "subtitle"
+    | "subheading"
     | "ai_prompt"
     | "reflection"
     | "video_embed"

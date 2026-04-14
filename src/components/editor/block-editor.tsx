@@ -17,6 +17,9 @@ const BLOCK_TYPES: CurriculumModuleBlock["type"][] = [
   "reflection",
   "video_embed",
   "tool_link",
+  "image",
+  "subheading",
+  "task"
 ];
 
 const BLOCK_TYPE_LABELS: Record<CurriculumModuleBlock["type"], string> = {
@@ -27,6 +30,9 @@ const BLOCK_TYPE_LABELS: Record<CurriculumModuleBlock["type"], string> = {
   reflection: "Reflection",
   video_embed: "Video embed",
   tool_link: "Tool link",
+  task: "Task",
+  subheading: "Subheading",
+  image: "Image"
 };
 
 const BLOCK_TYPE_DESCRIPTIONS: Record<CurriculumModuleBlock["type"], string> = {
@@ -37,6 +43,9 @@ const BLOCK_TYPE_DESCRIPTIONS: Record<CurriculumModuleBlock["type"], string> = {
   reflection: "Written reflection",
   video_embed: "Embedded video",
   tool_link: "Link to an external tool",
+  image: "An image for explaining content",
+  subheading: "A section subtitle",
+  task: "A task to be done by student"
 };
 
 // Which block types have extra fields beyond content

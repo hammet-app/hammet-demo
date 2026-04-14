@@ -41,7 +41,7 @@ function HeadingBlock({ block }: { block: CurriculumModuleBlock }) {
   );
 }
 
-function SubtitleBlock({ block }: { block: CurriculumModuleBlock }) {
+function SubheadingBlock({ block }: { block: CurriculumModuleBlock }) {
   return (
     <p
       className="text-[13px] font-semibold text-text-secondary uppercase tracking-wider"
@@ -245,7 +245,7 @@ function ToolLinkBlock({ block }: { block: CurriculumModuleBlock }) {
 function Block({ block }: { block: CurriculumModuleBlock }) {
   switch (block.type) {
     case "heading":     return <HeadingBlock block={block} />;
-    case "subtitle":    return <SubtitleBlock block={block} />;
+    case "subheading":    return <SubheadingBlock block={block} />;
     case "body":        return <BodyBlock block={block} />;
     case "image":       return <ImageBlock block={block} />;
     case "activity":    return <ActivityBlock block={block} />;

@@ -21,36 +21,39 @@ export function PageShell({
   className,
 }: PageShellProps) {
   return (
-    <div className={cn("flex flex-col min-h-full", className)}>
+    <div className={cn("flex flex-col w-full min-h-full", className)}>
+      
       {/* Header */}
-      <div className="px-6 pt-6 pb-5 border-b border-border bg-bg-card">
+      <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-5 border-b border-border bg-bg-card">
         {backHref && (
           <a
             href={backHref}
-            className="inline-flex items-center gap-1 text-[12px] text-text-muted hover:text-text-secondary transition-colors no-underline mb-3"
+            className="inline-flex items-center gap-1 text-xs text-text-muted hover:text-text-secondary transition-colors mb-3"
           >
             <ChevronLeft size={14} />
             {backLabel ?? "Back"}
           </a>
         )}
+
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1
-              className="text-[20px] font-bold text-text-primary leading-tight"
-              style={{ fontFamily: "var(--font-head)" }}
-            >
+            <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary">
               {title}
             </h1>
+
             {description && (
-              <p className="text-[13px] text-text-secondary mt-1">{description}</p>
+              <p className="text-sm text-text-secondary mt-1 max-w-2xl">
+                {description}
+              </p>
             )}
           </div>
+
           {actions && <div className="shrink-0">{actions}</div>}
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-6 py-6">
+      <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </div>
     </div>

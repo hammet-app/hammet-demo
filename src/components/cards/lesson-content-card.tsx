@@ -17,14 +17,67 @@ import type { CurriculumModuleBlock } from "@/lib/api/api-types";
 function formatInlineText(text?: string): string {
   if (!text) return "";
 
-  const formatted = text
-    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>") // Bold
-    .replace(/!(.*?)!/g, "<em>$1</em>"); // Italics
+  const lines = text.split("\n");
+  let result = "";
+  let inUl = false;
+  let inOl = false;
 
-  return formatted
-    .split(/(?<=[.!?])\s+/)
-    .map(sentence => `<span class="block mb-2">${sentence}</span>`)
-    .join("");
+  for (let line of lines) {
+    // Inline formatting first
+    line = line
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/!(.*?)!/g, "<em>$1</em>");
+
+    const trimmed = line.trim();
+
+    // ── BULLETS (- ) ─────────────────────
+    if (trimmed.startsWith("- ")) {
+      if (inOl) {
+        result += "</ol>";
+        inOl = false;
+      }
+      if (!inUl) {
+        result += `<ul class="list-disc ml-5 space-y-1">`;
+        inUl = true;
+      }
+      result += `<li>${trimmed.replace(/^- /, "")}</li>`;
+      continue;
+    }
+
+    // ── NUMBERED (1. 2. etc) ─────────────
+    if (/^\d+\.\s+/.test(trimmed)) {
+      if (inUl) {
+        result += "</ul>";
+        inUl = false;
+      }
+      if (!inOl) {
+        result += `<ol class="list-decimal ml-5 space-y-1">`;
+        inOl = true;
+      }
+      result += `<li>${trimmed.replace(/^\d+\.\s+/, "")}</li>`;
+      continue;
+    }
+
+    // ── NORMAL TEXT ─────────────────────
+    if (inUl) {
+      result += "</ul>";
+      inUl = false;
+    }
+    if (inOl) {
+      result += "</ol>";
+      inOl = false;
+    }
+
+    if (trimmed) {
+      result += `<p>${trimmed}</p>`;
+    }
+  }
+
+  // Close any open list
+  if (inUl) result += "</ul>";
+  if (inOl) result += "</ol>";
+
+  return result;
 }
 
 // ── YouTube URL → embed URL ───────────────────────────────────────────────────

@@ -177,57 +177,60 @@ export default function LessonDetailPage() {
   const status = existingSubmission?.status ?? null;
 
   return (
-    <div className="px-6 py-6 max-w-3xl">
-      {/* Non-fatal submit error */}
-      {submitError && (
-        <div className="mb-4 text-[13px] text-warning-dark bg-warning-light border border-warning/20 rounded-[10px] px-4 py-3">
-          {submitError}
-        </div>
-      )}
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="w-full max-w-4xl">
+        
+        {/* Non-fatal submit error */}
+        {submitError && (
+          <div className="mb-4 text-[13px] text-warning-dark bg-warning-light border border-warning/20 rounded-[10px] px-4 py-3">
+            {submitError}
+          </div>
+        )}
 
-      {/* ── Submitted or approved → block the form, show notice ── */}
-      {(status === "submitted" || status === "approved") && (
-        <SubmittedNotice
-          status={status}
-          submittedAt={existingSubmission!.submitted_at}
-          onNext={
-            nextMod
-              ? () => router.push(`/student/lessons/${nextMod.id}`)
-              : undefined
-          }
-          onBack={() => router.push("/student/lessons")}
-        />
-      )}
+        {/* Submitted / approved */}
+        {(status === "submitted" || status === "approved") && (
+          <SubmittedNotice
+            status={status}
+            submittedAt={existingSubmission!.submitted_at}
+            onNext={
+              nextMod
+                ? () => router.push(`/student/lessons/${nextMod.id}`)
+                : undefined
+            }
+            onBack={() => router.push("/student/lessons")}
+          />
+        )}
 
-      {/* ── Flagged → teacher note above the form ── */}
-      {status === "flagged" && existingSubmission?.teacher_note && (
-        <div className="mb-4 border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
-            Teacher feedback — revision required
-          </p>
-          <p className="text-[13px] text-warning-dark leading-relaxed">
-            {existingSubmission.teacher_note}
-          </p>
-        </div>
-      )}
+        {/* Flagged */}
+        {status === "flagged" && existingSubmission?.teacher_note && (
+          <div className="mb-4 border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
+              Teacher feedback — revision required
+            </p>
+            <p className="text-[13px] text-warning-dark leading-relaxed">
+              {existingSubmission.teacher_note}
+            </p>
+          </div>
+        )}
 
-      {/* ── Lesson form — only for not_started and flagged ── */}
-      {(status === null || status === "flagged") && (
-        <LessonContentCard
-          title={module.title}
-          weekNumber={module.week_number}
-          term={module.term}
-          toolName={toolBlock?.tool_name}
-          blocks={module.content_json.blocks}
-          reflectionText={reflectionText}
-          onReflectionChange={setReflectionText}
-          savedOffline={savedOffline}
-          onPrevious={handlePrevious}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          submitLabel={status === "flagged" ? "Resubmit revision" : undefined}
-        />
-      )}
+        {/* Lesson */}
+        {(status === null || status === "flagged") && (
+          <LessonContentCard
+            title={module.title}
+            weekNumber={module.week_number}
+            term={module.term}
+            toolName={toolBlock?.tool_name}
+            blocks={module.content_json.blocks}
+            reflectionText={reflectionText}
+            onReflectionChange={setReflectionText}
+            savedOffline={savedOffline}
+            onPrevious={handlePrevious}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            submitLabel={status === "flagged" ? "Resubmit revision" : undefined}
+          />
+        )}
+      </div>
     </div>
   );
 }

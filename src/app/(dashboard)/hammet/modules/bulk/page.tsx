@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { PageShell } from "@/components/layout/page-shell";
-import { apiClient, ApiError } from "@/lib/api/api-client";
+import { apiClient } from "@/lib/api/api-client";
 
 // ── Types ────────────────────────────────────────────────────
 type UploadState =
@@ -78,7 +78,7 @@ export default function BulkModulesPage() {
       const form = new FormData();
       form.append("file", file);
 
-      await apiClient.postForm<{ success: boolean }>(
+      await apiClient.postForm<true>(
         "/admin/modules",
         form,
         accessToken,

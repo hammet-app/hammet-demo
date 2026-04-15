@@ -64,7 +64,7 @@ export default function LoginPage() {
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) {
-          setErrors({ form: `Incorrect email or password. Please try again. ${err.message}` });
+          setErrors({ form: `Incorrect email or password. Please try again.` });
         } else if (err.status === 403) {
           setErrors({ form: `Your account has been suspended. Contact your school admin. ${err.message}` });
         } else if (err.status === 422) {

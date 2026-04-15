@@ -33,9 +33,15 @@ function CTAPair({ light = false }: { light?: boolean }) {
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, liveIndicator = false }: { children: React.ReactNode; liveIndicator?: boolean }) {
   return (
-    <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#06B6D4] mb-4">
+    <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#06B6D4] mb-4 flex items-center gap-2">
+      {liveIndicator && (
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+        </span>
+      )}
       {children}
     </p>
   );
@@ -56,7 +62,6 @@ function Nav() {
   return (
     <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo */}
         <a href="/" className="flex items-center gap-2 shrink-0">
           <Image
             src="/favicon.ico"
@@ -68,7 +73,6 @@ function Nav() {
           />
         </a>
 
-        {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
           {links.map((l) => (
             <a
@@ -81,7 +85,6 @@ function Nav() {
           ))}
         </div>
 
-        {/* Right side */}
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
@@ -97,7 +100,6 @@ function Nav() {
           </a>
         </div>
 
-        {/* Mobile hamburger */}
         <button
           onClick={() => setOpen(!open)}
           className="md:hidden p-2 text-gray-600"
@@ -115,7 +117,6 @@ function Nav() {
         </button>
       </div>
 
-      {/* Mobile menu */}
       {open && (
         <div className="md:hidden border-t border-gray-100 bg-white px-6 py-4 flex flex-col gap-4">
           {links.map((l) => (
@@ -149,57 +150,117 @@ function Nav() {
 // ─── Section 1 — Hero ─────────────────────────────────────────────────────────
 
 function Hero() {
+  const stats = [
+    { value: "118+", label: "Countries with AI in Education" },
+    { value: "14+", label: "Countries with National AI-Ed Policy" },
+    { value: "950,000+", label: "Schools Already Using AI Tools" },
+    { value: "175,000+", label: "Schools With Structured AI Curriculum" },
+  ];
+
   return (
     <section className="relative overflow-hidden bg-white">
-      {/* Subtle top-right accent */}
+      {/* Background accent */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#EDE9FE] rounded-full opacity-30 blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-6 py-24 lg:py-32">
-        <div className="max-w-3xl">
-          {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2 bg-[#EDE9FE] text-[#5B21B6] text-xs font-bold tracking-widest uppercase px-4 py-2 rounded-full mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#06B6D4] animate-pulse" />
-            AI Literacy for Nigerian Secondary Schools
+      <div className="relative max-w-7xl mx-auto px-6 pt-20 pb-0 lg:pt-24">
+
+        {/* Two-column: copy left, video right */}
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center pb-16 lg:pb-20">
+
+          {/* Left — headline + CTAs */}
+          <div>
+            <div className="inline-flex items-center gap-2 bg-[#EDE9FE] text-[#5B21B6] text-xs font-bold tracking-widest uppercase px-4 py-2 rounded-full mb-8">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#06B6D4] animate-pulse" />
+              AI Literacy for Nigerian Secondary Schools
+            </div>
+
+            <h1
+              className="font-[family-name:var(--font-jakarta)] text-4xl lg:text-6xl font-bold leading-[1.08] text-[#1E1B4B] mb-6"
+              style={{ letterSpacing: "-0.02em" }}
+            >
+              Nigerian Classrooms Need{" "}
+              <span className="relative inline-block">
+                <span className="relative z-10">AI Literacy.</span>
+                <span
+                  className="absolute bottom-1 left-0 w-full h-3 bg-[#06B6D4] opacity-20 rounded"
+                  aria-hidden
+                />
+              </span>
+            </h1>
+
+            <p className="text-lg text-gray-500 mb-10 leading-relaxed max-w-lg">
+              We built an easy-to-use software that brings AI knowledge to your doorstep.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <a
+                href="#callback"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold bg-[#3B0764] text-white hover:bg-[#5B21B6] transition-all duration-200"
+              >
+                Watch how it works in 3 Mins
+              </a>
+              <a
+                href="#callback"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold border border-[#3B0764] text-[#3B0764] hover:bg-[#EDE9FE] transition-all duration-200"
+              >
+                Test the software yourself
+              </a>
+            </div>
           </div>
 
-          {/* Headline */}
-          <h1
-            className="font-[family-name:var(--font-jakarta)] text-5xl lg:text-7xl font-bold leading-[1.05] text-[#1E1B4B] mb-6"
-            style={{ letterSpacing: "-0.02em" }}
-          >
-            Newsflash: Nearly{" "}
-            <span className="relative inline-block">
-              <span className="relative z-10">120 Countries</span>
-              <span
-                className="absolute bottom-1 left-0 w-full h-3 bg-[#06B6D4] opacity-20 rounded"
-                aria-hidden
-              />
-            </span>{" "}
-            have now integrated AI into their educational infrastructure.
-          </h1>
-
-          {/* Subheadline */}
-          <p className="text-lg text-gray-500 mb-3 leading-relaxed">
-            This is across <strong className="text-[#3B0764]">6 out of 7 continents</strong> — all except Antarctica.
-          </p>
-          <p className="text-lg text-gray-600 mb-3 leading-relaxed max-w-2xl">
-            HammetLabs built a safe AI curriculum software for your secondary school.
-          </p>
-          <p className="text-base text-gray-500 mb-10 max-w-2xl leading-relaxed">
-            An easy-to-use, well-structured curriculum that attaches to weekly computer classes — getting your students prepared for the brave new world of AI.
-          </p>
-
-          <CTAPair />
+          {/* Right — video placeholder */}
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-[#1E1B4B] flex items-center justify-center shadow-2xl shadow-[#3B0764]/20">
+            {/* Placeholder content */}
+            <div className="absolute inset-0 bg-gradient-to-br from-[#3B0764] to-[#0F0A1A]" />
+            <div className="relative flex flex-col items-center gap-4 text-center px-8">
+              <div className="w-16 h-16 rounded-full bg-white/10 border-2 border-white/20 flex items-center justify-center hover:bg-white/20 transition cursor-pointer">
+                <svg className="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+              <p className="text-white/50 text-sm font-medium">Product demo video</p>
+            </div>
+            {/* Decorative corner dots */}
+            <div className="absolute top-4 left-4 w-2 h-2 rounded-full bg-[#06B6D4]/40" />
+            <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-[#06B6D4]/40" />
+            <div className="absolute bottom-4 left-4 w-2 h-2 rounded-full bg-[#06B6D4]/40" />
+            <div className="absolute bottom-4 right-4 w-2 h-2 rounded-full bg-[#06B6D4]/40" />
+          </div>
         </div>
 
-        {/* Decorative grid accent — bottom right */}
-        <div
-          className="absolute bottom-0 right-0 w-64 h-64 opacity-[0.04] pointer-events-none"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(0deg, #3B0764 0, #3B0764 1px, transparent 1px, transparent 32px), repeating-linear-gradient(90deg, #3B0764 0, #3B0764 1px, transparent 1px, transparent 32px)",
-          }}
-        />
+        {/* Stats bar — full width, flush to section bottom */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-[#E5E7EB] border-t border-[#E5E7EB]">
+          {stats.map((s, i) => (
+            <div
+              key={s.label}
+              className="bg-white px-6 py-8 flex flex-col gap-1.5 group hover:bg-[#F5F3FF] transition-colors"
+            >
+              <p
+                className="font-[family-name:var(--font-jakarta)] text-3xl lg:text-4xl font-bold text-[#3B0764] leading-none"
+                style={{ letterSpacing: "-0.02em" }}
+              >
+                {s.value}
+              </p>
+              <p className="text-gray-500 text-sm leading-snug">{s.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Stats CTA strip */}
+        <div className="bg-[#3B0764] px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-white/70 text-sm">
+            Your school could be part of this global shift.
+          </p>
+          <a
+            href="#callback"
+            className="inline-flex items-center gap-2 bg-[#06B6D4] hover:bg-[#0891B2] text-white font-bold px-6 py-3 rounded-full text-sm transition-colors shrink-0"
+          >
+            Test the AI Curriculum Software
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </a>
+        </div>
       </div>
     </section>
   );
@@ -288,7 +349,7 @@ function ProblemStatement() {
   return (
     <section className="bg-[#0F0A1A] text-white py-24 px-6">
       <div className="max-w-7xl mx-auto">
-        <SectionLabel>Live global data</SectionLabel>
+        <SectionLabel liveIndicator>Live global data</SectionLabel>
         <h2
           className="font-[family-name:var(--font-jakarta)] text-4xl lg:text-5xl font-bold text-white mb-4 max-w-2xl leading-tight"
           style={{ letterSpacing: "-0.02em" }}
@@ -299,7 +360,6 @@ function ProblemStatement() {
           HammetLabs intends to get your school on the global AI education map.
         </p>
 
-        {/* Top stat row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden mb-8">
           {topStats.map((s) => (
             <div key={s.label} className="bg-[#0F0A1A] p-6 lg:p-8">
@@ -314,7 +374,6 @@ function ProblemStatement() {
           ))}
         </div>
 
-        {/* Region grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
           {regions.map((region) => (
             <div
@@ -356,7 +415,6 @@ function ProblemStatement() {
           ))}
         </div>
 
-        {/* Legend */}
         <div className="rounded-xl border border-white/10 p-5 mb-12">
           <p className="text-xs font-bold tracking-widest uppercase text-gray-500 mb-4">
             Deployment tier legend
@@ -437,9 +495,7 @@ function WhatWeDeliver() {
               <div className="w-12 h-12 rounded-xl bg-[#EDE9FE] text-[#5B21B6] flex items-center justify-center mb-5 group-hover:bg-[#3B0764] group-hover:text-white transition-colors duration-300">
                 {col.icon}
               </div>
-              <h3
-                className="font-[family-name:var(--font-jakarta)] text-lg font-bold text-[#1E1B4B] mb-3"
-              >
+              <h3 className="font-[family-name:var(--font-jakarta)] text-lg font-bold text-[#1E1B4B] mb-3">
                 {col.title}
               </h3>
               <p className="text-gray-500 text-sm leading-relaxed">{col.body}</p>
@@ -507,9 +563,7 @@ function HowItWorks() {
               className="bg-white rounded-2xl p-7 border border-[#E5E7EB] hover:border-[#5B21B6] hover:shadow-lg transition-all duration-300 group"
             >
               <div className="flex items-start justify-between mb-5">
-                <span
-                  className="font-[family-name:var(--font-jakarta)] text-4xl font-bold text-[#EDE9FE] group-hover:text-[#5B21B6] transition-colors duration-300 leading-none"
-                >
+                <span className="font-[family-name:var(--font-jakarta)] text-4xl font-bold text-[#EDE9FE] group-hover:text-[#5B21B6] transition-colors duration-300 leading-none">
                   {step.num}
                 </span>
                 {i === steps.length - 1 && (
@@ -518,9 +572,7 @@ function HowItWorks() {
                   </span>
                 )}
               </div>
-              <h3
-                className="font-[family-name:var(--font-jakarta)] text-base font-bold text-[#1E1B4B] mb-3"
-              >
+              <h3 className="font-[family-name:var(--font-jakarta)] text-base font-bold text-[#1E1B4B] mb-3">
                 {step.title}
               </h3>
               <p className="text-sm text-gray-500 leading-relaxed">{step.body}</p>
@@ -573,19 +625,12 @@ function Features() {
 
         <div className="flex flex-col divide-y divide-[#E5E7EB]">
           {features.map((f, i) => (
-            <div
-              key={f.title}
-              className="py-8 flex flex-col md:flex-row md:items-start gap-6 group"
-            >
-              <span
-                className="font-[family-name:var(--font-jakarta)] text-5xl font-bold text-[#F5F3FF] group-hover:text-[#EDE9FE] transition-colors shrink-0 w-16 leading-none"
-              >
+            <div key={f.title} className="py-8 flex flex-col md:flex-row md:items-start gap-6 group">
+              <span className="font-[family-name:var(--font-jakarta)] text-5xl font-bold text-[#F5F3FF] group-hover:text-[#EDE9FE] transition-colors shrink-0 w-16 leading-none">
                 {String(i + 1).padStart(2, "0")}
               </span>
               <div className="flex-1">
-                <h3
-                  className="font-[family-name:var(--font-jakarta)] text-lg font-bold text-[#1E1B4B] mb-2"
-                >
+                <h3 className="font-[family-name:var(--font-jakarta)] text-lg font-bold text-[#1E1B4B] mb-2">
                   {f.title}
                 </h3>
                 <p className="text-gray-500 text-sm leading-relaxed max-w-2xl">{f.body}</p>
@@ -626,7 +671,6 @@ function CallbackForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    // TODO: wire to your backend endpoint
     await new Promise((r) => setTimeout(r, 1000));
     setSubmitted(true);
     setSubmitting(false);
@@ -649,14 +693,13 @@ function CallbackForm() {
     <section id="callback" className="bg-[#F5F3FF] py-24 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
-          {/* Left — copy + trust signals (mirrors Image 1 layout) */}
           <div>
             <SectionLabel>For Schools</SectionLabel>
             <h2
               className="font-[family-name:var(--font-jakarta)] text-4xl lg:text-5xl font-bold text-[#1E1B4B] mb-4 leading-tight"
               style={{ letterSpacing: "-0.02em" }}
             >
-              Request a School Callback
+              Request to Test the Software
             </h2>
             <p className="text-gray-500 text-lg mb-10 leading-relaxed">
               A member of our team will contact you within 24 hours.
@@ -676,7 +719,6 @@ function CallbackForm() {
             </div>
           </div>
 
-          {/* Right — form card (mirrors Image 1 form panel) */}
           <div className="bg-[#3B0764] rounded-3xl p-8 lg:p-10 shadow-2xl shadow-[#3B0764]/20">
             {submitted ? (
               <div className="text-center py-8">
@@ -758,7 +800,7 @@ function CallbackForm() {
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
                   )}
-                  {submitting ? "Submitting…" : "Request Callback"}
+                  {submitting ? "Submitting…" : "Request to Test the Software"}
                 </button>
 
                 <p className="text-purple-300 text-xs text-center leading-relaxed">
@@ -780,7 +822,6 @@ function Footer() {
     <footer id="footer" className="bg-[#0F0A1A] text-white px-6 py-16">
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
-          {/* Brand col */}
           <div className="md:col-span-2">
             <Image
               src="/favicon.ico"
@@ -797,13 +838,10 @@ function Footer() {
             </p>
           </div>
 
-          {/* Product */}
           <div>
-            <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">
-              Product
-            </h4>
+            <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">Product</h4>
             <div className="flex flex-col gap-3">
-              {["How It Works", "Features", "For Schools", "Request a Callback"].map((l) => (
+              {["How It Works", "Features", "For Schools", "Request to Test the Software"].map((l) => (
                 <a key={l} href="#" className="text-sm text-gray-500 hover:text-white transition-colors">
                   {l}
                 </a>
@@ -811,33 +849,19 @@ function Footer() {
             </div>
           </div>
 
-          {/* Contact */}
           <div>
-            <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">
-              Contact
-            </h4>
+            <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">Contact</h4>
             <div className="flex flex-col gap-3">
-              <a href="mailto:" className="text-sm text-gray-500 hover:text-white transition-colors">
-                Email
-              </a>
-              <a href="#" className="text-sm text-gray-500 hover:text-white transition-colors">
-                Instagram
-              </a>
-              <a href="#" className="text-sm text-gray-500 hover:text-white transition-colors">
-                LinkedIn
-              </a>
+              <a href="mailto:" className="text-sm text-gray-500 hover:text-white transition-colors">Email</a>
+              <a href="#" className="text-sm text-gray-500 hover:text-white transition-colors">Instagram</a>
+              <a href="#" className="text-sm text-gray-500 hover:text-white transition-colors">LinkedIn</a>
             </div>
           </div>
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-gray-600 text-sm">
-            © 2026 HammetLabs. All rights reserved.
-          </p>
-          <Link
-            href="/login"
-            className="text-sm text-gray-500 hover:text-white transition-colors font-medium"
-          >
+          <p className="text-gray-600 text-sm">© 2026 HammetLabs. All rights reserved.</p>
+          <Link href="/login" className="text-sm text-gray-500 hover:text-white transition-colors font-medium">
             Login →
           </Link>
         </div>

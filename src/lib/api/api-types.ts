@@ -59,7 +59,7 @@ export type LoginResponse = {
 
 // POST /auth/claim — student/teacher claiming invite via password or Google
 export type ClaimAccountRequest =
-  | { token: string; password: string, deviceId: string }
+  | { token?: string; code?:string; email?:string; password: string, deviceId: string }
   | { token: string; google_id_token: string, deviceId: string };
 
 export type ClaimAccountResponse = {

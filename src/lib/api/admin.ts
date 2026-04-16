@@ -14,6 +14,7 @@ import type {
   CurriculumModule,
   SchoolProfile,
   AdminStudentsResponse,
+  BulkRegisterRequest,
 } from "@/lib/api/api-types";
 
 // ------------------------------------------------------------
@@ -66,19 +67,16 @@ export async function registerStudent(
 }
 
 export async function bulkRegisterStudents(
-  csvText: string,
+  csvText: BulkRegisterRequest,
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<BulkRegisterResponse> {
   // Send as multipart form with a text blob so the backend
   // receives it as a CSV file upload. Adjust if backend
   // prefers raw text body — swap FormData for { csv: csvText }.
-  const formData = new FormData();
-  const blob = new Blob([csvText], { type: "text/csv" });
-  formData.append("file", blob, "students.csv");
   return apiClient.post<BulkRegisterResponse>(
     "/auth/register/students/bulk",
-    formData,
+    csvText,
     token,
     { onRefresh }
   );

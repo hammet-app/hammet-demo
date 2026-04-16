@@ -141,6 +141,10 @@ export type RegisterStudentResponse = {
   code: string;
 };
 
+export type BulkRegisterRequest = {
+  csvText: string;
+}
+
 // POST /auth/register/students/bulk — school_admin only (CSV upload)
 export type BulkRegisterResponse = {
   total: number;

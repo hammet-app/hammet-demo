@@ -9,6 +9,7 @@ import { ModuleCard } from "@/components/cards/module-card";
 import { StatCard } from "@/components/cards/stat-card";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";
 import type { ModuleSummary, StudentProgress } from "@/lib/api/api-types";
+import { ApiError } from "@/lib/api/api-client";
 import type { SubmissionStatus } from "@/components/ui/status-pill";
 
 export default function LessonsPage() {
@@ -36,8 +37,26 @@ export default function LessonsPage() {
         ]);
         setModules(modulesData.modules);
         setProgress(progressData);
-      } catch {
-        setError("Failed to load lessons. Please try again.");
+      } catch (err) {
+        if (err instanceof ApiError) {
+          if (err.status === 401) {
+            setError("Authentication required. Please log in again.");
+          } else if (err.status === 403) {
+            setError("You are not allowed to access these lessons.");
+          } else if (err.status === 404) {
+            setError("Lessons not found.");
+          } else if (err.status === 409) {
+            setError("Conflict while loading lessons.");
+          } else if (err.status === 400 || err.status === 422) {
+            setError(`Invalid request. ${err.message}`);
+          } else if (err.status === 500) {
+            setError("Server error. Please try again.");
+          } else {
+            setError(err.message);
+          }
+        } else if (err instanceof Error) {
+          setError(`Unable to connect. ${err.message}`);
+        }
       } finally {
         setIsLoading(false);
       }

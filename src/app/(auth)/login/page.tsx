@@ -66,11 +66,11 @@ export default function LoginPage() {
         if (err.status === 401) {
           setErrors({ form: `Incorrect email or password. Please try again.` });
         } else if (err.status === 403) {
-          setErrors({ form: `Your account has been suspended. Contact your school admin. ${err.message}` });
+          setErrors({ form: `Your account has been suspended. Contact your school admin.` });
         } else if (err.status === 422) {
           setErrors({ form: `Please check your details and try again.${err.message}` });
         } else {
-          setErrors({ form: `Something went wrong. Please try again. ${err.message}` });
+          setErrors({ form: `${err.message}` });
         }
       } else if (err instanceof Error) {
         setErrors({ form: `Unable to connect. Check your internet connection. ${err.message}` });

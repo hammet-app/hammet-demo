@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import {
   AuthShell,
@@ -29,9 +29,11 @@ type Step = "identify" | "set_password" | "success";
 
 export default function ClaimPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const { setSession } = useAuth();
 
-  const [step, setStep] = useState<Step>("identify");
+  const [step, setStep] = useState<Step>(token ? "set_password" : "identify");
 
   const [email, setEmail] = useState("");
   const [claimCode, setClaimCode] = useState("");
@@ -48,6 +50,24 @@ export default function ClaimPage() {
   const isStaff =
     invite?.roles?.includes("teacher") ||
     invite?.roles?.includes("school_admin");
+
+  // ── Token flow: fetch invite directly ──
+  useEffect(() => {
+    if (!token) return;
+
+    setIsLoading(true);
+
+    apiClient
+      .get<InviteInfo>(`/auth/claim/${token}`)
+      .then((data) => {
+        setInvite(data);
+      })
+      .catch(() => {
+        setError("Invalid or expired link");
+        setStep("identify");
+      })
+      .finally(() => setIsLoading(false));
+  }, [token]);
 
   // ── Step 1: Identify (email + code) ──
   async function handleIdentify(e: React.FormEvent) {
@@ -70,10 +90,34 @@ export default function ClaimPage() {
         }
       );
 
+      // ❗ block non-students in code flow
+      if (!data.roles.includes("student")) {
+        setError("This account must be activated via invite link");
+        return;
+      }
+
       setInvite(data);
       setStep("set_password");
-    } catch {
-      setError("Invalid email or claim code");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          setError("Invalid or expired link");
+        } else if (err.status === 403) {
+          setError("This account cannot be activated with a code. Use your invite link.");
+        } else if (err.status === 404) {
+          setError("User or invite not found");
+        } else if (err.status === 409) {
+          setError("This account has already been claimed");
+        } else if (err.status === 400 || err.status === 422) {
+          setError(`Invalid input. ${err.message}`);
+        } else if (err.status === 500) {
+          setError("Server error. Please try again.");
+        } else {
+          setError(err.message);
+        }
+      } else if (err instanceof Error) {
+        setError(`Unable to connect. ${err.message}`);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -103,12 +147,23 @@ export default function ClaimPage() {
     setError(null);
 
     try {
-      const data = await apiClient.post<ClaimAccountResponse>("/auth/claim", {
-        email,
-        claim_code: claimCode,
-        password,
-        deviceId: getDeviceId(),
-      });
+      const payload = token
+        ? {
+            token,
+            password,
+            deviceId: getDeviceId(),
+          }
+        : {
+            email,
+            claim_code: claimCode,
+            password,
+            deviceId: getDeviceId(),
+          };
+
+      const data = await apiClient.post<ClaimAccountResponse>(
+        "/auth/claim",
+        payload
+      );
 
       setSession(data.user, data.access_token);
       setStep("success");
@@ -118,31 +173,28 @@ export default function ClaimPage() {
       }, 1200);
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message || "Something went wrong");
-      } else {
-        setError("Something went wrong");
+        if (err.status === 401) {
+          setError("Invalid or expired token");
+        } else if (err.status === 403) {
+          setError("You are not allowed to activate this account");
+        } else if (err.status === 404) {
+          setError("User or invite not found");
+        } else if (err.status === 409) {
+          setError("This account has already been claimed");
+        } else if (err.status === 400 || err.status === 422) {
+          setError(`Invalid input. ${err.message}`);
+        } else if (err.status === 500) {
+          setError("Server error. Please try again.");
+        } else {
+          setError(err.message);
+        }
+      } else if (err instanceof Error) {
+        setError(`Unable to connect. ${err.message}`);
       }
     } finally {
       setIsLoading(false);
     }
   }
-
-  // ── Google OAuth (staff only) ──
-  /**
-  function handleGoogleClaim() {
-    if (!invite?.email) return;
-
-    setIsGoogleLoading(true);
-
-    const deviceId = getDeviceId();
-    const params = new URLSearchParams({
-      device_id: deviceId,
-      email: invite.email,
-    });
-
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google?${params.toString()}`;
-  }
-  */
 
   if (step === "success") {
     return (
@@ -168,76 +220,32 @@ export default function ClaimPage() {
         }
       />
 
-      {/* ── STEP 1: Identify ── */}
-      {step === "identify" && (
+      {/* STEP 1 */}
+      {!token && step === "identify" && (
         <form onSubmit={handleIdentify} className="flex flex-col gap-4">
-          <AuthInput
-            id="email"
-            label="Email"
-            value={email}
-            onChange={setEmail}
-          />
+          <AuthInput id="email" label="Email" value={email} onChange={setEmail} />
 
-          <AuthInput
-            id="code"
-            label="Claim code"
-            value={claimCode}
-            onChange={setClaimCode}
-          />
+          <AuthInput id="code" label="Claim code" value={claimCode} onChange={setClaimCode} />
 
           <button
             type="submit"
             disabled={isLoading}
-            className={cn(
-              "h-10 rounded bg-purple text-white",
-              "flex items-center justify-center"
-            )}
+            className={cn("h-10 rounded bg-purple text-white flex items-center justify-center")}
           >
-            {isLoading ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              "Continue"
-            )}
+            {isLoading ? <Loader2 className="animate-spin" /> : "Continue"}
           </button>
 
           {error && <AuthAlert message={error} />}
         </form>
       )}
 
-      {/* ── STEP 2: Set Password ── */}
+      {/* STEP 2 */}
       {step === "set_password" && invite && (
         <form onSubmit={handleClaim} className="flex flex-col gap-4">
-          {/* Identity display */}
           <div className="bg-purple-light rounded px-3 py-2">
             <p className="text-sm font-medium">{invite.full_name}</p>
             <p className="text-xs opacity-70">{invite.email}</p>
           </div>
-
-          {/* Google (staff only) */}
-          {/**
-          {isStaff && (
-            <>
-              <button
-                type="button"
-                onClick={handleGoogleClaim}
-                disabled={isGoogleLoading || isLoading}
-                className={cn(
-                  "w-full h-10 rounded border",
-                  "flex items-center justify-center",
-                  "text-sm"
-                )}
-              >
-                {isGoogleLoading ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  "Continue with Google"
-                )}
-              </button>
-
-              <AuthDivider />
-            </>
-          )}
-          */}
 
           <AuthInput
             id="password"
@@ -258,16 +266,9 @@ export default function ClaimPage() {
           <button
             type="submit"
             disabled={isLoading || isGoogleLoading}
-            className={cn(
-              "h-10 rounded bg-purple text-white",
-              "flex items-center justify-center"
-            )}
+            className={cn("h-10 rounded bg-purple text-white flex items-center justify-center")}
           >
-            {isLoading ? (
-              <Loader2 className="animate-spin" />
-            ) : (
-              "Activate account"
-            )}
+            {isLoading ? <Loader2 className="animate-spin" /> : "Activate account"}
           </button>
 
           {error && <AuthAlert message={error} />}

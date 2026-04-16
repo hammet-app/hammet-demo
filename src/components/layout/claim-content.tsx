@@ -186,7 +186,7 @@ export default function ClaimPage() {
         } else if (err.status === 500) {
           setError("Server error. Please try again.");
         } else {
-          setError(err.message);
+          setError(err.message || err.data.details);
         }
       } else if (err instanceof Error) {
         setError(`Unable to connect. ${err.message}`);

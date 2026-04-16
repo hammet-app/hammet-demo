@@ -63,7 +63,7 @@ export default function ClaimPage() {
 
     try {
       const data = await apiClient.post<InviteInfo>(
-        "/auth/claim/init",
+        "/auth/claim/verify-code",
         {
           email,
           claim_code: claimCode,

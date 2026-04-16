@@ -136,20 +136,15 @@ export type RegisterStudentRequest = {
 };
 
 export type RegisterStudentResponse = {
-  student_id: string;
-  message: string;              // invite email sent to student
+  full_name: string;
+  email: string;
+  code: string;
 };
 
 // POST /auth/register/students/bulk — school_admin only (CSV upload)
 export type BulkRegisterResponse = {
   total: number;
-  succeeded: number;
-  failed: number;
-  errors: {
-    row: number;
-    email: string;
-    reason: string;
-  }[];
+  codes: RegisterStudentResponse[];
 };
 
 // ============================================================

@@ -15,6 +15,9 @@ export default function NewStudentPage() {
   const [availableArms, setAvailableArms] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // ✅ restored country code
+  const [countryCode, setCountryCode] = useState("+234");
+
   const [form, setForm] = useState({
     full_name: "",
     email: "",
@@ -47,17 +50,20 @@ export default function NewStudentPage() {
     setSubmitting(true);
     setError(null);
 
+    // ✅ normalize phone properly
+    const clean = form.parent_phone.replace(/^0/, "");
+    const finalPhone = `${countryCode}${clean}`;
+
     try {
       const res = await registerStudent(
         {
           ...form,
-          parent_phone: form.parent_phone,
+          parent_phone: finalPhone,
         },
         accessToken,
         refreshToken
       );
 
-      // EXPECTED BACKEND RESPONSE: { full_name, email, claim_code }
       setCreated(res);
 
       setForm({
@@ -92,7 +98,7 @@ export default function NewStudentPage() {
   function downloadCSV() {
     if (!created) return;
 
-    const content = `full_name,email,claim_code\n${created.full_name},${created.email},${created.code}`;
+    const content = `full_name,email,code\n${created.full_name},${created.email},${created.code}`;
 
     const blob = new Blob([content], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -155,12 +161,21 @@ export default function NewStudentPage() {
               onChange={(e) => set("parent_email", e)}
             />
 
-            <AuthInput
-              id="parent-phone"
-              label="Parent phone"
-              value={form.parent_phone}
-              onChange={(e) => set("parent_phone", e)}
-            />
+            {/* ✅ restored country code + phone */}
+            <div className="flex gap-2">
+              <input
+                value={countryCode}
+                onChange={(e) => setCountryCode(e.target.value)}
+                className="w-24 px-3 py-3 rounded-xl border"
+              />
+
+              <input
+                placeholder="Phone number"
+                value={form.parent_phone}
+                onChange={(e) => set("parent_phone", e.target.value)}
+                className="flex-1 px-4 py-3 rounded-xl border"
+              />
+            </div>
 
             <button
               onClick={handleSubmit}

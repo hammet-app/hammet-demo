@@ -153,6 +153,15 @@ useEffect(() => {
           Contact your school admin.
         </span>
       </p>
+      <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
+        New student?{" "}
+        <a
+          href="/claim"
+          className="text-purple-mid font-medium hover:underline"
+        >
+          Activate your account with a claim code
+        </a>
+      </p>
     </AuthShell>
   );
 }

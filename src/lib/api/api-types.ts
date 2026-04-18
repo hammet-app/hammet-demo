@@ -216,6 +216,7 @@ export type Submission = {
   term: number;
   week_number: number;
   session_number: number;
+  activity_text: string;
   reflection_text: string | null;
   file_url: string | null;
   status: "submitted" | "approved" | "flagged";
@@ -296,6 +297,7 @@ export type CurriculumModule = {
 // POST /submissions — online submission
 export type CreateSubmissionRequest = {
   module_id: string;
+  activity_text: string;
   reflection_text: string | null;
   file_url: string | null;
   local_id: string;             // client UUID for offline dedup

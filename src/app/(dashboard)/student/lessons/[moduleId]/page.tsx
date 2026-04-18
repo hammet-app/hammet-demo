@@ -19,6 +19,7 @@ async function saveOffline(
   studentId: string,
   moduleId: string,
   moduleTitle: string,
+  activityText?: string,
   reflectionText?: string,
   fileUrl?: string
 ): Promise<void> {
@@ -27,6 +28,7 @@ async function saveOffline(
          studentId,
          moduleId,
          moduleTitle,
+         activityText,
          reflectionText,
          fileUrl
        });
@@ -50,6 +52,7 @@ export default function LessonDetailPage() {
   const [fileUrl, setFileUrl] = useState<string | undefined>(undefined)
 
   const [reflectionText, setReflectionText] = useState("");
+  const [activityText, setActivityText] = useState("");
   const [savedOffline, setSavedOffline] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -93,9 +96,9 @@ export default function LessonDetailPage() {
     if (!user) return;
     if (!module) return 
 
-    if (!moduleId || (!reflectionText && !fileUrl) || module.title) return;
+    if (!moduleId || (!reflectionText && !fileUrl) || !activityText || module.title) return;
     const t = setTimeout(async () => {
-      await saveOffline(user.id, module.title, moduleId, reflectionText);
+      await saveOffline(user.id, module.title, moduleId, activityText, reflectionText);
       setSavedOffline(true);
     }, 800);
     return () => clearTimeout(t);
@@ -128,6 +131,7 @@ export default function LessonDetailPage() {
       await studentApi.submitModule(
         {
           module_id: moduleId,
+          activity_text:activityText,
           reflection_text: reflectionText,
           file_url: null,
           local_id: crypto.randomUUID(),
@@ -221,6 +225,8 @@ export default function LessonDetailPage() {
             term={module.term}
             toolName={toolBlock?.tool_name}
             blocks={module.content_json.blocks}
+            activityText={activityText}
+            onActivityChange={setActivityText}
             reflectionText={reflectionText}
             onReflectionChange={setReflectionText}
             savedOffline={savedOffline}

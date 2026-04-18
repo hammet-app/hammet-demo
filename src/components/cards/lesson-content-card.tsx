@@ -338,6 +338,8 @@ interface LessonContentCardProps {
   term: number;
   toolName?: string;
   blocks: CurriculumModuleBlock[];
+  activityText: string;
+  onActivityChange: (text: string) => void;
   reflectionText: string;
   onReflectionChange: (text: string) => void;
   savedOffline?: boolean;
@@ -355,6 +357,8 @@ export function LessonContentCard({
   term,
   toolName,
   blocks,
+  activityText,
+  onActivityChange,
   reflectionText,
   onReflectionChange,
   savedOffline = false,
@@ -408,6 +412,30 @@ export function LessonContentCard({
           <Block key={i} block={block} />
         ))}
 
+        {/* Activity text textarea - before reflection area*/}
+        <div className="flex flex-col gap-2">
+          <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
+            <MessageSquare size={14} className="text-purple-mid" />
+            Activity Box{" "}
+            <span className="font-normal text-[12px] text-text-muted">
+              ({REFLECTION_MIN}–{REFLECTION_MAX} words)
+            </span>
+          </label>
+          <textarea
+            value={activityText}
+            onChange={(e) => onActivityChange(e.target.value)}
+            placeholder="Do your activity here…"
+            rows={5}
+            className={cn(
+              "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
+              "text-[13px] text-text-primary placeholder:text-text-muted",
+              "outline-none transition-colors",
+              "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
+            )}
+          />
+        </div>
+      </div>
+
         {/* Reflection answer textarea — always last, after all content blocks */}
         <div className="flex flex-col gap-2">
           <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
@@ -433,7 +461,7 @@ export function LessonContentCard({
             {wordCount} / {REFLECTION_MAX} words
           </p>
         </div>
-      </div>
+      
 
       {/* Footer */}
       <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-3 flex-wrap">

@@ -18,6 +18,7 @@ export interface LocalSubmission {
   localId:        string    // client-generated UUID — dedup key on server
   studentId:      string
   moduleId:       string
+  activityText?: string
   reflectionText?: string
   fileUrl?:       string
   submittedAt:    string    // ISO timestamp
@@ -79,12 +80,14 @@ export async function submitLesson({
   studentId,
   moduleId,
   moduleTitle,
+  activityText,
   reflectionText,
   fileUrl,
 }: {
   studentId:      string
   moduleId:       string
   moduleTitle:    string
+  activityText?: string
   reflectionText?: string
   fileUrl?:       string
 }): Promise<{ success: boolean; synced: boolean }> {
@@ -92,7 +95,7 @@ export async function submitLesson({
   const submittedAt = new Date().toISOString()
 
   // Always save locally first
-  await saveSubmissionLocally({ localId, studentId, moduleId, reflectionText, fileUrl, submittedAt })
+  await saveSubmissionLocally({ localId, studentId, moduleId, activityText, reflectionText, fileUrl, submittedAt })
   await db.portfolioEntries.put({
     localId, studentId, moduleTitle, submittedAt, reflectionText, skills: [],
   })

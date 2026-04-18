@@ -407,34 +407,33 @@ export function LessonContentCard({
       </div>
 
       {/* Blocks — rendered in backend order */}
-      <div className="px-6 py-6 flex flex-col gap-5">
-        {blocks.map((block, i) => (
-          <Block key={i} block={block} />
-        ))}
+      {blocks.map((block, i) => (
+        <div key={i} className="flex flex-col gap-2">
+          <Block block={block} />
 
-        {/* Activity text textarea - before reflection area*/}
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
-            <MessageSquare size={14} className="text-purple-mid" />
-            Activity Box{" "}
-            <span className="font-normal text-[12px] text-text-muted">
-              ({REFLECTION_MIN}–{REFLECTION_MAX} words)
-            </span>
-          </label>
-          <textarea
-            value={activityText}
-            onChange={(e) => onActivityChange(e.target.value)}
-            placeholder="Do your activity here…"
-            rows={5}
-            className={cn(
-              "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
-              "text-[13px] text-text-primary placeholder:text-text-muted",
-              "outline-none transition-colors",
-              "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
-            )}
-          />
+          {block.type === "activity" && (
+            <div className="flex flex-col gap-2 mt-1">
+              <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
+                <MessageSquare size={14} className="text-purple-mid" />
+                Activity Box
+              </label>
+
+              <textarea
+                value={activityText}
+                onChange={(e) => onActivityChange(e.target.value)}
+                placeholder="Do your activity here…"
+                rows={5}
+                className={cn(
+                  "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
+                  "text-[13px] text-text-primary placeholder:text-text-muted",
+                  "outline-none transition-colors",
+                  "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
+                )}
+              />
+            </div>
+          )}
         </div>
-      </div>
+      ))}
 
         {/* Reflection answer textarea — always last, after all content blocks */}
         <div className="flex flex-col gap-2">

@@ -9,8 +9,8 @@ export interface PerformancePoint {
 }
 
 export interface PerformanceParams {
-  term?: number | number[];
-  level?: string | string[];
+  term?: number[];
+  level?: string[];
 }
 
 export const performanceApi = {
@@ -21,18 +21,12 @@ export const performanceApi = {
   ) => {
     const query = new URLSearchParams();
 
-    if (params.term !== undefined) {
-      const terms = Array.isArray(params.term) ? params.term : [params.term];
-      terms.forEach((t) => query.append("term", String(t)));
-    }
+    params.term?.forEach((t) => query.append("term", String(t)));
+    params.level?.forEach((l) => query.append("level", l));
 
-    if (params.level !== undefined) {
-      const levels = Array.isArray(params.level) ? params.level : [params.level];
-      levels.forEach((l) => query.append("level", l));
-    }
-
+    const qs = query.toString();
     return apiClient.get<PerformancePoint[]>(
-      `/students/me/performance?${query.toString()}`,
+      `/students/me/performance${qs ? `?${qs}` : ""}`,
       token,
       { onRefresh }
     );

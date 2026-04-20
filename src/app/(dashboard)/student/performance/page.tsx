@@ -3,17 +3,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { performanceApi } from "@/lib/api/performance";
-import type { PerformancePoint, PerformanceParams } from "@/lib/api/performance";
+import type { PerformancePoint } from "@/lib/api/performance";
 import { PerformanceChart } from "@/components/cards/performance-chart";
 import { PageShell, CardSkeleton } from "@/components/layout/page-shell";
 import { TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 
-const TERMS = [
-  { value: 1, label: "Term 1" },
-  { value: 2, label: "Term 2" },
-  { value: 3, label: "Term 3" },
-];
+const ALL_TERMS = [1, 2, 3] as const;
 
 const BAND_META = {
   "Needs Work": {
@@ -34,52 +30,41 @@ const BAND_META = {
     border: "border-success/20",
     dot: "bg-success",
   },
-};
+} as const;
 
 export default function PerformancePage() {
-  const { accessToken, refreshToken, user } = useAuth();
+  const { accessToken, refreshToken } = useAuth();
 
-  // Filter state — null means "not selected"
-  const [selectedTerm, setSelectedTerm] = useState<number | null>(null);
-  const [selectedLevel, setSelectedLevel] = useState<string | null>(
-    user?.class_level ?? null
-  );
+  // null means "not selected" — backend will use its own default
+  const [selectedTerms, setSelectedTerms] = useState<number[]>([]);
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
 
   const [data, setData] = useState<PerformancePoint[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Derive available levels from data (only levels the student has submissions for)
+  // Derive available levels from data returned — only levels student has submissions for
   const availableLevels = useMemo(
     () => [...new Set(data.map((d) => d.level))].sort(),
     [data]
   );
 
-  // ── Build query params based on filter selection logic ──
-  function buildParams(): PerformanceParams {
+  // ── Build query params matching backend signature ──
+  function buildParams() {
+    const hasTerm = selectedTerms.length > 0;
     const hasLevel = selectedLevel !== null;
-    const hasTerm = selectedTerm !== null;
 
-    if (hasLevel && !hasTerm) {
-      // Level only → all terms for that level
-      return { level: selectedLevel!, term: [1, 2, 3] };
-    }
+    // Neither selected → send no params, backend uses current term + level
+    if (!hasTerm && !hasLevel) return {};
 
-    if (hasTerm && !hasLevel) {
-      // Term only → that term across all levels
-      return { term: selectedTerm! };
-    }
+    // Level only → send level, backend resolves term
+    if (hasLevel && !hasTerm) return { level: [selectedLevel!] };
 
-    if (hasLevel && hasTerm) {
-      // Both → specific term + level
-      return { term: selectedTerm!, level: selectedLevel! };
-    }
+    // Term only → send term, backend resolves level
+    if (hasTerm && !hasLevel) return { term: selectedTerms };
 
-    // Neither → default: current term + current level
-    return {
-      term: user?.class_level ? undefined : undefined,
-      level: user?.class_level ?? undefined,
-    };
+    // Both → send both
+    return { term: selectedTerms, level: [selectedLevel!] };
   }
 
   useEffect(() => {
@@ -94,29 +79,29 @@ export default function PerformancePage() {
       .getPerformance(params, accessToken, refreshToken)
       .then(setData)
       .catch((err) => {
-        // 404-style — no submissions yet
         if (err?.status === 404 || err?.message?.includes("No submissions")) {
           setData([]);
+        } else if (err?.message?.includes("incomplete")) {
+          setError("Your class level hasn't been set yet. Contact your school admin.");
         } else {
           setError("Failed to load performance data. Please try again.");
         }
       })
       .finally(() => setIsLoading(false));
-  }, [accessToken, selectedTerm, selectedLevel]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accessToken, selectedTerms, selectedLevel]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Current band from last data point ──
-  const currentBand = data.length
-    ? data[data.length - 1].band
-    : null;
+  const currentBand = data.length ? data[data.length - 1].band : null;
 
-  // ── Band distribution for summary ──
-  const bandCounts = data.reduce(
-    (acc, d) => {
-      acc[d.band] = (acc[d.band] ?? 0) + 1;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const bandCounts = data.reduce((acc, d) => {
+    acc[d.band] = (acc[d.band] ?? 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  function toggleTerm(term: number) {
+    setSelectedTerms((prev) =>
+      prev.includes(term) ? prev.filter((t) => t !== term) : [...prev, term]
+    );
+  }
 
   return (
     <PageShell
@@ -130,23 +115,19 @@ export default function PerformancePage() {
           <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">
             Term
           </p>
-          <div className="flex gap-2 flex-wrap">
-            {TERMS.map((t) => (
+          <div className="flex gap-2">
+            {ALL_TERMS.map((t) => (
               <FilterChip
-                key={t.value}
-                label={t.label}
-                active={selectedTerm === t.value}
-                onClick={() =>
-                  setSelectedTerm(
-                    selectedTerm === t.value ? null : t.value
-                  )
-                }
+                key={t}
+                label={`Term ${t}`}
+                active={selectedTerms.includes(t)}
+                onClick={() => toggleTerm(t)}
               />
             ))}
           </div>
         </div>
 
-        {/* Level filter — only show levels with data */}
+        {/* Level filter — only visible if student has data across multiple levels */}
         {availableLevels.length > 1 && (
           <div className="flex flex-col gap-1.5">
             <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">
@@ -159,9 +140,7 @@ export default function PerformancePage() {
                   label={level}
                   active={selectedLevel === level}
                   onClick={() =>
-                    setSelectedLevel(
-                      selectedLevel === level ? null : level
-                    )
+                    setSelectedLevel(selectedLevel === level ? null : level)
                   }
                 />
               ))}
@@ -170,7 +149,7 @@ export default function PerformancePage() {
         )}
       </div>
 
-      {/* ── Chart card ── */}
+      {/* ── Content ── */}
       {isLoading ? (
         <CardSkeleton className="h-[400px]" />
       ) : error ? (
@@ -190,17 +169,9 @@ export default function PerformancePage() {
                 BAND_META[currentBand].border
               )}
             >
-              <TrendingUp
-                size={18}
-                className={BAND_META[currentBand].color}
-              />
+              <TrendingUp size={18} className={BAND_META[currentBand].color} />
               <div>
-                <p
-                  className={cn(
-                    "text-[13px] font-semibold",
-                    BAND_META[currentBand].color
-                  )}
-                >
+                <p className={cn("text-[13px] font-semibold", BAND_META[currentBand].color)}>
                   Currently: {currentBand}
                 </p>
                 <p className="text-[12px] text-text-muted">
@@ -219,9 +190,7 @@ export default function PerformancePage() {
           <div className="grid grid-cols-3 gap-3">
             {(["Strong", "Improving", "Needs Work"] as const).map((band) => {
               const count = bandCounts[band] ?? 0;
-              const pct = data.length
-                ? Math.round((count / data.length) * 100)
-                : 0;
+              const pct = Math.round((count / data.length) * 100);
               const meta = BAND_META[band];
 
               return (
@@ -233,18 +202,8 @@ export default function PerformancePage() {
                   )}
                 >
                   <div className="flex items-center gap-1.5">
-                    <span
-                      className={cn(
-                        "w-2 h-2 rounded-full shrink-0",
-                        meta.dot
-                      )}
-                    />
-                    <p
-                      className={cn(
-                        "text-[11px] font-semibold uppercase tracking-wide",
-                        meta.color
-                      )}
-                    >
+                    <span className={cn("w-2 h-2 rounded-full shrink-0", meta.dot)} />
+                    <p className={cn("text-[11px] font-semibold uppercase tracking-wide", meta.color)}>
                       {band}
                     </p>
                   </div>
@@ -266,8 +225,6 @@ export default function PerformancePage() {
     </PageShell>
   );
 }
-
-// ── Filter chip ───────────────────────────────────────────────
 
 function FilterChip({
   label,
@@ -293,8 +250,6 @@ function FilterChip({
   );
 }
 
-// ── Empty state ───────────────────────────────────────────────
-
 function EmptyPerformance() {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
@@ -306,8 +261,7 @@ function EmptyPerformance() {
           No performance data yet
         </p>
         <p className="text-[13px] text-text-muted max-w-[260px] mx-auto leading-relaxed">
-          Complete and submit lessons to start tracking your learning
-          trajectory.
+          Complete and submit lessons to start tracking your learning trajectory.
         </p>
       </div>
       <a

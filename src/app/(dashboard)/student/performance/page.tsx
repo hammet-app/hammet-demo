@@ -1,253 +1,321 @@
 "use client";
 
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ReferenceLine,
-  ResponsiveContainer,
-  ReferenceArea,
-  Dot,
-} from "recharts";
-import type { PerformancePoint } from "@/lib/api/performance";
+import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "@/lib/auth/auth-context";
+import { performanceApi } from "@/lib/api/performance";
+import type { PerformancePoint, PerformanceParams } from "@/lib/api/performance";
+import { PerformanceChart } from "@/components/cards/performance-chart";
+import { PageShell, CardSkeleton } from "@/components/layout/page-shell";
+import { TrendingUp } from "lucide-react";
+import { cn } from "@/lib/utils/utils";
 
-interface PerformanceChartProps {
-  data: PerformancePoint[];
-}
+const TERMS = [
+  { value: 1, label: "Term 1" },
+  { value: 2, label: "Term 2" },
+  { value: 3, label: "Term 3" },
+];
 
-// Band thresholds — mirror the backend logic
-const BAND_THRESHOLDS = {
-  needsWork: 0.4,
-  improving: 0.75,
+const BAND_META = {
+  "Needs Work": {
+    color: "text-warning-dark",
+    bg: "bg-warning-light",
+    border: "border-warning/20",
+    dot: "bg-warning",
+  },
+  Improving: {
+    color: "text-purple-hover",
+    bg: "bg-purple-light",
+    border: "border-purple-mid/20",
+    dot: "bg-purple-mid",
+  },
+  Strong: {
+    color: "text-success-dark",
+    bg: "bg-success-light",
+    border: "border-success/20",
+    dot: "bg-success",
+  },
 };
 
-const BAND_COLORS = {
-  "Needs Work": { fill: "#FEF3C7", stroke: "#F59E0B", text: "#92400E" },
-  Improving:    { fill: "#EDE9FE", stroke: "#7C3AED", text: "#4C1D95" },
-  Strong:       { fill: "#D1FAE5", stroke: "#10B981", text: "#065F46" },
-};
+export default function PerformancePage() {
+  const { accessToken, refreshToken, user } = useAuth();
 
-// Build X axis tick labels — "T1W3" format for multi-term, "W3" for single term
-function buildTick(point: PerformancePoint, isMultiTerm: boolean): string {
-  return isMultiTerm
-    ? `T${point.term}W${point.label}`
-    : `W${point.label}`;
-}
-
-// Custom dot — highlight the last point
-function CustomDot(props: any) {
-  const { cx, cy, index, dataLength } = props;
-  if (index !== dataLength - 1) return null;
-  return (
-    <g>
-      <circle cx={cx} cy={cy} r={6} fill="#06B6D4" stroke="#fff" strokeWidth={2} />
-    </g>
+  // Filter state — null means "not selected"
+  const [selectedTerm, setSelectedTerm] = useState<number | null>(null);
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(
+    user?.class_level ?? null
   );
-}
 
-// Custom tooltip — shows band only, no y value
-function CustomTooltip({ active, payload }: any) {
-  if (!active || !payload?.length) return null;
-  const point = payload[0].payload as PerformancePoint & { tick: string };
-  const colors = BAND_COLORS[point.band];
+  const [data, setData] = useState<PerformancePoint[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Derive available levels from data (only levels the student has submissions for)
+  const availableLevels = useMemo(
+    () => [...new Set(data.map((d) => d.level))].sort(),
+    [data]
+  );
+
+  // ── Build query params based on filter selection logic ──
+  function buildParams(): PerformanceParams {
+    const hasLevel = selectedLevel !== null;
+    const hasTerm = selectedTerm !== null;
+
+    if (hasLevel && !hasTerm) {
+      // Level only → all terms for that level
+      return { level: selectedLevel!, term: [1, 2, 3] };
+    }
+
+    if (hasTerm && !hasLevel) {
+      // Term only → that term across all levels
+      return { term: selectedTerm! };
+    }
+
+    if (hasLevel && hasTerm) {
+      // Both → specific term + level
+      return { term: selectedTerm!, level: selectedLevel! };
+    }
+
+    // Neither → default: current term + current level
+    return {
+      term: user?.class_level ? undefined : undefined,
+      level: user?.class_level ?? undefined,
+    };
+  }
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    setIsLoading(true);
+    setError("");
+
+    const params = buildParams();
+
+    performanceApi
+      .getPerformance(params, accessToken, refreshToken)
+      .then(setData)
+      .catch((err) => {
+        // 404-style — no submissions yet
+        if (err?.status === 404 || err?.message?.includes("No submissions")) {
+          setData([]);
+        } else {
+          setError("Failed to load performance data. Please try again.");
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, [accessToken, selectedTerm, selectedLevel]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Current band from last data point ──
+  const currentBand = data.length
+    ? data[data.length - 1].band
+    : null;
+
+  // ── Band distribution for summary ──
+  const bandCounts = data.reduce(
+    (acc, d) => {
+      acc[d.band] = (acc[d.band] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #E5E7EB",
-        borderRadius: 8,
-        padding: "8px 12px",
-        fontSize: 12,
-        fontFamily: "var(--font-sans)",
-      }}
+    <PageShell
+      title="My Performance"
+      description="Your learning trajectory over time"
     >
-      <p style={{ color: "#6B7280", marginBottom: 4 }}>{point.tick}</p>
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          fontWeight: 600,
-          color: colors.text,
-          background: colors.fill,
-          padding: "2px 8px",
-          borderRadius: 20,
-        }}
-      >
-        <span
-          style={{
-            width: 6,
-            height: 6,
-            borderRadius: "50%",
-            background: colors.stroke,
-            display: "inline-block",
-          }}
-        />
-        {point.band}
-      </span>
-    </div>
-  );
-}
-
-export function PerformanceChart({ data }: PerformanceChartProps) {
-  if (!data.length) return null;
-
-  const terms = [...new Set(data.map((d) => d.term))];
-  const isMultiTerm = terms.length > 1;
-
-  const chartData = data.map((point) => ({
-    ...point,
-    tick: buildTick(point, isMultiTerm),
-  }));
-
-  const lastPoint = chartData[chartData.length - 1];
-  const lastBandColors = BAND_COLORS[lastPoint.band];
-
-  return (
-    <div className="relative">
-      <ResponsiveContainer width="100%" height={320}>
-        <AreaChart
-          data={chartData}
-          margin={{ top: 24, right: 80, left: 0, bottom: 8 }}
-        >
-          <defs>
-            {/* Gradient fill for the area */}
-            <linearGradient id="performanceGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%"  stopColor="#06B6D4" stopOpacity={0.15} />
-              <stop offset="95%" stopColor="#06B6D4" stopOpacity={0.02} />
-            </linearGradient>
-
-            {/* Band zone fills */}
-            <linearGradient id="needsWorkFill" x1="0" y1="0" x2="0" y2="1">
-              <stop stopColor="#FEF3C7" stopOpacity={0.5} />
-            </linearGradient>
-            <linearGradient id="improvingFill" x1="0" y1="0" x2="0" y2="1">
-              <stop stopColor="#EDE9FE" stopOpacity={0.5} />
-            </linearGradient>
-            <linearGradient id="strongFill" x1="0" y1="0" x2="0" y2="1">
-              <stop stopColor="#D1FAE5" stopOpacity={0.5} />
-            </linearGradient>
-          </defs>
-
-          {/* Band background zones as reference areas */}
-          {/* Needs Work: 0 → 0.4 */}
-          // Needs Work zone (0 → 0.4)
-          <ReferenceArea y1={0} y2={0.4} fill="#FEF3C7" fillOpacity={0.35} ifOverflow="hidden" />
-
-          // Improving zone (0.4 → 0.75)
-          <ReferenceArea y1={0.4} y2={0.75} fill="#EDE9FE" fillOpacity={0.3} ifOverflow="hidden" />
-
-          // Strong zone (0.75 → 1)
-          <ReferenceArea y1={0.75} y2={1} fill="#D1FAE5" fillOpacity={0.3} ifOverflow="hidden" />
-
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="#E5E7EB"
-            vertical={false}
-          />
-
-          {/* Band threshold lines */}
-          <ReferenceLine
-            y={BAND_THRESHOLDS.needsWork}
-            stroke="#F59E0B"
-            strokeDasharray="4 4"
-            strokeOpacity={0.5}
-          />
-          <ReferenceLine
-            y={BAND_THRESHOLDS.improving}
-            stroke="#10B981"
-            strokeDasharray="4 4"
-            strokeOpacity={0.5}
-          />
-
-          <XAxis
-            dataKey="tick"
-            tick={{ fontSize: 11, fill: "#A1A1AA", fontFamily: "var(--font-sans)" }}
-            axisLine={false}
-            tickLine={false}
-            dy={8}
-          />
-
-          {/* Y axis — no numbers, just band zone labels via reference lines */}
-          <YAxis
-            domain={[0, 1]}
-            hide
-          />
-
-          <Tooltip content={<CustomTooltip />} />
-
-          <Area
-            type="monotone"
-            dataKey="y"
-            stroke="#06B6D4"
-            strokeWidth={2.5}
-            fill="url(#performanceGradient)"
-            dot={(props) => (
-              <CustomDot
-                {...props}
-                dataLength={chartData.length}
+      {/* ── Filters ── */}
+      <div className="flex flex-wrap gap-6 mb-6">
+        {/* Term filter */}
+        <div className="flex flex-col gap-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+            Term
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {TERMS.map((t) => (
+              <FilterChip
+                key={t.value}
+                label={t.label}
+                active={selectedTerm === t.value}
+                onClick={() =>
+                  setSelectedTerm(
+                    selectedTerm === t.value ? null : t.value
+                  )
+                }
               />
-            )}
-            activeDot={{ r: 5, fill: "#06B6D4", stroke: "#fff", strokeWidth: 2 }}
-            isAnimationActive
-            animationDuration={600}
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+            ))}
+          </div>
+        </div>
 
-      {/* Floating band label — follows the last data point */}
-      <FloatingBandLabel
-        band={lastPoint.band}
-        colors={lastBandColors}
-      />
-
-      {/* Band legend */}
-      <div className="flex items-center gap-4 mt-4 flex-wrap">
-        {(["Needs Work", "Improving", "Strong"] as const).map((band) => {
-          const c = BAND_COLORS[band];
-          return (
-            <div key={band} className="flex items-center gap-1.5">
-              <span
-                className="inline-block w-2.5 h-2.5 rounded-full"
-                style={{ background: c.stroke }}
-              />
-              <span className="text-[12px] text-text-muted">{band}</span>
+        {/* Level filter — only show levels with data */}
+        {availableLevels.length > 1 && (
+          <div className="flex flex-col gap-1.5">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+              Class
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {availableLevels.map((level) => (
+                <FilterChip
+                  key={level}
+                  label={level}
+                  active={selectedLevel === level}
+                  onClick={() =>
+                    setSelectedLevel(
+                      selectedLevel === level ? null : level
+                    )
+                  }
+                />
+              ))}
             </div>
-          );
-        })}
-        <span className="text-[11px] text-text-muted ml-auto">
-          3-week rolling average
-        </span>
+          </div>
+        )}
       </div>
-    </div>
+
+      {/* ── Chart card ── */}
+      {isLoading ? (
+        <CardSkeleton className="h-[400px]" />
+      ) : error ? (
+        <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
+          {error}
+        </div>
+      ) : data.length === 0 ? (
+        <EmptyPerformance />
+      ) : (
+        <>
+          {/* Current band summary */}
+          {currentBand && (
+            <div
+              className={cn(
+                "flex items-center gap-3 rounded-[10px] px-4 py-3 mb-4 border",
+                BAND_META[currentBand].bg,
+                BAND_META[currentBand].border
+              )}
+            >
+              <TrendingUp
+                size={18}
+                className={BAND_META[currentBand].color}
+              />
+              <div>
+                <p
+                  className={cn(
+                    "text-[13px] font-semibold",
+                    BAND_META[currentBand].color
+                  )}
+                >
+                  Currently: {currentBand}
+                </p>
+                <p className="text-[12px] text-text-muted">
+                  Based on your most recent submissions
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Chart */}
+          <div className="bg-bg-card border border-border rounded-[14px] p-5 mb-4">
+            <PerformanceChart data={data} />
+          </div>
+
+          {/* Band distribution */}
+          <div className="grid grid-cols-3 gap-3">
+            {(["Strong", "Improving", "Needs Work"] as const).map((band) => {
+              const count = bandCounts[band] ?? 0;
+              const pct = data.length
+                ? Math.round((count / data.length) * 100)
+                : 0;
+              const meta = BAND_META[band];
+
+              return (
+                <div
+                  key={band}
+                  className={cn(
+                    "bg-bg-card border rounded-[10px] px-4 py-3 flex flex-col gap-1",
+                    meta.border
+                  )}
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={cn(
+                        "w-2 h-2 rounded-full shrink-0",
+                        meta.dot
+                      )}
+                    />
+                    <p
+                      className={cn(
+                        "text-[11px] font-semibold uppercase tracking-wide",
+                        meta.color
+                      )}
+                    >
+                      {band}
+                    </p>
+                  </div>
+                  <p
+                    className="text-[22px] font-bold text-text-primary leading-none"
+                    style={{ fontFamily: "var(--font-head)" }}
+                  >
+                    {pct}%
+                  </p>
+                  <p className="text-[11px] text-text-muted">
+                    {count} of {data.length} weeks
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </PageShell>
   );
 }
 
-function FloatingBandLabel({
-  band,
-  colors,
+// ── Filter chip ───────────────────────────────────────────────
+
+function FilterChip({
+  label,
+  active,
+  onClick,
 }: {
-  band: "Needs Work" | "Improving" | "Strong";
-  colors: { fill: string; stroke: string; text: string };
+  label: string;
+  active: boolean;
+  onClick: () => void;
 }) {
   return (
-    <div
-      className="absolute top-5 right-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
-      style={{
-        background: colors.fill,
-        color: colors.text,
-        border: `1px solid ${colors.stroke}40`,
-      }}
+    <button
+      onClick={onClick}
+      className={cn(
+        "text-[12px] font-medium px-3.5 py-1.5 rounded-full border transition-colors",
+        active
+          ? "bg-purple text-white border-purple"
+          : "bg-bg-card text-text-secondary border-border hover:border-purple hover:text-purple"
+      )}
     >
-      <span
-        className="w-1.5 h-1.5 rounded-full"
-        style={{ background: colors.stroke }}
-      />
-      {band}
+      {label}
+    </button>
+  );
+}
+
+// ── Empty state ───────────────────────────────────────────────
+
+function EmptyPerformance() {
+  return (
+    <div className="flex flex-col items-center justify-center py-16 text-center gap-3">
+      <div className="w-14 h-14 rounded-full bg-purple-light flex items-center justify-center">
+        <TrendingUp size={26} className="text-purple-mid" />
+      </div>
+      <div>
+        <p className="text-[15px] font-medium text-text-primary mb-1">
+          No performance data yet
+        </p>
+        <p className="text-[13px] text-text-muted max-w-[260px] mx-auto leading-relaxed">
+          Complete and submit lessons to start tracking your learning
+          trajectory.
+        </p>
+      </div>
+      <a
+        href="/dashboard/student/lessons"
+        className="mt-2 text-[13px] font-semibold text-purple-mid hover:text-purple transition-colors no-underline"
+      >
+        Go to My Lessons
+      </a>
     </div>
   );
 }

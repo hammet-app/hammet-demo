@@ -45,7 +45,7 @@ export const navConfig: Record<UserRole, NavEntry[]> = {
     { type: "item", label: "My Progress",  href: "/student/progress",    icon: BarChart2 },
     { type: "item", label: "Submissions",  href: "/student/submissions", icon: ClipboardList },
     { type: "item", label: "My Portfolio", href: "/student/portfolio",   icon: Award },
-    { type: "item", label: "My Performance", href: "/dashboard/student/performance", icon: TrendingUp },
+    { type: "item", label: "My Performance", href: "/student/performance", icon: TrendingUp },
     { type: "divider" },
     { type: "item",    label: "Sign Out",           action: "logout",           icon: LogOut, danger: true }
   ],

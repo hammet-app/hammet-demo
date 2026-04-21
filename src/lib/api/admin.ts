@@ -84,7 +84,7 @@ export async function bulkRegisterStudents(
 // ------------------------------------------------------------
 
 export async function previewPromotion(
-  csvText: string,
+  csvText: BulkRegisterRequest,
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<PromotionPreviewResponse> {

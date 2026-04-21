@@ -48,6 +48,7 @@ export default function PromotionPage() {
     setError(null);
     try {
       const res = await previewPromotion({csvText: csvText} satisfies BulkRegisterRequest, accessToken, refreshToken);
+      console.log(res)
       setPreview(res);
       setStage("preview");
     } catch {

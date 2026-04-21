@@ -8,7 +8,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { BulkRegisterRequest, BulkRegisterResponse } from "@/lib/api/api-types";
 
 const PLACEHOLDER = `Chisom Obi,chisom@school.edu.ng,SS1,A,parent@email.com,+2348001234567
-Emeka Nwosu,emeka@school.edu.ng,JS2,B,dad@email.com,+2347012345678
+Motilola ,moti@school.edu.ng,JS2,B,dad@email.com,+2347012345678
 Aisha Bello,aisha@school.edu.ng,SS3,,mum@email.com,+2348098765432`;
 
 export default function BulkImportPage() {

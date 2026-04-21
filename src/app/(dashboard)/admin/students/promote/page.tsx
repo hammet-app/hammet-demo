@@ -301,7 +301,7 @@ export default function PromotionPage() {
             value={csvText}
             onChange={(e) => setCsvText(e.target.value)}
             rows={10}
-            placeholder={"chisom@school.edu.ng\nemeka@school.edu.ng\naisha@school.edu.ng"}
+            placeholder={"chisom@school.edu.ng,\nmotilola@school.edu.ng,\naisha@school.edu.ng"}
             spellCheck={false}
             className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg-page)] px-4 py-3 text-sm text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-purple)] focus:border-transparent resize-y transition font-mono leading-relaxed"
           />

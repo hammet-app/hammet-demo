@@ -88,6 +88,7 @@ export async function previewPromotion(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<PromotionPreviewResponse> {
+  console.log(`API ${csvText}`)
   return apiClient.post<PromotionPreviewResponse>(
     "/admin/students/promote/preview",
     csvText,

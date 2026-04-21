@@ -97,13 +97,13 @@ export async function previewPromotion(
 }
 
 export async function confirmPromotion(
-  body: PromotionConfirmRequest,
+  promotion_id: string,
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<PromotionConfirmResponse> {
   return apiClient.post<PromotionConfirmResponse>(
     "/admin/students/promote/confirm",
-    body,
+    promotion_id,
     token,
     { onRefresh }
   );

@@ -64,7 +64,7 @@ export default function PromotionPage() {
     setError(null);
     try {
       const res = await confirmPromotion(
-        { promotion_id: preview.promotion_id },
+        preview.promotion_id,
         accessToken,
         refreshToken
       );

@@ -71,9 +71,6 @@ export async function bulkRegisterStudents(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<BulkRegisterResponse> {
-  // Send as multipart form with a text blob so the backend
-  // receives it as a CSV file upload. Adjust if backend
-  // prefers raw text body — swap FormData for { csv: csvText }.
   return apiClient.post<BulkRegisterResponse>(
     "/auth/register/students/bulk",
     csvText,
@@ -91,12 +88,9 @@ export async function previewPromotion(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<PromotionPreviewResponse> {
-  const formData = new FormData();
-  const blob = new Blob([csvText], { type: "text/csv" });
-  formData.append("file", blob, "retained.csv");
   return apiClient.post<PromotionPreviewResponse>(
     "/admin/students/promote/preview",
-    formData,
+    csvText,
     token,
     { onRefresh }
   );

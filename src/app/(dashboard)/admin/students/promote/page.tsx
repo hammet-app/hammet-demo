@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { previewPromotion, confirmPromotion } from "@/lib/api/admin";
 import { PageShell } from "@/components/layout/page-shell";
 import type {
+  BulkRegisterRequest,
   PromotionPreviewResponse,
   PromotionStudentPreview,
 } from "@/lib/api/api-types";

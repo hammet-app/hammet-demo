@@ -43,20 +43,33 @@ export default function PromotionPage() {
     .filter((l) => l.length > 0).length;
 
   async function handlePreview() {
-    if (!csvText.trim() || !accessToken) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await previewPromotion({csvText: csvText} satisfies BulkRegisterRequest, accessToken, refreshToken);
-      console.log
-      setPreview(res);
-      setStage("preview");
-    } catch {
-      setError("Failed to generate preview. Check your CSV and try again.");
-    } finally {
-      setLoading(false);
-    }
+  if (!accessToken) return;
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const cleaned = csvText
+      .split("\n")
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    const res = await previewPromotion(
+      {
+        csvText: cleaned.join("\n"),
+      } satisfies BulkRegisterRequest,
+      accessToken,
+      refreshToken
+    );
+
+    setPreview(res);
+    setStage("preview");
+  } catch {
+    setError("Failed to generate preview. Check your CSV and try again.");
+  } finally {
+    setLoading(false);
   }
+}
 
   async function handleConfirm() {
     if (!preview || !accessToken) return;

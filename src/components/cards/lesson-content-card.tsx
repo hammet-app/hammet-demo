@@ -58,6 +58,11 @@ function formatInlineText(text?: string): string {
       continue;
     }
 
+    // ── EMPTY LINE (ignore, don't break lists) ─────────
+    if (!trimmed) {
+      continue;
+    }
+
     // ── NORMAL TEXT ─────────────────────
     if (inUl) {
       result += "</ul>";
@@ -68,10 +73,8 @@ function formatInlineText(text?: string): string {
       inOl = false;
     }
 
-    if (trimmed) {
-      result += `<p>${trimmed}</p>`;
-    }
-  }
+    result += `<p>${trimmed}</p>`;
+      }
 
   // Close any open list
   if (inUl) result += "</ul>";

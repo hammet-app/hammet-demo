@@ -407,59 +407,76 @@ export function LessonContentCard({
       </div>
 
       {/* Blocks — rendered in backend order */}
-      {blocks.map((block, i) => (
-        <div key={i} className="flex flex-col gap-2">
-          <Block block={block} />
+      {blocks.map((block, i) => {
+        const nextBlock = blocks[i + 1];
 
-          {block.type === "activity" && (
-            <div className="flex flex-col gap-2 mt-1">
-              <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
-                <MessageSquare size={14} className="text-purple-mid" />
-                Activity Box
-              </label>
+        const addSpacing =
+          block.type === "body" && nextBlock?.type === "heading";
 
-              <textarea
-                value={activityText}
-                onChange={(e) => onActivityChange(e.target.value)}
-                placeholder="Do your activity here…"
-                rows={5}
-                className={cn(
-                  "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
-                  "text-[13px] text-text-primary placeholder:text-text-muted",
-                  "outline-none transition-colors",
-                  "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
-                )}
-              />
-            </div>
-          )}
-        </div>
-      ))}
-
-        {/* Reflection answer textarea — always last, after all content blocks */}
-        <div className="flex flex-col gap-2">
-          <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
-            <MessageSquare size={14} className="text-purple-mid" />
-            Your reflection{" "}
-            <span className="font-normal text-[12px] text-text-muted">
-              ({REFLECTION_MIN}–{REFLECTION_MAX} words)
-            </span>
-          </label>
-          <textarea
-            value={reflectionText}
-            onChange={(e) => onReflectionChange(e.target.value)}
-            placeholder="Write your reflection here…"
-            rows={5}
+        return (
+          <div
+            key={i}
             className={cn(
-              "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
-              "text-[13px] text-text-primary placeholder:text-text-muted",
-              "outline-none transition-colors",
-              "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
+              "flex flex-col gap-2",
+              addSpacing && "mb-4" // 👈 THIS creates the space
             )}
-          />
-          <p className={cn("text-[11px] text-right tabular-nums", wordCountColor)}>
-            {wordCount} / {REFLECTION_MAX} words
-          </p>
-        </div>
+          >
+            <Block block={block} />
+
+            {block.type === "activity" && (
+              <div className="flex flex-col gap-2 mt-1">
+                <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
+                  <MessageSquare size={14} className="text-purple-mid" />
+                  Activity Box
+                </label>
+
+                <textarea
+                  value={activityText}
+                  onChange={(e) => onActivityChange(e.target.value)}
+                  placeholder="Do your activity here…"
+                  rows={5}
+                  className={cn(
+                    "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
+                    "text-[13px] text-text-primary placeholder:text-text-muted",
+                    "outline-none transition-colors",
+                    "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
+                  )}
+                  
+                />
+              </div>
+            )}
+
+            {block.type === "reflection" && (
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
+                  <MessageSquare size={14} className="text-purple-mid" />
+                  Your reflection{" "}
+                  <span className="font-normal text-[12px] text-text-muted">
+                    ({REFLECTION_MIN}–{REFLECTION_MAX} words)
+                  </span>
+                </label>
+                <textarea
+                  value={reflectionText}
+                  onChange={(e) => onReflectionChange(e.target.value)}
+                  placeholder="Write your reflection here…"
+                  rows={5}
+                  className={cn(
+                    "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
+                    "text-[13px] text-text-primary placeholder:text-text-muted",
+                    "outline-none transition-colors",
+                    "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
+                  )}
+                />
+                <p className={cn("text-[11px] text-right tabular-nums", wordCountColor)}>
+                  {wordCount} / {REFLECTION_MAX} words
+                </p>
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+        
       
 
       {/* Footer */}

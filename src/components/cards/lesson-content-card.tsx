@@ -351,6 +351,7 @@ interface LessonContentCardProps {
   isSubmitting?: boolean;
   className?: string;
   submitLabel?: string;
+  isTeacher?: boolean;
 }
 
 export function LessonContentCard({
@@ -370,6 +371,7 @@ export function LessonContentCard({
   isSubmitting = false,
   className,
   submitLabel,
+  isTeacher=false,
 }: LessonContentCardProps) {
   const wordCount =
     reflectionText.trim() === ""
@@ -426,7 +428,7 @@ export function LessonContentCard({
           >
             <Block block={block} />
 
-            {block.type === "activity" && (
+            {block.type === "activity" && !isTeacher && (
               <div className="flex flex-col gap-2 mt-1">
                 <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
                   <MessageSquare size={14} className="text-purple-mid" />
@@ -449,7 +451,7 @@ export function LessonContentCard({
               </div>
             )}
 
-            {block.type === "reflection" && (
+            {block.type === "reflection" && !isTeacher && (
               <div className="flex flex-col gap-2">
                 <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
                   <MessageSquare size={14} className="text-purple-mid" />
@@ -484,10 +486,12 @@ export function LessonContentCard({
 
       {/* Footer */}
       <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-1.5 text-[12px] text-success">
-          <span className="w-[7px] h-[7px] rounded-full bg-success shrink-0" />
-          {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
-        </div>
+        {!isTeacher && (
+          <div className="flex items-center gap-1.5 text-[12px] text-success">
+            <span className="w-[7px] h-[7px] rounded-full bg-success shrink-0" />
+            {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
+          </div>
+        )}
 
         <div className="flex items-center gap-2">
           {onPrevious && (
@@ -499,7 +503,7 @@ export function LessonContentCard({
               Previous
             </button>
           )}
-          <button
+          {!isTeacher && (<button
             onClick={onSubmit}
             disabled={isSubmitting || wordCount < REFLECTION_MIN}
             className={cn(
@@ -512,6 +516,7 @@ export function LessonContentCard({
             {isSubmitting ? "Submitting…" : (submitLabel ?? "Submit & continue")}
             {!isSubmitting && <ChevronRight size={14} />}
           </button>
+          )}
         </div>
       </div>
     </div>

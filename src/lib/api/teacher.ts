@@ -7,6 +7,7 @@ import type {
   SubmissionReviewResponse,
   FlagSubmissionRequest,
   StudentDetail,
+  ModulesResponse,
 } from "@/lib/api/api-types";
 
 export async function getTeacherClasses(
@@ -16,6 +17,18 @@ export async function getTeacherClasses(
   return apiClient.get<TeacherClassesResponse>("/teacher/classes", token, {
     onRefresh,
   });
+}
+
+export async function getTeacherModules(
+  level: string,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<ModulesResponse> {
+    return apiClient.get<ModulesResponse>(
+      `/lessons/level=${encodeURIComponent(level)}`,
+      token,
+      { onRefresh }
+    );
 }
 
 export async function getClassStudents(

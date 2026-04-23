@@ -135,8 +135,8 @@ export default function LessonsPage() {
                   term={module.term}
                   status={"not_started"}
                   onClick={() =>
-                    router.push(`/teacher/lessons/${module.id}`)
-                  }
+                        router.push(`/teacher/lessons/${module.id}?level=${classLevel}`)
+                    }
                 />
               </div>
             );

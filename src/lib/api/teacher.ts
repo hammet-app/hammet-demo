@@ -8,6 +8,7 @@ import type {
   FlagSubmissionRequest,
   StudentDetail,
   ModulesResponse,
+  CurriculumModule,
 } from "@/lib/api/api-types";
 
 export async function getTeacherClasses(
@@ -27,6 +28,18 @@ export async function getTeacherModules(
     return apiClient.get<ModulesResponse>(
       `/teacher/lessons/level=${encodeURIComponent(level)}`,
       token,
+      { onRefresh }
+    );
+}
+
+export async function getModule(
+    moduleId: string,
+    token: string,
+    onRefresh: () => Promise<string | null>
+): Promise<CurriculumModule> {
+    return apiClient.get<CurriculumModule>(
+      `/modules/${moduleId}`, 
+      token, 
       { onRefresh }
     );
 }

@@ -416,7 +416,8 @@ export function LessonContentCard({
         const nextBlock = blocks[i + 1];
 
         const addSpacing =
-          (block.type === "body" || block.type == "image") && nextBlock?.type === "heading";
+          ((block.type === "body" || block.type === "image") && nextBlock?.type === "heading" ||
+            block.type === "body" && nextBlock?.type === "image");
 
         return (
           <div

@@ -155,10 +155,10 @@ export default function TeacherReviewDetailPage() {
             </div>
           </div>
 
-          {/* Reflection */}
+          {/* Activity */}
           {submission.activity_text && (
             <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6">
-              <p className="text-xs uppercase mb-3">Reflection</p>
+              <p className="text-xs uppercase mb-3">Activity</p>
               <p className="whitespace-pre-wrap">
                 {submission.activity_text}
               </p>
@@ -168,7 +168,7 @@ export default function TeacherReviewDetailPage() {
           {/* AI Note */}
           {submission.ai_note && (
             <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6">
-              <p className="text-xs uppercase mb-3">Reflection</p>
+              <p className="text-xs uppercase mb-3">AI Note</p>
               <p className="whitespace-pre-wrap">
                 {submission.ai_note}
               </p>
@@ -178,7 +178,7 @@ export default function TeacherReviewDetailPage() {
           {/* AI Score */}
           {submission.ai_score && (
             <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6">
-              <p className="text-xs uppercase mb-3">Reflection</p>
+              <p className="text-xs uppercase mb-3">AI Score</p>
               <p className="whitespace-pre-wrap">
                 {submission.ai_score}
               </p>

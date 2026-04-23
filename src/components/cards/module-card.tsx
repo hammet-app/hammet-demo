@@ -23,15 +23,25 @@ export function ModuleCard({
 }: ModuleCardProps) {
   return (
     <button
-      onClick={onClick}
+      onClick={() => {
+        if (locked) return;
+        onClick?.();
+      }}
       className={cn(
         "w-full text-left bg-bg-card border border-border rounded-[10px]",
         "flex items-center gap-3 p-4",
         "transition-all duration-150",
-        "hover:border-purple-mid hover:ring-2 hover:ring-purple-mid/[0.08]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-mid",
+
+        // 👇 only allow hover if NOT locked
+        !locked && "hover:border-purple-mid hover:ring-2 hover:ring-purple-mid/[0.08]",
+
+        // 👇 locked styles
+        locked && "opacity-50 cursor-not-allowed",
+
         className
       )}
+      disabled={locked}
     >
       {/* Week badge */}
       <div

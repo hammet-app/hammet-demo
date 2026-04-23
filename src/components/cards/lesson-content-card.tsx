@@ -37,7 +37,7 @@ function formatInlineText(text?: string): string {
         inOl = false;
       }
       if (!inUl) {
-        result += `<ul class="list-disc ml-5 space-y-1">`;
+        result += `<ul class="list-disc ml-5 space-y-2 mt-2 mb-2">`;
         inUl = true;
       }
       result += `<li>${trimmed.replace(/^- /, "")}</li>`;
@@ -51,7 +51,7 @@ function formatInlineText(text?: string): string {
         inUl = false;
       }
       if (!inOl) {
-        result += `<ol class="list-decimal ml-5 space-y-1">`;
+        result += `<ol class="list-decimal ml-5 space-y-2 mt-2 mb-2">`;
         inOl = true;
       }
       result += `<li>${trimmed.replace(/^\d+\.\s+/, "")}</li>`;

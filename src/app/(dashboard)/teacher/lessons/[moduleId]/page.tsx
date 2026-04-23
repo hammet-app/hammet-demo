@@ -32,43 +32,41 @@ export default function LessonDetailPage() {
 
   const isTeacher = user?.roles.includes("teacher")
 
-  // ── Load module + all modules + existing submission in parallel ──
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || !classLevel || !moduleId) return;
 
     async function load() {
-      try {
+
+        try {
+        if (!accessToken || !classLevel) return;
+
         const [mod, list] = await Promise.all([
-          getModule(moduleId, accessToken!, refreshToken),
-          getTeacherModules(classLevel!, accessToken!, refreshToken),
+            getModule(moduleId, accessToken, refreshToken),
+            getTeacherModules(classLevel, accessToken, refreshToken),
         ]);
 
         setModule(mod);
         setAllModules(list.modules);
-
         setLoadState("ready");
-      } catch {
+        } catch (err) {
+        
         setLoadState("error");
-      }
+        }
     }
 
     load();
-  }, [accessToken, moduleId, user?.class_level]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [accessToken, moduleId, classLevel]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Navigation ──
   const sortedModules = [...allModules].sort(
     (a, b) => a.week_number - b.week_number
   );
   const currentIdx = sortedModules.findIndex((m) => m.id === moduleId);
-  const nextMod =
-    currentIdx !== -1 && currentIdx < sortedModules.length - 1
-      ? sortedModules[currentIdx + 1]
-      : null;
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
   function handlePrevious() {
     router.push(
-      prevMod ? `/student/lessons/${prevMod.id}` : "/student/lessons"
+      prevMod ? `/teacher/lessons/${prevMod.id}` : "/teacher/lessons"
     );
   }
 
@@ -90,7 +88,7 @@ export default function LessonDetailPage() {
     return (
       <PageShell
         title="Lesson"
-        backHref="/student/lessons"
+        backHref="/teacher/lessons"
         backLabel="My Lessons"
       >
         <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
@@ -110,7 +108,7 @@ export default function LessonDetailPage() {
       <div className="w-full max-w-4xl">
         
         {/* Lesson */}
-        {(status === null || status === "flagged") && (
+        {(status === null) && (
           <LessonContentCard
             title={module.title}
             weekNumber={module.week_number}

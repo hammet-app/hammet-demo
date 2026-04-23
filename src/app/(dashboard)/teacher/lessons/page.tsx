@@ -67,7 +67,21 @@ export default function LessonsPage() {
         setModules(res.modules);
       } catch (err) {
         if (err instanceof ApiError) {
-          setError(err.message);
+          if (err.status === 401) {
+            setError("Authentication required. Please log in again.");
+          } else if (err.status === 403) {
+            setError("You are not allowed to access these lessons.");
+          } else if (err.status === 404) {
+            setError("Lessons not found.");
+          } else if (err.status === 409) {
+            setError("Conflict while loading lessons.");
+          } else if (err.status === 400 || err.status === 422) {
+            setError(`Invalid request. ${err.message}`);
+          } else if (err.status === 500) {
+            setError("Server error. Please try again.");
+          } else {
+            setError(err.message);
+          }
         } else {
           setError("Failed to load modules.");
         }
@@ -75,7 +89,6 @@ export default function LessonsPage() {
         setIsLoadingModules(false);
       }
     }
-
     loadModules();
   }, [accessToken, classLevel]);
 
@@ -90,7 +103,7 @@ export default function LessonsPage() {
   );
 
   return (
-    <PageShell title="My Lessons">
+    <PageShell title="Lessons">
 
       {/* ── Level selector ── */}
       {!isLoading && levels.length > 0 && (
@@ -115,13 +128,20 @@ export default function LessonsPage() {
       {isLoading || isLoadingModules ? (
         <ListSkeleton />
       ) : error ? (
-        <div className="text-red-500 text-sm">{error}</div>
+        <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
+          {error}
+        </div>
       ) : (
         Object.keys(byWeek)
           .map(Number)
           .sort((a, b) => a - b)
-          .map((week) => {
+          .map((week, index, arr) => {
             const module = byWeek[week][0];
+
+            if (index > 0) {
+                const prevWeek = arr[index - 1];
+                const prevModule = byWeek[prevWeek][0];
+            }
 
             return (
               <div key={week} className="mb-6">

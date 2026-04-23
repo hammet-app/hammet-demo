@@ -26,7 +26,7 @@ export async function getTeacherModules(
   onRefresh: () => Promise<string | null>
 ): Promise<ModulesResponse> {
     return apiClient.get<ModulesResponse>(
-      `/teacher/lessons/level=${encodeURIComponent(level)}`,
+      `/teacher/lessons/${encodeURIComponent(level)}`,
       token,
       { onRefresh }
     );

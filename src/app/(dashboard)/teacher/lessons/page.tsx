@@ -56,7 +56,9 @@ export default function LessonsPage() {
     if (!accessToken || !classLevel) return;
 
     async function loadModules() {
+      setModules([])
       setIsLoadingModules(true);
+      setError("")
       try {
         if(!accessToken) return;
         const res = await getTeacherModules(
@@ -130,6 +132,10 @@ export default function LessonsPage() {
       ) : error ? (
         <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
           {error}
+        </div>
+      ) : modules.length === 0 ? (
+        <div className="text-[13px] text-text-muted px-4 py-3">
+          No lessons available for this class.
         </div>
       ) : (
         Object.keys(byWeek)

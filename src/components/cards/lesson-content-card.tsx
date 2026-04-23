@@ -411,14 +411,14 @@ export function LessonContentCard({
         const nextBlock = blocks[i + 1];
 
         const addSpacing =
-          block.type === "body" && nextBlock?.type === "heading";
+          (block.type === "body" || block.type == "image") && nextBlock?.type === "heading";
 
         return (
           <div
             key={i}
             className={cn(
               "flex flex-col gap-2",
-              addSpacing && "mb-4" // 👈 THIS creates the space
+              addSpacing && "mb-4"
             )}
           >
             <Block block={block} />

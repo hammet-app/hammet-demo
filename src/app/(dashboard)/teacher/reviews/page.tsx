@@ -51,9 +51,9 @@ function PendingSubmissionRow({
             </span>
           </p>
 
-          {submission.reflection_text && (
+          {submission.activity_text && (
             <p className="text-sm line-clamp-2">
-              {submission.reflection_text}
+              {submission.activity_text}
             </p>
           )}
         </div>

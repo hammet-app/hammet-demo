@@ -402,7 +402,7 @@ export type PendingSubmission = {
   module_title: string;
   term: number;
   week_number: number;
-  reflection_text: string | null;
+  activity_text: string | null;
   file_url: string | null;
   submitted_at: string;
 };

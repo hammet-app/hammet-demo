@@ -156,11 +156,31 @@ export default function TeacherReviewDetailPage() {
           </div>
 
           {/* Reflection */}
-          {submission.reflection_text && (
+          {submission.activity_text && (
             <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6">
               <p className="text-xs uppercase mb-3">Reflection</p>
               <p className="whitespace-pre-wrap">
-                {submission.reflection_text}
+                {submission.activity_text}
+              </p>
+            </div>
+          )}
+
+          {/* AI Note */}
+          {submission.ai_note && (
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6">
+              <p className="text-xs uppercase mb-3">Reflection</p>
+              <p className="whitespace-pre-wrap">
+                {submission.ai_note}
+              </p>
+            </div>
+          )}
+
+          {/* AI Score */}
+          {submission.ai_score && (
+            <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6">
+              <p className="text-xs uppercase mb-3">Reflection</p>
+              <p className="whitespace-pre-wrap">
+                {submission.ai_score}
               </p>
             </div>
           )}

@@ -424,9 +424,12 @@ export type SubmissionDetail = {
   module_title: string;
   term: number;
   week_number: number;
-  reflection_text: string | null;
+  activity_text: string | null;
   file_url: string | null;
   status: SubmissionStatus;
+  ai_note: string | null;
+  ai_status: string | null;
+  ai_score: number | null;
   teacher_note: string | null;
   submitted_at: string;
   reviewed_at: string | null;

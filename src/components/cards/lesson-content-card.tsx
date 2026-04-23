@@ -45,7 +45,7 @@ function formatInlineText(text?: string): string {
     }
 
     // ── NUMBERED (1. 2. etc) ─────────────
-    if (/^\d+\.\s+/.test(trimmed)) {
+    if (/^\s*\d+\.\s+/.test(trimmed)) {
       if (inUl) {
         result += "</ul>";
         inUl = false;

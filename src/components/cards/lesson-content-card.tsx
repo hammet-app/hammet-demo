@@ -120,8 +120,8 @@ function SubheadingBlock({ block }: { block: CurriculumModuleBlock }) {
 
 function BodyBlock({ block }: { block: CurriculumModuleBlock }) {
   return (
-    <p
-      className="text-[13.5px] text-text-secondary leading-relaxed"
+    <div
+      className="text-[13.5px] text-text-secondary leading-relaxed space-y-2"
       dangerouslySetInnerHTML={{
         __html: formatInlineText(block.content),
       }}
@@ -418,7 +418,7 @@ export function LessonContentCard({
             key={i}
             className={cn(
               "flex flex-col gap-2",
-              addSpacing && "mb-4"
+              addSpacing && "mb-6"
             )}
           >
             <Block block={block} />

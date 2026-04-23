@@ -8,6 +8,7 @@ interface ModuleCardProps {
   term: number;
   status: SubmissionStatus;
   onClick?: () => void;
+  locked: boolean;
   className?: string;
 }
 
@@ -17,6 +18,7 @@ export function ModuleCard({
   term,
   status,
   onClick,
+  locked=false,
   className,
 }: ModuleCardProps) {
   return (

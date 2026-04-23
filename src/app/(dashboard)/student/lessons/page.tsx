@@ -170,27 +170,44 @@ export default function LessonsPage() {
           )}
 
           {/* Module list grouped by week */}
-          {Object.entries(byWeek)
-            .sort(([a], [b]) => Number(a) - Number(b))
-            .map(([week, mods]) => (
-              <div key={week} className="mb-6">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2.5">
-                  Week {week}
-                </p>
-                <div className="flex flex-col gap-2">
-                  {mods.map((m) => (
-                    <ModuleCard
-                      key={m.id}
-                      title={m.title}
-                      weekNumber={m.week_number}
-                      term={m.term}
-                      status={statusMap.get(m.id) ?? "not_started"}
-                      onClick={() => router.push(`/student/lessons/${m.id}`)}
-                    />
-                  ))}
+          {Object.keys(byWeek)
+            .map(Number)
+            .sort((a, b) => a - b)
+            .map((week, index, arr) => {
+              const module = byWeek[week][0]; // only one module per week
+
+              let unlocked = true;
+
+              if (index > 0) {
+                const prevWeek = arr[index - 1];
+                const prevModule = byWeek[prevWeek][0];
+                const prevStatus = statusMap.get(prevModule.id);
+
+                unlocked =
+                  prevStatus === "submitted" || prevStatus === "approved";
+              }
+
+              return (
+                <div key={week} className="mb-6">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2.5">
+                    Week {week}
+                  </p>
+
+                  <ModuleCard
+                    key={module.id}
+                    title={module.title}
+                    weekNumber={module.week_number}
+                    term={module.term}
+                    status={statusMap.get(module.id) ?? "not_started"}
+                    locked={!unlocked}
+                    onClick={() => {
+                      if (!unlocked) return;
+                      router.push(`/student/lessons/${module.id}`);
+                    }}
+                  />
                 </div>
-              </div>
-            ))}
+              );
+            })}
         </>
       )}
     </PageShell>

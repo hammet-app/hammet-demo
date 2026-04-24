@@ -310,8 +310,10 @@ export default function AdminStudentsPage() {
           <p className="text-sm">
             Code generated for {created.full_name}
           </p>
-
+          <p className="font-mono">Code: {created.code}</p>
           <div className="flex gap-2 mt-2">
+
+            
             <button onClick={downloadTXT}>Download TXT</button>
             <button onClick={downloadCSV}>Download CSV</button>
           </div>

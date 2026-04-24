@@ -73,7 +73,9 @@ function StudentRow({
           {hasLink ? (
             <>
               <span className="text-xs">
-                Link sent {timeAgo(student.parent_link_sent_at! || "0")}
+                {student.parent_link_sent_at
+                  ? `Link sent ${timeAgo(student.parent_link_sent_at)}`
+                  : "Link sent 0d ago"}
               </span>
 
               <button
@@ -188,7 +190,6 @@ export default function AdminStudentsPage() {
   const [inFlight, setInFlight] = useState<InFlight | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // 🔥 NEW
   const [created, setCreated] = useState<{
     full_name: string;
     email: string;

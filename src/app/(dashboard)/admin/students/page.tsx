@@ -34,10 +34,16 @@ function StudentRow({
   student,
   inFlight,
   onAction,
+  created,
 }: {
   student: AdminStudent;
   inFlight: InFlight | null;
   onAction: (action: RowAction) => void;
+  created?: {
+    full_name: string;
+    email: string;
+    code: string;
+  };
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
@@ -175,6 +181,52 @@ function StudentRow({
             Delete
           </button>
         )}
+
+        {created && (
+  <div className="mt-3 p-3 rounded-xl border bg-[var(--color-bg-page)]">
+    <p className="text-xs text-[var(--color-text-muted)]">
+      Verification code
+    </p>
+
+    <p className="text-sm font-mono mt-1">
+      {created.code}
+    </p>
+
+    <div className="flex gap-2 mt-2">
+      <button
+        onClick={() => {
+          const content = `Name: ${created.full_name}\nEmail: ${created.email}\nCode: ${created.code}`;
+          const blob = new Blob([content], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `${created.full_name}.txt`;
+          a.click();
+        }}
+        className="text-xs underline"
+      >
+        TXT
+      </button>
+
+      <button
+        onClick={() => {
+          const content = `full_name,email,code\n${created.full_name},${created.email},${created.code}`;
+          const blob = new Blob([content], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `student.csv`;
+          a.click();
+        }}
+        className="text-xs underline"
+      >
+        CSV
+      </button>
+    </div>
+  </div>
+)}
       </div>
     </div>
   );
@@ -190,11 +242,9 @@ export default function AdminStudentsPage() {
   const [inFlight, setInFlight] = useState<InFlight | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const [created, setCreated] = useState<{
-    full_name: string;
-    email: string;
-    code: string;
-  } | null>(null);
+  const [createdMap, setCreatedMap] = useState<
+    Record<string, { full_name: string; email: string; code: string }>
+  >({});
 
   useEffect(() => {
     if (!accessToken) return;
@@ -263,11 +313,16 @@ export default function AdminStudentsPage() {
         );
 
         if (typeof res.message === "string") {
-          setCreated({
-            full_name: student.full_name,
-            email: student.email,
-            code: res.message,
-          });
+          const code = res.message;
+
+          setCreatedMap((prev) => ({
+            ...prev,
+            [action.studentId]: {
+              full_name: student.full_name,
+              email: student.email,
+              code: code,
+            },
+          }));
         }
       }
     } catch {
@@ -277,49 +332,8 @@ export default function AdminStudentsPage() {
     }
   }
 
-  function downloadTXT() {
-    if (!created) return;
-
-    const content = `Name: ${created.full_name}\nEmail: ${created.email}\nCode: ${created.code}`;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${created.full_name}.txt`;
-    a.click();
-  }
-
-  function downloadCSV() {
-    if (!created) return;
-
-    const content = `full_name,email,code\n${created.full_name},${created.email},${created.code}`;
-    const blob = new Blob([content], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `student.csv`;
-    a.click();
-  }
-
   return (
     <PageShell title="Students" description={`${students.length} registered`}>
-      {created && (
-        <div className="mb-4 border rounded-xl p-4">
-          <p className="text-sm">
-            Code generated for {created.full_name}
-          </p>
-          <p className="font-mono">Code: {created.code}</p>
-          <div className="flex gap-2 mt-2">
-
-            
-            <button onClick={downloadTXT}>Download TXT</button>
-            <button onClick={downloadCSV}>Download CSV</button>
-          </div>
-        </div>
-      )}
-
       {isLoading ? (
         <ListSkeleton rows={6} />
       ) : error ? (
@@ -332,6 +346,7 @@ export default function AdminStudentsPage() {
               student={student}
               inFlight={inFlight}
               onAction={handleAction}
+              created={createdMap[student.student_id]}
             />
           ))}
         </div>

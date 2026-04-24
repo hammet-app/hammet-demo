@@ -395,138 +395,142 @@ export function LessonContentCard({
       : "text-text-muted";
 
   return (
-    <div className={cn("bg-bg-card border border-border rounded-[14px] overflow-hidden", className)}>
+    <div className="w-full px-4 sm:px-6 lg:px-8">
+      <div className="max-w-3xl lg:max-w-4xl mx-auto">
+        <div className={cn("bg-bg-card border border-border rounded-[14px] overflow-hidden", className)}>
 
-      {/* Header */}
-      <div className="bg-purple-dark px-6 py-5 flex flex-col gap-2.5">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full bg-white/[0.12] text-white/85 tracking-wide">
-            Week {weekNumber} · Term {term}
-          </span>
-          {toolName && (
-            <span className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full bg-cyan/20 text-cyan tracking-wide">
-              {toolName}
-            </span>
-          )}
-        </div>
-        <h1
-          className={cn(t.body, "text-white/70 leading-snug")} 
-          style={{ fontFamily: "var(--font-head)" }}
-        >
-          {title}
-        </h1>
-        {description && (
-          <p className={cn(t.body, "text-white/70 leading-relaxed")} >{description}</p>
-        )}
-      </div>
-
-      {/* Blocks — rendered in backend order */}
-      {blocks.map((block, i) => {
-        const nextBlock = blocks[i + 1];
-
-        const addSpacing =
-          ((block.type === "body" || block.type === "image") && nextBlock?.type === "heading" ||
-            block.type === "body" && nextBlock?.type === "image");
-
-        return (
-          <div
-            key={i}
-            className={cn(
-              "flex flex-col gap-2",
-              addSpacing && "mb-6"
-            )}
-          >
-            <Block block={block} />
-
-            {block.type === "activity" && !isTeacher && (
-              <div className="flex flex-col gap-2 mt-1">
-                <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
-                  <MessageSquare size={14} className="text-purple-mid" />
-                  Activity Box
-                </label>
-
-                <textarea
-                  value={activityText}
-                  onChange={(e) => onActivityChange(e.target.value)}
-                  placeholder="Do your activity here…"
-                  rows={5}
-                  className={cn(
-                    "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
-                    "text-[13px] text-text-primary placeholder:text-text-muted",
-                    "outline-none transition-colors",
-                    "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
-                  )}
-                  
-                />
-              </div>
-            )}
-
-            {block.type === "reflection" && !isTeacher && (
-              <div className="flex flex-col gap-2">
-                <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
-                  <MessageSquare size={14} className="text-purple-mid" />
-                  Your reflection{" "}
-                  <span className="font-normal text-[12px] text-text-muted">
-                    ({REFLECTION_MIN}–{REFLECTION_MAX} words)
-                  </span>
-                </label>
-                <textarea
-                  value={reflectionText}
-                  onChange={(e) => onReflectionChange(e.target.value)}
-                  placeholder="Write your reflection here…"
-                  rows={5}
-                  className={cn(
-                    "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
-                    "text-[13px] text-text-primary placeholder:text-text-muted",
-                    "outline-none transition-colors",
-                    "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
-                  )}
-                />
-                <p className={cn("text-[11px] text-right tabular-nums", wordCountColor)}>
-                  {wordCount} / {REFLECTION_MAX} words
-                </p>
-              </div>
-            )}
-          </div>
-        );
-      })}
-
-        
-      
-
-      {/* Footer */}
-      <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-3 flex-wrap">
-        {!isTeacher && (
-          <div className="flex items-center gap-1.5 text-[12px] text-success">
-            <span className="w-[7px] h-[7px] rounded-full bg-success shrink-0" />
-            {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
-          </div>
-        )}
-
-        <div className="flex items-center gap-2">
-          {onPrevious && (
-            <button
-              onClick={onPrevious}
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-text-secondary border border-border px-3.5 py-2 rounded-[8px] hover:bg-gray-50 transition-colors"
+          {/* Header */}
+          <div className="bg-purple-dark px-6 py-5 flex flex-col gap-2.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full bg-white/[0.12] text-white/85 tracking-wide">
+                Week {weekNumber} · Term {term}
+              </span>
+              {toolName && (
+                <span className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full bg-cyan/20 text-cyan tracking-wide">
+                  {toolName}
+                </span>
+              )}
+            </div>
+            <h1
+              className={cn(t.body, "text-white/70 leading-snug")} 
+              style={{ fontFamily: "var(--font-head)" }}
             >
-              <ChevronLeft size={14} />
-              Previous
-            </button>
-          )}
-          {!isTeacher && (<button
-            onClick={onSubmit}
-            disabled={isSubmitting || wordCount < REFLECTION_MIN}
-            className={cn(
-              "inline-flex items-center gap-1.5 text-[13px] font-semibold px-4 py-2 rounded-[8px] transition-colors",
-              wordCount >= REFLECTION_MIN && !isSubmitting
-                ? "bg-purple text-white hover:bg-purple-hover"
-                : "bg-purple/50 text-white/60 cursor-not-allowed"
+              {title}
+            </h1>
+            {description && (
+              <p className={cn(t.body, "text-white/70 leading-relaxed")} >{description}</p>
             )}
-          >
-            {isSubmitting ? "Submitting…" : (submitLabel ?? "Submit & continue")}
-            {!isSubmitting && <ChevronRight size={14} />}
-          </button>
-          )}
+          </div>
+
+          {/* Blocks — rendered in backend order */}
+          {blocks.map((block, i) => {
+            const nextBlock = blocks[i + 1];
+
+            const addSpacing =
+              ((block.type === "body" || block.type === "image") && nextBlock?.type === "heading" ||
+                block.type === "body" && nextBlock?.type === "image");
+
+            return (
+              <div
+                key={i}
+                className={cn(
+                  "flex flex-col gap-2",
+                  addSpacing && "mb-6"
+                )}
+              >
+                <Block block={block} />
+
+                {block.type === "activity" && !isTeacher && (
+                  <div className="flex flex-col gap-2 mt-1">
+                    <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
+                      <MessageSquare size={14} className="text-purple-mid" />
+                      Activity Box
+                    </label>
+
+                    <textarea
+                      value={activityText}
+                      onChange={(e) => onActivityChange(e.target.value)}
+                      placeholder="Do your activity here…"
+                      rows={5}
+                      className={cn(
+                        "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
+                        "text-sm sm:text-base",
+                        "outline-none transition-colors",
+                        "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
+                      )}
+                      
+                    />
+                  </div>
+                )}
+
+                {block.type === "reflection" && !isTeacher && (
+                  <div className="flex flex-col gap-2">
+                    <label className="flex items-center gap-1.5 text-[13px] font-semibold text-text-primary">
+                      <MessageSquare size={14} className="text-purple-mid" />
+                      Your reflection{" "}
+                      <span className="font-normal text-[12px] text-text-muted">
+                        ({REFLECTION_MIN}–{REFLECTION_MAX} words)
+                      </span>
+                    </label>
+                    <textarea
+                      value={reflectionText}
+                      onChange={(e) => onReflectionChange(e.target.value)}
+                      placeholder="Write your reflection here…"
+                      rows={5}
+                      className={cn(
+                        "w-full resize-y border border-border rounded-[10px] px-3 py-2.5",
+                        "text-sm sm:text-base",
+                        "outline-none transition-colors",
+                        "focus:border-purple-mid focus:ring-2 focus:ring-purple-mid/10"
+                      )}
+                    />
+                    <p className={cn("text-[11px] text-right tabular-nums", wordCountColor)}>
+                      {wordCount} / {REFLECTION_MAX} words
+                    </p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+            
+          
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-border flex items-center justify-between gap-3 flex-wrap">
+            {!isTeacher && (
+              <div className="flex items-center gap-1.5 text-[12px] text-success">
+                <span className="w-[7px] h-[7px] rounded-full bg-success shrink-0" />
+                {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              {onPrevious && (
+                <button
+                  onClick={onPrevious}
+                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-text-secondary border border-border px-3.5 py-2 rounded-[8px] hover:bg-gray-50 transition-colors"
+                >
+                  <ChevronLeft size={14} />
+                  Previous
+                </button>
+              )}
+              {!isTeacher && (<button
+                onClick={onSubmit}
+                disabled={isSubmitting || wordCount < REFLECTION_MIN}
+                className={cn(
+                  "inline-flex items-center gap-1.5 text-[13px] font-semibold px-4 py-2 rounded-[8px] transition-colors",
+                  wordCount >= REFLECTION_MIN && !isSubmitting
+                    ? "bg-purple text-white hover:bg-purple-hover"
+                    : "bg-purple/50 text-white/60 cursor-not-allowed"
+                )}
+              >
+                {isSubmitting ? "Submitting…" : (submitLabel ?? "Submit & continue")}
+                {!isSubmitting && <ChevronRight size={14} />}
+              </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>

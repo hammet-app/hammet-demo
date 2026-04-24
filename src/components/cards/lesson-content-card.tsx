@@ -13,6 +13,15 @@ import {
 } from "lucide-react";
 import type { CurriculumModuleBlock } from "@/lib/api/api-types";
 
+const t = {
+  title: "text-lg sm:text-xl lg:text-2xl font-bold",
+  sectionTitle: "text-sm sm:text-base font-semibold",
+  body: "text-sm sm:text-base leading-relaxed",
+  small: "text-xs sm:text-sm",
+  label: "text-xs sm:text-sm font-semibold",
+  meta: "text-[11px] sm:text-xs",
+};
+
 // ── Formatter (ONLY used for body) ────────────────────────────────────────────
 function formatInlineText(text?: string): string {
   if (!text) return "";
@@ -102,7 +111,7 @@ function getEmbedUrl(url?: string): string {
 function HeadingBlock({ block }: { block: CurriculumModuleBlock }) {
   return (
     <h2
-      className="text-[15px] font-bold text-text-primary pb-1.5 border-b-2 border-purple-light"
+      className={cn(t.sectionTitle, "text-text-primary pb-1.5 border-b-2 border-purple-light")}
       style={{ fontFamily: "var(--font-head)" }}
     >
       {block.content}
@@ -113,7 +122,7 @@ function HeadingBlock({ block }: { block: CurriculumModuleBlock }) {
 function SubheadingBlock({ block }: { block: CurriculumModuleBlock }) {
   return (
     <p
-      className="text-[13px] font-semibold text-text-secondary uppercase tracking-wider"
+      className={cn(t.small, "font-semibold text-text-secondary uppercase tracking-wider")}
       style={{ fontFamily: "var(--font-head)" }}
     >
       {block.content}
@@ -124,7 +133,7 @@ function SubheadingBlock({ block }: { block: CurriculumModuleBlock }) {
 function BodyBlock({ block }: { block: CurriculumModuleBlock }) {
   return (
     <div
-      className="text-[13.5px] text-text-secondary leading-relaxed space-y-2"
+      className={cn(t.body, "text-text-secondary leading-relaxed space-y-2")}
       dangerouslySetInnerHTML={{
         __html: formatInlineText(block.content),
       }}
@@ -197,7 +206,7 @@ function ActivityBlock({ block }: { block: CurriculumModuleBlock }) {
         </p>
         {block.required && <RequiredBadge />}
       </div>
-      <p className="text-[13px] text-purple-dark leading-relaxed">{block.content}</p>
+      <p className={cn(t.body)}>{block.content}</p>
     </div>
   );
 }
@@ -211,7 +220,7 @@ function ReflectionBlock({ block }: { block: CurriculumModuleBlock }) {
         </p>
         {block.required && <RequiredBadge />}
       </div>
-      <p className="text-[13px] text-text-secondary leading-relaxed">{block.content}</p>
+      <p className={cn(t.body)}>{block.content}</p>
     </div>
   );
 }
@@ -226,7 +235,7 @@ function TaskBlock({ block }: { block: CurriculumModuleBlock }) {
         <p className="text-[10px] font-bold uppercase tracking-widest text-purple-mid mb-1.5">
           Task
         </p>
-        <p className="text-[13px] text-purple-dark leading-relaxed">{block.content}</p>
+        <p className={cn(t.body)}>{block.content}</p>
       </div>
     </div>
   );
@@ -401,13 +410,13 @@ export function LessonContentCard({
           )}
         </div>
         <h1
-          className="text-[20px] font-bold text-white leading-snug"
+          className={cn(t.body, "text-white/70 leading-snug")} 
           style={{ fontFamily: "var(--font-head)" }}
         >
           {title}
         </h1>
         {description && (
-          <p className="text-[13px] text-white/60 leading-relaxed">{description}</p>
+          <p className={cn(t.body, "text-white/70 leading-relaxed")} >{description}</p>
         )}
       </div>
 

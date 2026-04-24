@@ -26,7 +26,7 @@ type RowAction =
   | { type: "send-link"; studentId: string }
   | { type: "revoke-link"; studentId: string }
   | { type: "delete"; studentId: string }
-  | { type: "resend-code"; studentId: string }; // NEW
+  | { type: "resend-code"; studentId: string };
 
 type InFlight = { studentId: string; action: RowAction["type"] };
 
@@ -305,7 +305,6 @@ export default function AdminStudentsPage() {
 
   return (
     <PageShell title="Students" description={`${students.length} registered`}>
-      {/* 🔥 NEW download block */}
       {created && (
         <div className="mb-4 border rounded-xl p-4">
           <p className="text-sm">

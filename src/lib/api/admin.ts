@@ -15,6 +15,8 @@ import type {
   SchoolProfile,
   AdminStudentsResponse,
   BulkRegisterRequest,
+  ResendVerificationRequest,
+  ResendVerificationResponse,
 } from "@/lib/api/api-types";
 
 // ------------------------------------------------------------
@@ -74,6 +76,19 @@ export async function bulkRegisterStudents(
   return apiClient.post<BulkRegisterResponse>(
     "/auth/register/students/bulk",
     csvText,
+    token,
+    { onRefresh }
+  );
+}
+
+export async function resendCode(
+  body:ResendVerificationRequest,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<ResendVerificationResponse> {
+  return apiClient.post<ResendVerificationResponse>(
+    "/auth/resend",
+    body,
     token,
     { onRefresh }
   );

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminTeachers, deleteTeacher } from "@/lib/api/admin";
+import { resendCode } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import type { AdminTeacher } from "@/lib/api/api-types";
 
@@ -11,10 +12,12 @@ function TeacherRow({
   teacher,
   deleting,
   onDelete,
+  onResend,
 }: {
   teacher: AdminTeacher;
   deleting: boolean;
   onDelete: () => void;
+  onResend: () => void;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -28,16 +31,18 @@ function TeacherRow({
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-[var(--color-text-primary)] font-[family-name:var(--font-jakarta)] truncate">
+            <p className="font-semibold truncate">
               {teacher.full_name}
             </p>
+
             {isAdmin && (
-              <span className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full bg-[var(--color-purple-light)] text-[var(--color-purple)]">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-purple-light)] text-[var(--color-purple)]">
                 Admin
               </span>
             )}
+
             <span
-              className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
+              className={`text-xs px-2 py-0.5 rounded-full ${
                 teacher.status === "active"
                   ? "bg-emerald-50 text-emerald-700"
                   : teacher.status === "pending"
@@ -48,26 +53,40 @@ function TeacherRow({
               {teacher.status}
             </span>
           </div>
-          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5 truncate">
+
+          <p className="text-sm mt-0.5 truncate">
             {teacher.email}
           </p>
+
+          {/* 🔥 Resend invite (only pending) */}
+          {teacher.status === "pending" && (
+            <button
+              onClick={onResend}
+              disabled={deleting}
+              className="mt-1 text-xs text-[var(--color-purple)] hover:underline disabled:opacity-40"
+            >
+              Resend invite
+            </button>
+          )}
         </div>
 
-        {/* Delete control */}
+        {/* Delete */}
         {confirmDelete ? (
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-[var(--color-text-muted)]">Remove?</span>
+            <span className="text-xs">Remove?</span>
+
             <button
-              onClick={() => { onDelete(); setConfirmDelete(false); }}
+              onClick={() => {
+                onDelete();
+                setConfirmDelete(false);
+              }}
               disabled={deleting}
-              className="text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-40"
+              className="text-xs text-red-600"
             >
               {deleting ? "Removing…" : "Confirm"}
             </button>
-            <button
-              onClick={() => setConfirmDelete(false)}
-              className="text-xs text-[var(--color-text-muted)]"
-            >
+
+            <button onClick={() => setConfirmDelete(false)}>
               Cancel
             </button>
           </div>
@@ -75,26 +94,24 @@ function TeacherRow({
           <button
             onClick={() => setConfirmDelete(true)}
             disabled={deleting}
-            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-50 disabled:opacity-40 transition-colors shrink-0"
-            aria-label="Remove teacher"
+            className="p-1.5 rounded-lg hover:text-red-500 disabled:opacity-40"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-            </svg>
+            Delete
           </button>
         )}
       </div>
 
-      {/* Assigned classes */}
+      {/* Classes */}
       {classLabels.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 pt-2 border-t border-[var(--color-border)]">
-          <span className="text-xs text-[var(--color-text-muted)] mr-1 self-center">
+        <div className="flex flex-wrap gap-1.5 pt-2 border-t">
+          <span className="text-xs mr-1 self-center">
             Classes:
           </span>
+
           {classLabels.map((label) => (
             <span
               key={label}
-              className="text-xs font-medium px-2 py-0.5 rounded-md bg-[var(--color-bg-page)] border border-[var(--color-border)] text-[var(--color-text-secondary)]"
+              className="text-xs px-2 py-0.5 rounded-md border"
             >
               {label}
             </span>
@@ -115,6 +132,9 @@ export default function AdminTeachersPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  // 🔥 Success feedback
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
   useEffect(() => {
     if (!accessToken) return;
 
@@ -129,9 +149,11 @@ export default function AdminTeachersPage() {
 
     setDeletingId(teacherId);
     setActionError(null);
+    setSuccessMessage(null);
 
     try {
       await deleteTeacher(teacherId, accessToken, refreshToken);
+
       setTeachers((prev) =>
         prev.filter((t) => t.teacher_id !== teacherId)
       );
@@ -142,16 +164,44 @@ export default function AdminTeachersPage() {
     }
   }
 
+  async function handleResend(teacherId: string) {
+    if (!accessToken) return;
+
+    setActionError(null);
+    setSuccessMessage(null);
+
+    try {
+      const teacher = teachers.find(
+        (t) => t.teacher_id === teacherId
+      );
+      if (!teacher) return;
+
+      const res = await resendCode(
+        { id: teacherId, role: "teacher" },
+        accessToken,
+        async () => {
+          const token = await refreshToken();
+          if (!token) throw new Error("Auth expired");
+          return token;
+        }
+      );
+
+      if (typeof res.message === "boolean") {
+        setSuccessMessage(`Invite resent to ${teacher.email}`);
+      }
+    } catch {
+      setActionError("Failed to resend invite.");
+    }
+  }
+
   return (
     <PageShell
       title="Teachers"
       description={`${teachers.length} registered`}
       actions={
         <button
-          onClick={() =>
-            router.push("/admin/teachers/new")
-          }
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-semibold hover:opacity-90 transition"
+          onClick={() => router.push("/admin/teachers/new")}
+          className="px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm"
         >
           Add teacher
         </button>
@@ -160,35 +210,26 @@ export default function AdminTeachersPage() {
       {isLoading ? (
         <ListSkeleton rows={5} />
       ) : error ? (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          {error}
-        </div>
+        <div className="text-sm text-red-700">{error}</div>
       ) : (
         <>
+          {/* 🔥 Success */}
+          {successMessage && (
+            <div className="mb-4 px-4 py-3 rounded-xl bg-emerald-50 border text-emerald-700 text-sm">
+              {successMessage}
+            </div>
+          )}
+
+          {/* Existing error */}
           {actionError && (
-            <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+            <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border text-red-700 text-sm">
               {actionError}
             </div>
           )}
 
           {teachers.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-24 text-center">
-              <p className="font-semibold text-[var(--color-text-primary)] mb-1">
-                No teachers yet
-              </p>
-
-              <p className="text-sm text-[var(--color-text-secondary)] mb-4">
-                Register your first teacher.
-              </p>
-
-              <button
-                onClick={() =>
-                  router.push("/admin/teachers/new")
-                }
-                className="px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-semibold"
-              >
-                Add teacher
-              </button>
+            <div className="py-24 text-center">
+              <p>No teachers yet</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -199,6 +240,9 @@ export default function AdminTeachersPage() {
                   deleting={deletingId === teacher.teacher_id}
                   onDelete={() =>
                     handleDelete(teacher.teacher_id)
+                  }
+                  onResend={() =>
+                    handleResend(teacher.teacher_id)
                   }
                 />
               ))}

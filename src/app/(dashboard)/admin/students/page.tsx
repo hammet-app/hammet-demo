@@ -9,6 +9,7 @@ import {
   sendParentLink,
   revokeParentLink,
 } from "@/lib/api/admin";
+import { resendCode } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import type { AdminStudent } from "@/lib/api/api-types";
 
@@ -24,7 +25,8 @@ function timeAgo(iso: string): string {
 type RowAction =
   | { type: "send-link"; studentId: string }
   | { type: "revoke-link"; studentId: string }
-  | { type: "delete"; studentId: string };
+  | { type: "delete"; studentId: string }
+  | { type: "resend-code"; studentId: string }; // NEW
 
 type InFlight = { studentId: string; action: RowAction["type"] };
 
@@ -40,8 +42,7 @@ function StudentRow({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
 
-  const busy =
-    inFlight?.studentId === student.student_id;
+  const busy = inFlight?.studentId === student.student_id;
   const busyAction = busy ? inFlight!.action : null;
 
   const hasLink = student.parent_link_sent_at !== null;
@@ -51,78 +52,68 @@ function StudentRow({
 
   return (
     <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-4 flex flex-col gap-3">
-      {/* Top row — identity */}
+      {/* Top row */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-[var(--color-text-primary)] font-[family-name:var(--font-jakarta)] truncate">
+            <p className="font-semibold truncate">
               {student.full_name}
             </p>
-            <span
-              className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full ${
-                student.status === "active"
-                  ? "bg-emerald-50 text-emerald-700"
-                  : student.status === "pending"
-                  ? "bg-amber-50 text-amber-700"
-                  : "bg-red-50 text-red-600"
-              }`}
-            >
+            <span className="text-xs px-2 py-0.5 rounded-full">
               {student.status}
             </span>
           </div>
-          <p className="text-sm text-[var(--color-text-secondary)] mt-0.5 truncate">
-            {student.email}
-          </p>
-          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-            {classLabel}
-          </p>
+          <p className="text-sm mt-0.5 truncate">{student.email}</p>
+          <p className="text-xs mt-0.5">{classLabel}</p>
         </div>
       </div>
 
-      {/* Actions row */}
-      <div className="flex items-center gap-2 flex-wrap pt-1 border-t border-[var(--color-border)]">
-        {/* Parent link section */}
+      {/* Actions */}
+      <div className="flex items-center gap-2 flex-wrap pt-1 border-t">
+        {/* Parent link */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {hasLink ? (
             <>
-              <span className="text-xs text-[var(--color-text-muted)]">
+              <span className="text-xs">
                 Link sent {timeAgo(student.parent_link_sent_at!)}
               </span>
+
               <button
                 onClick={() =>
                   onAction({ type: "send-link", studentId: student.student_id })
                 }
                 disabled={busy}
-                className="text-xs text-[var(--color-purple)] font-medium hover:underline disabled:opacity-40"
+                className="text-xs hover:underline"
               >
                 {busyAction === "send-link" ? "Sending…" : "Resend"}
               </button>
-              <span className="text-[var(--color-border)]">·</span>
+
+              <span>·</span>
+
               {confirmRevoke ? (
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-[var(--color-text-muted)]">Revoke?</span>
+                  <span className="text-xs">Revoke?</span>
                   <button
                     onClick={() => {
-                      onAction({ type: "revoke-link", studentId: student.student_id });
+                      onAction({
+                        type: "revoke-link",
+                        studentId: student.student_id,
+                      });
                       setConfirmRevoke(false);
                     }}
                     disabled={busy}
-                    className="text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-40"
+                    className="text-xs text-red-600"
                   >
-                    {busyAction === "revoke-link" ? "Revoking…" : "Confirm"}
+                    {busyAction === "revoke-link"
+                      ? "Revoking…"
+                      : "Confirm"}
                   </button>
-                  <button
-                    onClick={() => setConfirmRevoke(false)}
-                    className="text-xs text-[var(--color-text-muted)]"
-                  >
+                  <button onClick={() => setConfirmRevoke(false)}>
                     Cancel
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={() => setConfirmRevoke(true)}
-                  className="text-xs text-[var(--color-text-muted)] hover:text-red-600 transition-colors"
-                >
+                <button onClick={() => setConfirmRevoke(true)}>
                   Revoke
                 </button>
               )}
@@ -133,53 +124,57 @@ function StudentRow({
                 onAction({ type: "send-link", studentId: student.student_id })
               }
               disabled={busy}
-              className="text-xs text-[var(--color-purple)] font-medium hover:underline disabled:opacity-40 flex items-center gap-1"
+              className="text-xs hover:underline"
             >
-              {busyAction === "send-link" ? (
-                "Sending…"
-              ) : (
-                <>
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244" />
-                  </svg>
-                  Send parent link
-                </>
-              )}
+              {busyAction === "send-link"
+                ? "Sending…"
+                : "Send parent link"}
             </button>
           )}
         </div>
 
+        {/* 🔥 NEW: Resend verification code (only pending) */}
+        {student.status === "pending" && (
+          <button
+            onClick={() =>
+              onAction({
+                type: "resend-code",
+                studentId: student.student_id,
+              })
+            }
+            disabled={busy}
+            className="text-xs text-[var(--color-purple)] hover:underline"
+          >
+            {busyAction === "resend-code"
+              ? "Sending…"
+              : "Resend code"}
+          </button>
+        )}
+
         {/* Delete */}
         {confirmDelete ? (
           <div className="flex items-center gap-1.5">
-            <span className="text-xs text-[var(--color-text-muted)]">Delete student?</span>
+            <span className="text-xs">Delete student?</span>
             <button
               onClick={() => {
-                onAction({ type: "delete", studentId: student.student_id });
+                onAction({
+                  type: "delete",
+                  studentId: student.student_id,
+                });
                 setConfirmDelete(false);
               }}
               disabled={busy}
-              className="text-xs font-semibold text-red-600 hover:text-red-700 disabled:opacity-40"
+              className="text-xs text-red-600"
             >
               {busyAction === "delete" ? "Deleting…" : "Confirm"}
             </button>
-            <button
-              onClick={() => setConfirmDelete(false)}
-              className="text-xs text-[var(--color-text-muted)]"
-            >
+            <button onClick={() => setConfirmDelete(false)}>
               Cancel
             </button>
           </div>
         ) : (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            disabled={busy}
-            className="p-1.5 rounded-lg text-[var(--color-text-muted)] hover:text-red-500 hover:bg-red-50 disabled:opacity-40 transition-colors"
-            aria-label="Delete student"
-          >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-            </svg>
+          <button onClick={() => setConfirmDelete(true)}>
+            Delete
           </button>
         )}
       </div>
@@ -197,9 +192,12 @@ export default function AdminStudentsPage() {
   const [inFlight, setInFlight] = useState<InFlight | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] =
-    useState<"all" | "active" | "pending" | "suspended">("all");
+  // 🔥 NEW
+  const [created, setCreated] = useState<{
+    full_name: string;
+    email: string;
+    code: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -255,124 +253,90 @@ export default function AdminStudentsPage() {
         setStudents((prev) =>
           prev.filter((s) => s.student_id !== action.studentId)
         );
+      } else if (action.type === "resend-code") {
+        const student = students.find(
+          (s) => s.student_id === action.studentId
+        );
+        if (!student) return;
+
+        const res = await resendCode(
+          { id: action.studentId, role: "student" },
+          accessToken,
+          refreshToken
+        );
+
+        if (typeof res.message === "string") {
+          setCreated({
+            full_name: student.full_name,
+            email: student.email,
+            code: res.message,
+          });
+        }
       }
     } catch {
-      setActionError("Action failed. Please try again.");
+      setActionError("Action failed.");
     } finally {
       setInFlight(null);
     }
   }
 
-  const filtered = students.filter((s) => {
-    const matchesSearch =
-      !search ||
-      s.full_name.toLowerCase().includes(search.toLowerCase()) ||
-      s.email.toLowerCase().includes(search.toLowerCase()) ||
-      s.class_level.toLowerCase().includes(search.toLowerCase());
+  function downloadTXT() {
+    if (!created) return;
 
-    const matchesStatus =
-      statusFilter === "all" || s.status === statusFilter;
+    const content = `Name: ${created.full_name}\nEmail: ${created.email}\nCode: ${created.code}`;
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
 
-    return matchesSearch && matchesStatus;
-  });
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${created.full_name}.txt`;
+    a.click();
+  }
 
-  const statusTabs = [
-    { key: "all" as const, label: "All", count: students.length },
-    {
-      key: "active" as const,
-      label: "Active",
-      count: students.filter((s) => s.status === "active").length,
-    },
-    {
-      key: "pending" as const,
-      label: "Pending",
-      count: students.filter((s) => s.status === "pending").length,
-    },
-    {
-      key: "suspended" as const,
-      label: "Suspended",
-      count: students.filter((s) => s.status === "suspended").length,
-    },
-  ];
+  function downloadCSV() {
+    if (!created) return;
+
+    const content = `full_name,email,code\n${created.full_name},${created.email},${created.code}`;
+    const blob = new Blob([content], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `student.csv`;
+    a.click();
+  }
 
   return (
-    <PageShell
-      title="Students"
-      description={`${students.length} registered`}
-      actions={
-        <div className="flex gap-2">
-          <button
-            onClick={() => router.push("/admin/students/bulk")}
-            className="px-4 py-2 rounded-xl border text-sm"
-          >
-            Bulk import
-          </button>
+    <PageShell title="Students" description={`${students.length} registered`}>
+      {/* 🔥 NEW download block */}
+      {created && (
+        <div className="mb-4 border rounded-xl p-4">
+          <p className="text-sm">
+            Code generated for {created.full_name}
+          </p>
 
-          <button
-            onClick={() => router.push("/admin/students/new")}
-            className="px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm"
-          >
-            Add student
-          </button>
+          <div className="flex gap-2 mt-2">
+            <button onClick={downloadTXT}>Download TXT</button>
+            <button onClick={downloadCSV}>Download CSV</button>
+          </div>
         </div>
-      }
-    >
+      )}
+
       {isLoading ? (
         <ListSkeleton rows={6} />
       ) : error ? (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-          {error}
-        </div>
+        <div>{error}</div>
       ) : (
-        <>
-          {actionError && (
-            <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
-              {actionError}
-            </div>
-          )}
-
-          {students.length > 0 && (
-            <div className="flex flex-col gap-4 mb-6">
-              {/* Search */}
-              <input
-                type="text"
-                placeholder="Search..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="px-4 py-2 rounded-xl border"
-              />
-
-              {/* Tabs */}
-              <div className="flex gap-1">
-                {statusTabs.map(({ key, label, count }) => (
-                  <button
-                    key={key}
-                    onClick={() => setStatusFilter(key)}
-                  >
-                    {label} ({count})
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {filtered.length === 0 ? (
-            <div className="text-center py-20">
-              No students found
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {filtered.map((student) => (
-                <StudentRow
-                  key={student.student_id}
-                  student={student}
-                  inFlight={inFlight}
-                  onAction={handleAction}
-                />
-              ))}
-            </div>
-          )}
-        </>
+        <div className="flex flex-col gap-3">
+          {students.map((student) => (
+            <StudentRow
+              key={student.student_id}
+              student={student}
+              inFlight={inFlight}
+              onAction={handleAction}
+            />
+          ))}
+        </div>
       )}
     </PageShell>
   );

@@ -69,11 +69,12 @@ export type ClaimAccountResponse = {
 
 // POST /auth/resend-verification
 export type ResendVerificationRequest = {
-  email: string;
+  id: string;
+  role: UserRole
 };
 
 export type ResendVerificationResponse = {
-  message: string;
+  message: string | boolean;
 };
 
 

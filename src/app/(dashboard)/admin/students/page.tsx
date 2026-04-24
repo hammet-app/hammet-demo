@@ -68,14 +68,12 @@ function StudentRow({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center gap-2 flex-wrap pt-1 border-t">
-        {/* Parent link */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {hasLink ? (
             <>
               <span className="text-xs">
-                Link sent {timeAgo(student.parent_link_sent_at!)}
+                Link sent {timeAgo(student.parent_link_sent_at! || "0")}
               </span>
 
               <button
@@ -133,7 +131,6 @@ function StudentRow({
           )}
         </div>
 
-        {/* 🔥 NEW: Resend verification code (only pending) */}
         {student.status === "pending" && (
           <button
             onClick={() =>
@@ -151,7 +148,6 @@ function StudentRow({
           </button>
         )}
 
-        {/* Delete */}
         {confirmDelete ? (
           <div className="flex items-center gap-1.5">
             <span className="text-xs">Delete student?</span>

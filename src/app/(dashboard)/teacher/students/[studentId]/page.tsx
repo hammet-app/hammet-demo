@@ -190,7 +190,7 @@ export default function TeacherStudentDetailPage() {
           )}
 
           {/* Submissions */}
-          {detail.recent_submissions.length === 0 ? (
+          {detail.recent_submissions && detail.recent_submissions.length === 0 ? (
             <div className="bg-[var(--color-bg-card)] border rounded-2xl p-6 text-center">
               <p className="text-sm">
                 No submissions yet this term.
@@ -198,7 +198,7 @@ export default function TeacherStudentDetailPage() {
             </div>
           ) : (
             <div className="bg-[var(--color-bg-card)] border rounded-2xl p-6">
-              {detail.recent_submissions.map((sub) => (
+              {detail.recent_submissions && detail.recent_submissions.map((sub) => (
                 <RecentSubmissionRow
                   key={sub.id}
                   submission={sub}

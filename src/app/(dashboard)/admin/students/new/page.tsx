@@ -240,6 +240,7 @@ export default function NewStudentPage() {
           {created && (
             <div className="border rounded-2xl p-6 flex flex-col gap-3">
               <p className="font-semibold">Student Created</p>
+              <p className="font-semibold">This code will expire in 48 hours</p>
               <p>Name: {created.full_name}</p>
               <p>Email: {created.email}</p>
               <p className="font-mono">Code: {created.code}</p>

@@ -90,6 +90,7 @@ export default function BulkImportPage() {
             </p>
 
             <div className="flex flex-col gap-2 max-h-60 overflow-y-auto">
+              <p className="font-semibold">Codes will expire in 48 hours</p>
               {result.codes.map((s, i) => (
                 <div key={i} className="border rounded p-2">
                   <p className="text-sm">{s.full_name}</p>

@@ -175,8 +175,8 @@ export default function LessonDetailPage() {
     );
   }
 
-  const toolBlock = module.content_json.blocks.find(
-    (b) => b.type === "tool_link"
+  const toolBlocks = module.content_json.blocks.filter(
+  (b) => b.type === "tool_link"
   );
   const status = existingSubmission?.status ?? null;
 
@@ -223,7 +223,7 @@ export default function LessonDetailPage() {
             title={module.title}
             weekNumber={module.week_number}
             term={module.term}
-            toolName={toolBlock?.tool_name}
+            toolNames={toolBlocks.map((b) => b.tool_name || b.content)}
             blocks={module.content_json.blocks}
             activityText={activityText}
             onActivityChange={setActivityText}

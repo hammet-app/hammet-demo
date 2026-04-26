@@ -348,7 +348,7 @@ interface LessonContentCardProps {
   description?: string;
   weekNumber: number;
   term: number;
-  toolName?: string;
+  toolNames?: string[];
   blocks: CurriculumModuleBlock[];
   activityText: string;
   onActivityChange: (text: string) => void;
@@ -368,7 +368,7 @@ export function LessonContentCard({
   description,
   weekNumber,
   term,
-  toolName,
+  toolNames,
   blocks,
   activityText,
   onActivityChange,
@@ -405,11 +405,14 @@ export function LessonContentCard({
               <span className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full bg-white/[0.12] text-white/85 tracking-wide">
                 Week {weekNumber} · Term {term}
               </span>
-              {toolName && (
-                <span className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full bg-cyan/20 text-cyan tracking-wide">
-                  {toolName}
+              {toolNames?.map((name, i) => (
+                <span
+                  key={i}
+                  className="text-[11px] font-semibold px-2.5 py-[3px] rounded-full bg-cyan/20 text-cyan tracking-wide"
+                >
+                  {name}
                 </span>
-              )}
+              ))}
             </div>
             <h1
               className={cn(t.body, "text-white/70 leading-snug")} 

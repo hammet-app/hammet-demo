@@ -7,7 +7,7 @@ import { getAdminModules } from "@/lib/api/hammet";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import type { CurriculumModule } from "@/lib/api/api-types";
 
-const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SS1", "SS2", "SS3"];
+const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SSS1", "SSS2", "SSS3"];
 
 function sortLevels(levels: string[]): string[] {
   return [...levels].sort((a, b) => {
@@ -49,17 +49,17 @@ const LEVEL_ACCENTS: Record<
     text: "text-purple-700",
     border: "border-purple-200",
   },
-  SS1: {
+  SSS1: {
     bg: "bg-indigo-50",
     text: "text-indigo-700",
     border: "border-indigo-200",
   },
-  SS2: {
+  SSS2: {
     bg: "bg-fuchsia-50",
     text: "text-fuchsia-700",
     border: "border-fuchsia-200",
   },
-  SS3: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200" },
+  SSS3: { bg: "bg-sky-50", text: "text-sky-700", border: "border-sky-200" },
 };
 
 function getAccent(level: string) {

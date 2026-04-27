@@ -7,7 +7,7 @@ export type SubmissionStatus = "submitted" | "approved" | "flagged";
 export type UserStatus = "pending" | "active" | "suspended";
 
 export type AssignedClass = {
-  level: string;          // e.g. "SS1"
+  level: string;          // e.g. "SSS1"
   arm: string | null;     // null for single-stream schools
   term: number;
 };
@@ -160,7 +160,7 @@ export type StudentProfile = {
   id: string;
   full_name: string;
   email: string;
-  class_level: string;       // e.g. "SS1"
+  class_level: string;       // e.g. "SSS1"
   class_arm: string;         // e.g. "A"
   school_id: string;
   school_name: string;       // denormalised for display
@@ -262,7 +262,7 @@ export type StudentPortfolio = {
 // LESSON ROUTES
 // ============================================================
 
-// GET /modules?term=1&level=SS1
+// GET /modules?term=1&level=SSS1
 // Lightweight list — content_json excluded to keep payload small
 export type ModuleSummary = {
   id: string;

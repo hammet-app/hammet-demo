@@ -367,7 +367,7 @@ function tryParseErrorDetail(
 function downloadTemplate() {
   const header = ALL_COLUMNS.join(",");
   const example = [
-    "1", "1", "SS1",
+    "1", "1", "SSS1",
     "Introduction to AI",
     "AI stands for Artificial Intelligence...",
     "Students will understand what AI is",

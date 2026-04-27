@@ -8,7 +8,7 @@ import { AuthInput } from "@/components/ui/auth-input";
 import { FieldError } from "@/components/ui/auth-shell";
 import { RegisterStudentResponse } from "@/lib/api/api-types";
 
-const LEVELS = ["JSS1", "JSS2", "JSS3", "SS1", "SS2", "SS3"];
+const LEVELS = ["JSS1", "JSS2", "JSS3", "SSS1", "SSS2", "SSS3"];
 
 type FormState = {
   full_name: string;

@@ -36,7 +36,7 @@ installSerwist({
         cacheName: 'lesson-modules',
         plugins: [
           new ExpirationPlugin({
-            // Keep up to 200 modules cached (full term = ~36 modules for SS1)
+            // Keep up to 200 modules cached (full term = ~36 modules for SSS1)
             maxEntries: 200,
             // Modules valid for 7 days — force refresh on curriculum update
             maxAgeSeconds: 7 * 24 * 60 * 60,

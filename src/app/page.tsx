@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { sendCallback } from "@/lib/api/support";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -648,6 +649,7 @@ function Features() {
 type FormData = {
   school_name: string;
   full_name: string;
+  email: string,
   role: string;
   phone: string;
   city: string;
@@ -657,6 +659,7 @@ function CallbackForm() {
   const [form, setForm] = useState<FormData>({
     school_name: "",
     full_name: "",
+    email: "",
     role: "",
     phone: "",
     city: "",
@@ -671,9 +674,19 @@ function CallbackForm() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setSubmitted(true);
-    setSubmitting(false);
+
+    try {
+      const success = await sendCallback(form);
+
+      if (success) {
+        setSubmitted(true);
+      }
+    } catch (err) {
+      // optionally handle error (toast, console, etc.)
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const trustPoints = [
@@ -754,6 +767,14 @@ function CallbackForm() {
                   placeholder="Your Full Name"
                   value={form.full_name}
                   onChange={(e) => set("full_name", e.target.value)}
+                  className={inputClass}
+                />
+                <input
+                  type="text"
+                  required
+                  placeholder="Your Email"
+                  value={form.email}
+                  onChange={(e) => set("email", e.target.value)}
                   className={inputClass}
                 />
                 <select
@@ -853,8 +874,8 @@ function Footer() {
             <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">Contact</h4>
             <div className="flex flex-col gap-3">
               <a href="mailto:" className="text-sm text-gray-500 hover:text-white transition-colors">Email</a>
-              <a href="#" className="text-sm text-gray-500 hover:text-white transition-colors">Instagram</a>
-              <a href="#" className="text-sm text-gray-500 hover:text-white transition-colors">LinkedIn</a>
+              <a href="https://www.instagram.com/hammetlabs/" className="text-sm text-gray-500 hover:text-white transition-colors">Instagram</a>
+              <a href="https://www.linkedin.com/company/hammet-labs/" className="text-sm text-gray-500 hover:text-white transition-colors">LinkedIn</a>
             </div>
           </div>
         </div>

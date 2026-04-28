@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { ApiError } from "@/lib/api/api-client";
 import { getSchoolProfile, registerStudent } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import { AuthInput } from "@/components/ui/auth-input";
@@ -106,8 +107,26 @@ export default function NewStudentPage() {
         parent_email: "",
         parent_phone: "",
       });
-    } catch {
-      setError("Failed to register student");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          setError("Authentication required. Please log in again.");
+        } else if (err.status === 403) {
+          setError("You are not allowed to perform this action.");
+        } else if (err.status === 404) {
+          setError("School or resource not found.");
+        } else if (err.status === 409) {
+          setError("Some records already exist or conflict with existing data.");
+        } else if (err.status === 400 || err.status === 422) {
+          setError(`Invalid data. ${err.message}`);
+        } else if (err.status === 500) {
+          setError("Server error. Please try again.");
+        }else {
+          setError(err.message);
+        }
+      } else if (err instanceof Error) {
+        setError(`Unable to connect. ${err.message}`);
+      }
     } finally {
       setSubmitting(false);
     }

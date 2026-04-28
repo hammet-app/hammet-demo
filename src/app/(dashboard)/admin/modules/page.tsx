@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ApiError } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
@@ -81,11 +82,35 @@ export default function AdminModulesListPage() {
   
     useEffect(() => {
       if (!accessToken) return;
-  
-      getAdminModules(accessToken, refreshToken)
-        .then((res) => setModules(res.modules))
-        .catch(() => setError("Failed to load modules."))
-        .finally(() => setIsLoading(false));
+
+      const fetchModules = async () => {
+        try {
+          const res = await getAdminModules(accessToken, refreshToken);
+          setModules(res.modules);
+        } catch (err) {
+          if (err instanceof ApiError) {
+            if (err.status === 401) {
+              setError("Authentication required. Please log in again.");
+            } else if (err.status === 403) {
+              setError("You are not allowed to perform this action.");
+            } else if (err.status === 404) {
+              setError("Modules not found.");
+            } else if (err.status === 400 || err.status === 422) {
+              setError(`Invalid request. ${err.message}`);
+            } else if (err.status === 500) {
+              setError("Server error. Please try again.");
+            } else {
+              setError(err.message);
+            }
+          } else if (err instanceof Error) {
+            setError(`Unable to connect. ${err.message}`);
+          }
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchModules();
     }, [accessToken, refreshToken]);
   
     const levels = sortLevels([...new Set(modules.map((m) => m.level))]);

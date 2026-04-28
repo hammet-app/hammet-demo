@@ -12,6 +12,8 @@ interface StudentRowCardProps {
   status: "active" | "pending" | "suspended";
   onClick?: () => void;
   className?: string;
+  flaggedModules?: number;
+  progressType?: "approved" | "submitted";
 }
 
 const statusDot: Record<string, string> = {
@@ -29,9 +31,17 @@ export function StudentRowCard({
   status,
   onClick,
   className,
+  flaggedModules,
+  progressType,
 }: StudentRowCardProps) {
   const initials = getInitials(fullName);
-  const pct = totalModules > 0 ? Math.round((approvedModules / totalModules) * 100) : 0;
+  const progressValue =
+  progressType === "submitted" ? approvedModules : approvedModules;
+
+  const pct =
+    totalModules > 0
+      ? Math.round((progressValue / totalModules) * 100)
+      : 0;
   const classLabel = [classLevel, classArm].filter(Boolean).join("");
 
   return (
@@ -54,12 +64,18 @@ export function StudentRowCard({
       </div>
 
       {/* Name + class */}
-      <div className="flex-1 min-w-0">
-        <p className="text-[13.5px] font-medium text-text-primary truncate">{fullName}</p>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", statusDot[status])} />
-          <span className="text-[11px] text-text-muted">{classLabel}</span>
-        </div>
+      <div className="flex items-center gap-1.5 mt-0.5">
+        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", statusDot[status])} />
+        <span className="text-[11px] text-text-muted">{classLabel}</span>
+
+        {flaggedModules && flaggedModules > 0 && (
+          <>
+            <span className="text-[11px] text-text-muted">•</span>
+            <span className="text-[11px] text-danger">
+              {flaggedModules} flagged
+            </span>
+          </>
+        )}
       </div>
 
       {/* Progress */}

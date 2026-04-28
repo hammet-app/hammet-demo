@@ -6,6 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "AI Studies by Hammet",
   description: "AI literacy curriculum platform for Nigerian secondary schools",
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

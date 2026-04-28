@@ -691,3 +691,18 @@ export type PublicPortfolio = {
   entries: PortfolioEntry[];
   total: number;
 };
+
+
+// ============================================================
+// SUPPORT ROUTES
+// ============================================================
+
+// POST /callback
+export type CallbackForm = {
+  school_name: string;
+  full_name: string;
+  email: string;
+  role: string;
+  phone: string;
+  city: string;
+}

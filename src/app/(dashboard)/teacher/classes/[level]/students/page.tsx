@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getClassStudents } from "@/lib/api/teacher";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import { TeacherStudentRowCard } from "@/components/cards/student-row-card";
+import { StudentRowCard } from "@/components/cards/student-row-card";
 import type { ClassStudent } from "@/lib/api/api-types";
 
 export default function ClassStudentsNoArmPage() {
@@ -55,15 +55,20 @@ export default function ClassStudentsNoArmPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {students.map((student) => (
-            <TeacherStudentRowCard
-              key={student.student_id}
-              student={student}
-              onClick={() =>
-                router.push(
-                  `/teacher/students/${student.student_id}`
-                )
-              }
-            />
+              <StudentRowCard
+                key={student.student_id}
+                fullName={student.full_name}
+                classLevel={student.class_level}
+                classArm={student.class_arm}
+                approvedModules={student.progress.submitted_modules}
+                totalModules={student.progress.total_modules}
+                status={student.status}
+                flaggedModules={student.progress.flagged_modules}
+                progressType="submitted"
+                onClick={() =>
+                  router.push(`/teacher/students/${student.student_id}`)
+                }
+              />
           ))}
         </div>
       )}

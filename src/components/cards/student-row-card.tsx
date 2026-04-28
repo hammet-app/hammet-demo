@@ -64,18 +64,29 @@ export function StudentRowCard({
       </div>
 
       {/* Name + class */}
-      <div className="flex items-center gap-1.5 mt-0.5">
-        <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", statusDot[status])} />
-        <span className="text-[11px] text-text-muted">{classLabel}</span>
+      <div className="flex-1 min-w-0">
+        <p className="text-[13.5px] font-medium text-text-primary truncate">
+          {fullName}
+        </p>
 
-        {flaggedModules && flaggedModules > 0 && (
-          <>
-            <span className="text-[11px] text-text-muted">•</span>
-            <span className="text-[11px] text-danger">
-              {flaggedModules} flagged
-            </span>
-          </>
-        )}
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span
+            className={cn(
+              "w-1.5 h-1.5 rounded-full shrink-0",
+              statusDot[status]
+            )}
+          />
+          <span className="text-[11px] text-text-muted">{classLabel}</span>
+
+          {flaggedModules && flaggedModules > 0 && (
+            <>
+              <span className="text-[11px] text-text-muted">•</span>
+              <span className="text-[11px] text-danger">
+                {flaggedModules} flagged
+              </span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Progress */}

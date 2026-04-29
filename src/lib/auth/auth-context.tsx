@@ -77,12 +77,12 @@ const refreshToken = useCallback(async (): Promise<string | null> => {
       });
 
       if (!res.ok) {
-        setState({
-          user: null,
-          accessToken: null,
+        console.log("Refresh failed — keeping existing session");
+        setState((prev) => ({
+          ...prev,
           isLoading: false,
           isResolved: true,
-        });
+        }));
         return null;
       }
 
@@ -99,12 +99,14 @@ const refreshToken = useCallback(async (): Promise<string | null> => {
       scheduleRefresh();
       return data.access_token;
     } catch {
-      setState({
-        user: null,
-        accessToken: null,
+      console.log("Offline — skipping refresh");
+
+      setState((prev) => ({
+        ...prev,
         isLoading: false,
         isResolved: true,
-      });
+      }));
+
       return null;
     } finally {
       refreshPromise = null; // release lock
@@ -116,15 +118,27 @@ const refreshToken = useCallback(async (): Promise<string | null> => {
 
   // ── Silent refresh on mount ──
   useEffect(() => {
+    const cached = localStorage.getItem("cached_user");
+
+    if (cached) {
+      const user = JSON.parse(cached);
+
+      setState({
+        user,
+        accessToken: null,
+        isLoading: false,
+        isResolved: true,
+      });
+    }
+
     refreshToken();
-    return () => {
-      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Set session after login ──
   const setSession = useCallback(
     (user: AuthUser, accessToken: string) => {
+      localStorage.setItem("cached_user", JSON.stringify(user)); // ADD THIS
+
       setState({ user, accessToken, isLoading: false, isResolved: true });
       scheduleRefresh();
     },
@@ -141,6 +155,8 @@ const refreshToken = useCallback(async (): Promise<string | null> => {
     } catch {
       // Ignore network errors — clear session regardless
     } finally {
+      localStorage.removeItem("cached_user"); // ADD THIS
+
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
       setState({ user: null, accessToken: null, isLoading: false, isResolved: true });
     }

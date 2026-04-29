@@ -27,13 +27,12 @@ installSerwist({
   runtimeCaching: [
 
     /// ── 2. LESSON PAGE ─────────────────────────────────────────────────
-    // Strategy: NetworkFirst (fallback to cache)
+    // Strategy: StaleWhileRevalidate
     // Ensures lessons page loads even without network
     {
       matcher: ({ request }) => request.mode === 'navigate',
-      handler: new NetworkFirst({
+      handler: new StaleWhileRevalidate({
         cacheName: 'pages',
-        networkTimeoutSeconds: 5,
       }),
     },
 

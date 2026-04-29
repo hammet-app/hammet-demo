@@ -41,14 +41,14 @@
       "name": "My Lessons",
       "short_name": "Lessons",
       "description": "Continue where you left off",
-      "url": "/lesson",
+      "url": "student/lessons",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     },
     {
       "name": "My Portfolio",
       "short_name": "Portfolio",
       "description": "View your completed work",
-      "url": "/portfolio",
+      "url": "student/portfolio",
       "icons": [{ "src": "/icons/icon-96x96.png", "sizes": "96x96" }]
     }
   ]

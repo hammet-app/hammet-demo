@@ -26,7 +26,18 @@ installSerwist({
   navigationPreload: false,    // disabled — we're fully offline-first
   runtimeCaching: [
 
-    // ── 2. LESSON MODULE JSON ─────────────────────────────────────────────────
+    /// ── 2. LESSON PAGE ─────────────────────────────────────────────────
+    // Strategy: NetworkFirst (fallback to cache)
+    // Ensures lessons page loads even without network
+    {
+      matcher: ({ request }) => request.mode === 'navigate',
+      handler: new NetworkFirst({
+        cacheName: 'pages',
+        networkTimeoutSeconds: 5,
+      }),
+    },
+
+    // ── 3. LESSON MODULE JSON ─────────────────────────────────────────────────
     // Strategy: StaleWhileRevalidate
     // Serve instantly from cache. Revalidate in background.
     // Students never wait for network to see their lessons.
@@ -45,7 +56,7 @@ installSerwist({
       }),
     },
 
-    // ── 3. STUDENT SUBMISSIONS (writes) ──────────────────────────────────────
+    // ── 4. STUDENT SUBMISSIONS (writes) ──────────────────────────────────────
     // Strategy: Background Sync
     // POST requests to /api/v1/sync/submissions that fail (no internet)
     // are queued and replayed automatically when connectivity restores.
@@ -63,7 +74,7 @@ installSerwist({
       }),
     },
 
-    // ── 4. API CALLS (general) ────────────────────────────────────────────────
+    // ── 5. API CALLS (general) ────────────────────────────────────────────────
     // Strategy: NetworkFirst with cache fallback
     // Try the network. If it fails (power cut, no data), serve cached response.
     // 10 second timeout before falling back — generous for Nigerian 3G.
@@ -81,7 +92,7 @@ installSerwist({
       }),
     },
 
-    // ── 5. SUPABASE STORAGE (student artefact files) ─────────────────────────
+    // ── 6. SUPABASE STORAGE (student artefact files) ─────────────────────────
     // Strategy: CacheFirst
     // Once a file is cached, serve it immediately without hitting the network.
     // Student uploads don't change — safe to cache aggressively.
@@ -98,7 +109,7 @@ installSerwist({
       }),
     },
 
-    // ── 6. GOOGLE FONTS ───────────────────────────────────────────────────────
+    // ── 7. GOOGLE FONTS ───────────────────────────────────────────────────────
     // Strategy: CacheFirst
     // Fonts never change once loaded — cache them permanently.
     // This ensures typography renders correctly offline.
@@ -115,7 +126,7 @@ installSerwist({
       }),
     },
 
-    // ── 7. NEXT.JS DEFAULT CACHE ─────────────────────────────────────────────
+    // ── 8. NEXT.JS DEFAULT CACHE ─────────────────────────────────────────────
     // Serwist's built-in defaults handle _next/static assets (JS, CSS chunks).
     // These are already fingerprinted by Next.js so CacheFirst is safe.
     ...defaultCache,

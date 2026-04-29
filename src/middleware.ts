@@ -6,6 +6,8 @@ import { type NextRequest, NextResponse } from "next/server";
  */
 const PROTECTED_PREFIXES = ["/student", "/teacher", "/admin", "/hammet"];
 
+const OFFLINE_ALLOWED_PREFIXES = ["/student/lessons", "/teacher/lessons"];
+
 /**
  * Auth routes — logged-in users should not see these.
  */
@@ -19,7 +21,18 @@ export function middleware(request: NextRequest) {
   const hasRefreshToken = request.cookies.has(REFRESH_COOKIE);
 
   const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+  const isOfflineAllowed = OFFLINE_ALLOWED_PREFIXES.some((p) =>
+    pathname.startsWith(p)
+  );
   const isAuthRoute = AUTH_PREFIXES.some((p) => pathname.startsWith(p));
+
+  // 🚨 If it's a protected route AND not offline-allowed → enforce auth
+  if (isProtected && !isOfflineAllowed && !hasRefreshToken) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
+    return NextResponse.redirect(loginUrl);
+  }
 
   // ── Has cookie + hitting auth page → redirect to dashboard ──
   // The dashboard page will do the role-based redirect from there.

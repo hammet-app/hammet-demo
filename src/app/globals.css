@@ -73,3 +73,8 @@
   ::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 9999px; }
   ::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
 }
+
+:root {
+  --font-head: 'Nunito', sans-serif;
+  --font-body: 'Atkinson Hyperlegible', sans-serif;
+}

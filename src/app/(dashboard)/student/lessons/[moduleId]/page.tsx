@@ -5,15 +5,19 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
 import { submitLesson } from "@/lib/sync";
-import { LessonContentCard } from "@/components/cards/lesson-content-card";
+import { LessonStepper } from "@/components/cards/lesson-stepper";
 import { PageShell } from "@/components/layout/page-shell";
 import { StatusPill } from "@/components/ui/status-pill";
-import { Loader2, CheckCircle2, Clock } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, ChevronRight } from "lucide-react";
 import type {
   CurriculumModule,
   ModulesResponse,
   Submission,
 } from "@/lib/api/api-types";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Offline save helper
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function saveOffline(
   studentId: string,
@@ -25,17 +29,21 @@ async function saveOffline(
 ): Promise<void> {
   try {
     await submitLesson({
-         studentId,
-         moduleId,
-         moduleTitle,
-         activityText,
-         reflectionText,
-         fileUrl
-       });
+      studentId,
+      moduleId,
+      moduleTitle,
+      activityText,
+      reflectionText,
+      fileUrl,
+    });
   } catch {
-    // best-effort
+    // best-effort — never throw
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Page
+// ─────────────────────────────────────────────────────────────────────────────
 
 type LoadState = "loading" | "error" | "ready";
 
@@ -49,7 +57,6 @@ export default function LessonDetailPage() {
   const [module, setModule] = useState<CurriculumModule | null>(null);
   const [allModules, setAllModules] = useState<ModulesResponse["modules"]>([]);
   const [existingSubmission, setExistingSubmission] = useState<Submission | null>(null);
-  const [fileUrl, setFileUrl] = useState<string | undefined>(undefined)
 
   const [reflectionText, setReflectionText] = useState("");
   const [activityText, setActivityText] = useState("");
@@ -57,7 +64,7 @@ export default function LessonDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // ── Load module + all modules + existing submission in parallel ──
+  // ── Load module + list + submission history in parallel ──────────────────
   useEffect(() => {
     if (!accessToken || !user?.class_level) return;
 
@@ -72,14 +79,16 @@ export default function LessonDetailPage() {
         setModule(mod);
         setAllModules(list.modules);
 
-        const existing = history.submissions.find(
-          (s) => s.module_id === moduleId
-        ) ?? null;
+        const existing =
+          history.submissions.find((s) => s.module_id === moduleId) ?? null;
         setExistingSubmission(existing);
 
-        // Pre-fill reflection text if flagged so student can revise
+        // Pre-fill if flagged so student can revise
         if (existing?.status === "flagged" && existing.reflection_text) {
           setReflectionText(existing.reflection_text);
+        }
+        if (existing?.status === "flagged" && existing.activity_text) {
+          setActivityText(existing.activity_text);
         }
 
         setLoadState("ready");
@@ -91,20 +100,26 @@ export default function LessonDetailPage() {
     load();
   }, [accessToken, moduleId, user?.class_level]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto-save to Dexie ──
+  // ── Auto-save to Dexie on input change ───────────────────────────────────
   useEffect(() => {
-    if (!user) return;
-    if (!module) return 
+    if (!user || !module) return;
+    if (!reflectionText && !activityText) return;
 
-    if (!moduleId || (!reflectionText && !fileUrl) || !activityText || module.title) return;
     const t = setTimeout(async () => {
-      await saveOffline(user.id, module.title, moduleId, activityText, reflectionText);
+      await saveOffline(
+        user.id,
+        moduleId,
+        module.title,
+        activityText || undefined,
+        reflectionText || undefined
+      );
       setSavedOffline(true);
     }, 800);
-    return () => clearTimeout(t);
-  }, [reflectionText, moduleId]);
 
-  // ── Navigation ──
+    return () => clearTimeout(t);
+  }, [reflectionText, activityText, moduleId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Navigation helpers ───────────────────────────────────────────────────
   const sortedModules = [...allModules].sort(
     (a, b) => a.week_number - b.week_number
   );
@@ -115,13 +130,7 @@ export default function LessonDetailPage() {
       : null;
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
-  function handlePrevious() {
-    router.push(
-      prevMod ? `/student/lessons/${prevMod.id}` : "/student/lessons"
-    );
-  }
-
-  // ── Submit ──
+  // ── Submit ───────────────────────────────────────────────────────────────
   async function handleSubmit() {
     if (!accessToken || !module) return;
     setIsSubmitting(true);
@@ -131,7 +140,7 @@ export default function LessonDetailPage() {
       await studentApi.submitModule(
         {
           module_id: moduleId,
-          activity_text:activityText,
+          activity_text: activityText,
           reflection_text: reflectionText,
           file_url: null,
           local_id: crypto.randomUUID(),
@@ -152,7 +161,7 @@ export default function LessonDetailPage() {
     }
   }
 
-  // ── Render states ──
+  // ── Render states ────────────────────────────────────────────────────────
   if (loadState === "loading") {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -163,11 +172,7 @@ export default function LessonDetailPage() {
 
   if (loadState === "error" || !module) {
     return (
-      <PageShell
-        title="Lesson"
-        backHref="/student/lessons"
-        backLabel="My Lessons"
-      >
+      <PageShell title="Lesson" backHref="/student/lessons" backLabel="My Lessons">
         <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
           Failed to load this lesson. Please try again.
         </div>
@@ -176,22 +181,22 @@ export default function LessonDetailPage() {
   }
 
   const toolBlocks = module.content_json.blocks.filter(
-  (b) => b.type === "tool_link"
+    (b) => b.type === "tool_link"
   );
   const status = existingSubmission?.status ?? null;
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
-      <div className="w-full max-w-7xl mx-auto">
-        
+      <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4">
+
         {/* Non-fatal submit error */}
         {submitError && (
-          <div className="mb-4 text-[13px] text-warning-dark bg-warning-light border border-warning/20 rounded-[10px] px-4 py-3">
+          <div className="text-[13px] text-warning-dark bg-warning-light border border-warning/20 rounded-[10px] px-4 py-3">
             {submitError}
           </div>
         )}
 
-        {/* Submitted / approved */}
+        {/* Already submitted or approved — show notice instead of stepper */}
         {(status === "submitted" || status === "approved") && (
           <SubmittedNotice
             status={status}
@@ -205,9 +210,9 @@ export default function LessonDetailPage() {
           />
         )}
 
-        {/* Flagged */}
+        {/* Flagged — show teacher note above the stepper */}
         {status === "flagged" && existingSubmission?.teacher_note && (
-          <div className="mb-4 border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
+          <div className="border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
               Teacher feedback — revision required
             </p>
@@ -217,9 +222,9 @@ export default function LessonDetailPage() {
           </div>
         )}
 
-        {/* Lesson */}
+        {/* Stepper — shown when not yet submitted or when flagged for revision */}
         {(status === null || status === "flagged") && (
-          <LessonContentCard
+          <LessonStepper
             title={module.title}
             weekNumber={module.week_number}
             term={module.term}
@@ -230,7 +235,7 @@ export default function LessonDetailPage() {
             reflectionText={reflectionText}
             onReflectionChange={setReflectionText}
             savedOffline={savedOffline}
-            onPrevious={handlePrevious}
+            onPrevLesson={prevMod ? () => router.push(`/student/lessons/${prevMod.id}`) : undefined}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             submitLabel={status === "flagged" ? "Resubmit revision" : undefined}
@@ -241,7 +246,9 @@ export default function LessonDetailPage() {
   );
 }
 
-// ── Submitted / Approved notice ──────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Submitted / Approved notice
+// ─────────────────────────────────────────────────────────────────────────────
 
 function SubmittedNotice({
   status,
@@ -272,13 +279,10 @@ function SubmittedNotice({
         )}
 
         <div>
-          <p
-            className="text-[18px] font-bold text-text-primary mb-1.5"
-            style={{ fontFamily: "var(--font-head)" }}
-          >
+          <p className="text-[18px] font-bold text-text-primary mb-1.5" style={{ fontFamily: "var(--font-head)" }}>
             {isApproved ? "Module approved" : "Submitted — awaiting review"}
           </p>
-          <p className="text-[13px] text-text-muted">
+          <p className="text-[13px] text-text-muted leading-[1.6]">
             {isApproved
               ? `Approved and added to your portfolio. Submitted ${date}.`
               : `Submitted ${date}. Your teacher will review this soon.`}
@@ -290,16 +294,17 @@ function SubmittedNotice({
         <div className="flex items-center gap-3 mt-2">
           <button
             onClick={onBack}
-            className="text-[13px] font-medium text-text-secondary border border-border px-4 py-2 rounded-[8px] hover:bg-gray-50 transition-colors"
+            className="text-[13px] font-bold text-text-secondary border border-border px-4 py-2 rounded-[8px] hover:bg-gray-50 transition-colors"
           >
             Back to lessons
           </button>
           {onNext && (
             <button
               onClick={onNext}
-              className="text-[13px] font-semibold bg-purple text-white px-4 py-2 rounded-[8px] hover:bg-purple-hover transition-colors"
+              className="inline-flex items-center gap-1.5 text-[13px] font-bold bg-[#5B21B6] text-white px-4 py-2 rounded-[8px] hover:bg-[#4c1d95] transition-colors"
             >
-              Next module →
+              Next module
+              <ChevronRight size={14} />
             </button>
           )}
         </div>

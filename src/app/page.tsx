@@ -11,7 +11,7 @@ function CTAPair({ light = false }: { light?: boolean }) {
   return (
     <div className="flex flex-col sm:flex-row gap-3">
       <a
-        href="#callback"
+        href="#"
         className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold transition-all duration-200 ${
           light
             ? "bg-white text-[#3B0764] hover:bg-[#EDE9FE]"
@@ -195,7 +195,7 @@ function Hero() {
 
             <div className="flex flex-col sm:flex-row gap-3">
               <a
-                href="#callback"
+                href="#"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full text-sm font-semibold bg-[#3B0764] text-white hover:bg-[#5B21B6] transition-all duration-200"
               >
                 Watch how it works in 3 Mins
@@ -863,7 +863,7 @@ function Footer() {
             <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">Product</h4>
             <div className="flex flex-col gap-3">
               {["How It Works", "Features", "For Schools", "Request to Test the Software"].map((l) => (
-                <a key={l} href="#" className="text-sm text-gray-500 hover:text-white transition-colors">
+                <a key={l} className="text-sm text-gray-500 hover:text-white transition-colors">
                   {l}
                 </a>
               ))}

@@ -14,19 +14,18 @@ export type AssignedClass = {
 
 export type CurriculumModuleBlock = {
   type:
-    | "heading"
     | "body"
-    | "activity"
-    | "image"
-    | "task"
     | "subheading"
+    | "image"
+    | "activity"
     | "ai_prompt"
     | "reflection"
+    | "task"
     | "video_embed"
     | "tool_link";
   content: string;
-  tool_name?: string;
   url?: string;
+  tool_name?: string;
   required?: boolean;
   is_valid?: boolean;
 };
@@ -279,20 +278,28 @@ export type ModulesResponse = {
 };
 
 
+
+export interface CurriculumSection {
+  heading?: string | null;
+  blocks: CurriculumModuleBlock[];
+}
+
+export interface CurriculumContentJson {
+  sections: CurriculumSection[];
+}
+
 // GET /modules/[moduleId] — full module with content
-export type CurriculumModule = {
+export interface CurriculumModule {
   id: string;
   title: string;
+  description?: string;
   term: number;
   week_number: number;
   level: string;
-  published: boolean;
-  content_json: {
-    blocks: CurriculumModuleBlock[];
-  };
+  content_json: CurriculumContentJson;
   created_at: string;
   updated_at: string;
-};
+}
 
 
 // POST /submissions — online submission

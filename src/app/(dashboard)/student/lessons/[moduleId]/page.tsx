@@ -24,8 +24,7 @@ async function saveOffline(
   moduleId: string,
   moduleTitle: string,
   activityText?: string,
-  reflectionText?: string,
-  fileUrl?: string
+  reflectionText?: string
 ): Promise<void> {
   try {
     await submitLesson({
@@ -34,7 +33,6 @@ async function saveOffline(
       moduleTitle,
       activityText,
       reflectionText,
-      fileUrl,
     });
   } catch {
     // best-effort — never throw
@@ -84,11 +82,9 @@ export default function LessonDetailPage() {
         setExistingSubmission(existing);
 
         // Pre-fill if flagged so student can revise
-        if (existing?.status === "flagged" && existing.reflection_text) {
-          setReflectionText(existing.reflection_text);
-        }
-        if (existing?.status === "flagged" && existing.activity_text) {
-          setActivityText(existing.activity_text);
+        if (existing?.status === "flagged") {
+          if (existing.reflection_text) setReflectionText(existing.reflection_text);
+          if (existing.activity_text)   setActivityText(existing.activity_text);
         }
 
         setLoadState("ready");
@@ -103,7 +99,7 @@ export default function LessonDetailPage() {
   // ── Auto-save to Dexie on input change ───────────────────────────────────
   useEffect(() => {
     if (!user || !module) return;
-    if (!reflectionText && !activityText) return;
+    if (!activityText && !reflectionText) return;
 
     const t = setTimeout(async () => {
       await saveOffline(
@@ -117,7 +113,7 @@ export default function LessonDetailPage() {
     }, 800);
 
     return () => clearTimeout(t);
-  }, [reflectionText, activityText, moduleId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activityText, reflectionText, moduleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Navigation helpers ───────────────────────────────────────────────────
   const sortedModules = [...allModules].sort(
@@ -180,10 +176,14 @@ export default function LessonDetailPage() {
     );
   }
 
-  const toolBlocks = module.content_json.blocks.filter(
-    (b) => b.type === "tool_link"
-  );
   const status = existingSubmission?.status ?? null;
+
+  // Tool names — derived from tool_link blocks across all sections
+  const toolNames = module.content_json.sections
+    .flatMap((s) => s.blocks)
+    .filter((b) => b.type === "tool_link")
+    .map((b) => b.tool_name || b.content)
+    .filter(Boolean) as string[];
 
   return (
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
@@ -196,7 +196,7 @@ export default function LessonDetailPage() {
           </div>
         )}
 
-        {/* Already submitted or approved — show notice instead of stepper */}
+        {/* Already submitted or approved */}
         {(status === "submitted" || status === "approved") && (
           <SubmittedNotice
             status={status}
@@ -210,32 +210,37 @@ export default function LessonDetailPage() {
           />
         )}
 
-        {/* Flagged — show teacher note above the stepper */}
+        {/* Teacher feedback banner — shown above stepper when flagged */}
         {status === "flagged" && existingSubmission?.teacher_note && (
           <div className="border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
             <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
               Teacher feedback — revision required
             </p>
-            <p className="text-[13px] text-warning-dark leading-relaxed">
+            <p className="text-[13px] text-warning-dark leading-[1.6]">
               {existingSubmission.teacher_note}
             </p>
           </div>
         )}
 
-        {/* Stepper — shown when not yet submitted or when flagged for revision */}
+        {/* Stepper — shown when not yet submitted, or flagged for revision */}
         {(status === null || status === "flagged") && (
           <LessonStepper
             title={module.title}
+            description={module.description}
             weekNumber={module.week_number}
             term={module.term}
-            toolNames={toolBlocks.map((b) => b.tool_name || b.content)}
-            blocks={module.content_json.blocks}
+            toolNames={toolNames}
+            sections={module.content_json.sections}
             activityText={activityText}
             onActivityChange={setActivityText}
             reflectionText={reflectionText}
             onReflectionChange={setReflectionText}
             savedOffline={savedOffline}
-            onPrevLesson={prevMod ? () => router.push(`/student/lessons/${prevMod.id}`) : undefined}
+            onPrevLesson={
+              prevMod
+                ? () => router.push(`/student/lessons/${prevMod.id}`)
+                : undefined
+            }
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             submitLabel={status === "flagged" ? "Resubmit revision" : undefined}
@@ -266,7 +271,6 @@ function SubmittedNotice({
     month: "short",
     year: "numeric",
   });
-
   const isApproved = status === "approved";
 
   return (
@@ -277,9 +281,11 @@ function SubmittedNotice({
         ) : (
           <Clock size={44} className="text-purple-mid" />
         )}
-
         <div>
-          <p className="text-[18px] font-bold text-text-primary mb-1.5" style={{ fontFamily: "var(--font-head)" }}>
+          <p
+            className="text-[18px] font-bold text-text-primary mb-1.5"
+            style={{ fontFamily: "var(--font-head)" }}
+          >
             {isApproved ? "Module approved" : "Submitted — awaiting review"}
           </p>
           <p className="text-[13px] text-text-muted leading-[1.6]">
@@ -288,9 +294,7 @@ function SubmittedNotice({
               : `Submitted ${date}. Your teacher will review this soon.`}
           </p>
         </div>
-
         <StatusPill status={status} />
-
         <div className="flex items-center gap-3 mt-2">
           <button
             onClick={onBack}

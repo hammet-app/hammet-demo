@@ -26,12 +26,10 @@ function sortLevels(levels: string[]): string[] {
 function getLevelStats(modules: CurriculumModule[], level: string) {
   const levelModules = modules.filter((m) => m.level === level);
   const terms = [...new Set(levelModules.map((m) => m.term))];
-  const published = levelModules.filter((m) => m.published).length;
 
   return {
     total: levelModules.length,
     terms: terms.length,
-    published,
   };
 }
 
@@ -178,17 +176,6 @@ export default function AdminModulesListPage() {
                       {stats.terms} terms · {stats.total} modules
                     </p>
                   </div>
-  
-                  {stats.total > 0 && (
-                    <div className="h-1.5 rounded-full bg-[var(--color-purple-light)] overflow-hidden">
-                      <div
-                        className="h-full bg-[var(--color-cyan)]"
-                        style={{
-                          width: `${(stats.published / stats.total) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  )}
   
                   <div className="mt-4 text-sm text-[var(--color-purple)] opacity-0 group-hover:opacity-100 transition">
                     View terms →

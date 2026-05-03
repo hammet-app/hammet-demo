@@ -299,6 +299,7 @@ export interface CurriculumModule {
   content_json: CurriculumContentJson;
   created_at: string;
   updated_at: string;
+  published: boolean;
 }
 
 

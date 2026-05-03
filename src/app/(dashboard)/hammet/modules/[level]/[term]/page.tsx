@@ -130,7 +130,7 @@ export default function HammetModulesListPage() {
                   <p className="font-medium truncate">{mod.title}</p>
 
                   <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
-                    {mod.content_json.blocks.length} blocks · Last updated{" "}
+                    {mod.content_json.sections.length} blocks · Last updated{" "}
                     {new Date(mod.updated_at).toLocaleDateString("en-NG", {
                       day: "numeric",
                       month: "short",

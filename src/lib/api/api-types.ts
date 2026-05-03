@@ -513,6 +513,19 @@ export type AdminStudentsResponse = {
   total: number;
 };
 
+// PATCH /admin/students/[id]
+export type UserUpdateRequest = {
+  email?: string;
+  class_level?: string;
+  class_arm?: string;
+  parent_phone?: string;
+  parent_email?:string
+};
+
+export type UserUpdateResponse = {
+  message: boolean
+}
+
 // DELETE /admin/students/[id] — reuses DeleteResponse
 export type DeleteResponse = {
   message: string;

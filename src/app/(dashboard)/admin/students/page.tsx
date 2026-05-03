@@ -26,7 +26,8 @@ type RowAction =
   | { type: "send-link"; studentId: string }
   | { type: "revoke-link"; studentId: string }
   | { type: "delete"; studentId: string }
-  | { type: "resend-code"; studentId: string };
+  | { type: "resend-code"; studentId: string }
+  | { type: "update"; studentId: string };
 
 type InFlight = { studentId: string; action: RowAction["type"] };
 
@@ -35,6 +36,7 @@ function StudentRow({
   inFlight,
   onAction,
   created,
+  router,
 }: {
   student: AdminStudent;
   inFlight: InFlight | null;
@@ -44,6 +46,7 @@ function StudentRow({
     email: string;
     code: string;
   };
+  router: ReturnType<typeof useRouter>;
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
@@ -138,6 +141,14 @@ function StudentRow({
             </button>
           )}
         </div>
+        <button
+          onClick={() =>
+            router.push(`/admin/students/${student.student_id}/edit`)
+          }
+          className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-purple)]"
+        >
+          Update
+        </button>
 
         {student.status === "pending" && (
           <button
@@ -342,12 +353,13 @@ export default function AdminStudentsPage() {
         <div className="flex flex-col gap-3">
           {students.map((student) => (
             <StudentRow
-              key={student.student_id}
-              student={student}
-              inFlight={inFlight}
-              onAction={handleAction}
-              created={createdMap[student.student_id]}
-            />
+            key={student.student_id}
+            student={student}
+            inFlight={inFlight}
+            onAction={handleAction}
+            created={createdMap[student.student_id]}
+            router={router}
+          />
           ))}
         </div>
       )}

@@ -17,6 +17,8 @@ import type {
   BulkRegisterRequest,
   ResendVerificationRequest,
   ResendVerificationResponse,
+  UserUpdateRequest,
+  UserUpdateResponse
 } from "@/lib/api/api-types";
 
 // ------------------------------------------------------------
@@ -41,6 +43,15 @@ export async function getAdminStudents(
   return apiClient.get<AdminStudentsResponse>("/admin/students", token, {
     onRefresh,
   });
+}
+
+export async function updateStudent(
+  studentId: string,
+  body: UserUpdateRequest,
+  token: string,
+  onRefresh: () => Promise<string | null> 
+): Promise<UserUpdateResponse> {
+  return apiClient.patch<UserUpdateResponse>(`/admin/students/${studentId}`, body, token, { onRefresh })
 }
 
 export async function deleteStudent(

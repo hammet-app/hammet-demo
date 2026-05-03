@@ -18,8 +18,8 @@ import type { CurriculumModuleBlock, CurriculumSection } from "@/lib/api/api-typ
 // Typography
 // ─────────────────────────────────────────────────────────────────────────────
 
-const FONT_HEAD = "var(--font-head)"; // Nunito Bold  — set in app/layout.tsx
-const FONT_BODY = "var(--font-body)"; // Atkinson Hyperlegible — set in app/layout.tsx
+const FONT_HEAD = "var(--font-head)";
+const FONT_BODY = "var(--font-body)";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Reflection word-count constants
@@ -301,10 +301,12 @@ function ActivityBlock({
   block,
   activityText,
   onActivityChange,
+  isTeacher,
 }: {
   block: CurriculumModuleBlock;
   activityText: string;
   onActivityChange: (v: string) => void;
+  isTeacher?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -326,19 +328,21 @@ function ActivityBlock({
         >
           Activity box
         </label>
-        <textarea
-          value={activityText}
-          onChange={(e) => onActivityChange(e.target.value)}
-          placeholder="Write your activity here…"
-          rows={4}
-          className={cn(
-            "w-full resize-y border border-border rounded-[10px] px-3.5 py-3",
-            "text-[16px] sm:text-[18px] leading-[1.6]",
-            "outline-none transition-colors bg-bg-card text-text-primary",
-            "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
-          )}
-          style={{ fontFamily: FONT_BODY }}
-        />
+        {isTeacher && (
+          <textarea
+            value={activityText}
+            onChange={(e) => onActivityChange(e.target.value)}
+            placeholder="Write your activity here…"
+            rows={4}
+            className={cn(
+              "w-full resize-y border border-border rounded-[10px] px-3.5 py-3",
+              "text-[16px] sm:text-[18px] leading-[1.6]",
+              "outline-none transition-colors bg-bg-card text-text-primary",
+              "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+            )}
+            style={{ fontFamily: FONT_BODY }}
+          />
+        )}
       </div>
     </div>
   );
@@ -348,10 +352,12 @@ function ReflectionBlock({
   block,
   reflectionText,
   onReflectionChange,
+  isTeacher,
 }: {
   block: CurriculumModuleBlock;
   reflectionText: string;
   onReflectionChange: (v: string) => void;
+  isTeacher?: boolean;
 }) {
   const wc = wordCount(reflectionText);
   const wcColor =
@@ -384,19 +390,21 @@ function ReflectionBlock({
             ({REFLECTION_MIN}–{REFLECTION_MAX} words)
           </span>
         </label>
-        <textarea
-          value={reflectionText}
-          onChange={(e) => onReflectionChange(e.target.value)}
-          placeholder="Write your reflection here…"
-          rows={4}
-          className={cn(
-            "w-full resize-y border border-border rounded-[10px] px-3.5 py-3",
-            "text-[16px] sm:text-[18px] leading-[1.6]",
-            "outline-none transition-colors bg-bg-card text-text-primary",
-            "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
-          )}
-          style={{ fontFamily: FONT_BODY }}
-        />
+        {isTeacher && (
+          <textarea
+            value={reflectionText}
+            onChange={(e) => onReflectionChange(e.target.value)}
+            placeholder="Write your reflection here…"
+            rows={4}
+            className={cn(
+              "w-full resize-y border border-border rounded-[10px] px-3.5 py-3",
+              "text-[16px] sm:text-[18px] leading-[1.6]",
+              "outline-none transition-colors bg-bg-card text-text-primary",
+              "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+            )}
+            style={{ fontFamily: FONT_BODY }}
+          />
+        )}
         <p
           className={cn("text-[12px] text-right mt-1.5 tabular-nums", wcColor)}
           style={{ fontFamily: FONT_BODY }}
@@ -437,12 +445,14 @@ function Block({
   onActivityChange,
   reflectionText,
   onReflectionChange,
+  isTeacher,
 }: {
   block: CurriculumModuleBlock;
   activityText: string;
   onActivityChange: (v: string) => void;
   reflectionText: string;
   onReflectionChange: (v: string) => void;
+  isTeacher?: boolean;
 }) {
   switch (block.type) {
     case "subheading":  return <SubheadingBlock block={block} />;
@@ -457,6 +467,7 @@ function Block({
           block={block}
           activityText={activityText}
           onActivityChange={onActivityChange}
+          isTeacher={isTeacher}
         />
       );
     case "reflection":
@@ -465,6 +476,7 @@ function Block({
           block={block}
           reflectionText={reflectionText}
           onReflectionChange={onReflectionChange}
+          isTeacher={isTeacher}
         />
       );
     case "task": return <TaskBlock block={block} />;
@@ -542,12 +554,14 @@ function SectionPage({
   onActivityChange,
   reflectionText,
   onReflectionChange,
+  isTeacher,
 }: {
   section: CurriculumSection;
   activityText: string;
   onActivityChange: (v: string) => void;
   reflectionText: string;
   onReflectionChange: (v: string) => void;
+  isTeacher?:boolean;
 }) {
   return (
     <div className="flex flex-col gap-4">
@@ -567,6 +581,7 @@ function SectionPage({
           onActivityChange={onActivityChange}
           reflectionText={reflectionText}
           onReflectionChange={onReflectionChange}
+          isTeacher={isTeacher}
         />
       ))}
     </div>
@@ -576,9 +591,11 @@ function SectionPage({
 function SubmitPage({
   hasActivity,
   hasReflection,
+  isTeacher,
 }: {
   hasActivity: boolean;
   hasReflection: boolean;
+  isTeacher?: boolean;
 }) {
   return (
     <div className="flex flex-col items-center text-center gap-5 py-8 px-4">
@@ -590,13 +607,15 @@ function SubmitPage({
           className="text-[20px] sm:text-[22px] font-bold text-text-primary mb-2 leading-snug"
           style={{ fontFamily: FONT_HEAD }}
         >
-          Lesson complete!
+          {isTeacher ? "End of lesson" : "Lesson complete!"}
         </h2>
         <p
           className="text-[15px] sm:text-[16px] text-text-secondary leading-[1.6]"
           style={{ fontFamily: FONT_BODY }}
         >
-          Your work is saved offline and will submit when you reconnect.
+          {isTeacher
+            ? "You have reached the end of this lesson."
+            : "Your work is saved offline and will submit when you reconnect."}
         </p>
       </div>
       {(hasActivity || hasReflection) && (
@@ -641,8 +660,10 @@ function SubmitPage({
 function isSectionBlocked(
   section: CurriculumSection,
   activityText: string,
-  reflectionText: string
+  reflectionText: string,
+  isTeacher?: boolean
 ): boolean {
+  if (isTeacher) return false;
   for (const block of section.blocks) {
     if (!block.required) continue;
     if (block.type === "activity" && activityText.trim().length < 5) return true;
@@ -677,6 +698,7 @@ export interface LessonStepperProps {
   isSubmitting?: boolean;
   submitLabel?: string;
   className?: string;
+  isTeacher?: boolean;
 }
 
 export function LessonStepper({
@@ -696,6 +718,7 @@ export function LessonStepper({
   isSubmitting = false,
   submitLabel,
   className,
+  isTeacher,
 }: LessonStepperProps) {
   // Pages: [intro, ...one per section, submit]
   const total = sections.length + 2;
@@ -737,7 +760,7 @@ export function LessonStepper({
   }
 
   const progress = ((cur + 1) / total) * 100;
-  const blocked = isPageBlocked();
+  const blocked = isTeacher ? false : isPageBlocked();
   const allBlocks = sections.flatMap((s) => s.blocks);
   const hasActivity = allBlocks.some((b) => b.type === "activity");
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
@@ -804,7 +827,7 @@ export function LessonStepper({
             className="flex-shrink-0 w-full pb-2"
             aria-hidden={cur !== total - 1}
           >
-            <SubmitPage hasActivity={hasActivity} hasReflection={hasReflection} />
+            <SubmitPage hasActivity={hasActivity} hasReflection={hasReflection} isTeacher={isTeacher} />
           </div>
         </div>
       </div>
@@ -835,7 +858,15 @@ export function LessonStepper({
             </button>
           )}
 
-          {isLastPage ? (
+          {isTeacher ?(
+            <button
+              onClick={goNext}
+              className="inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 rounded-[8px] bg-[#5B21B6] text-white"
+            >
+              {isLastPage ? "Finish" : "Next"}
+              <ChevronRight size={14} />
+            </button>
+          ): isLastPage ? (
             <button
               onClick={onSubmit}
               disabled={isSubmitting}

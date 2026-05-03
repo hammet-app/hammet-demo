@@ -151,7 +151,10 @@ export const apiClient = {
 
   postForm: <T>(path: string, form: FormData, token?: string | null, options?: RequestOptions) => 
     requestForm<T>(path, form, { token, ...options }),
-};
+
+  patch: <T>(path: string, body?: unknown, token?: string | null, options?: RequestOptions) =>
+    request<T>("PATCH", path, body, { token, ...options }),
+  };
 
 // ─── ApiError ────────────────────────────────────────────────
 export class ApiError<T = unknown> extends Error {

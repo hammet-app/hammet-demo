@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getModule, getTeacherModules } from "@/lib/api/teacher";
-import { LessonContentCard } from "@/components/cards/lesson-content-card";
+import { LessonStepper } from "@/components/cards/lesson-stepper"; 
 import { PageShell } from "@/components/layout/page-shell";
 import { Loader2, CheckCircle2, Clock } from "lucide-react";
 import type {
@@ -98,9 +98,11 @@ export default function LessonDetailPage() {
     );
   }
 
-  const toolBlocks = module.content_json.blocks.filter(
-    (b) => b.type === "tool_link"
-  );
+  const toolNames = module.content_json.sections
+    .flatMap((s) => s.blocks)
+    .filter((b) => b.type === "tool_link")
+    .map((b) => b.tool_name || b.content)
+    .filter(Boolean) as string[];
   const status = null;
 
   return (
@@ -109,27 +111,25 @@ export default function LessonDetailPage() {
         
         {/* Lesson */}
         {(status === null) && (
-          <LessonContentCard
+          <LessonStepper
             title={module.title}
+            description={module.description}
             weekNumber={module.week_number}
             term={module.term}
-            toolNames={toolBlocks.map((b) => b.tool_name || b.content)}
-            blocks={module.content_json.blocks}
+            toolNames={toolNames}
+            sections={module.content_json.sections}
             activityText={activityText}
             onActivityChange={setActivityText}
             reflectionText={reflectionText}
             onReflectionChange={setReflectionText}
-            onPrevious={handlePrevious}
-            onSubmit={isTeacher? () => {}: handleSubmit}
-            isSubmitting={isTeacher? false : isSubmitting}
-            submitLabel={
-                isTeacher
-                ? undefined
-                : status === "flagged"
-                ? "Resubmit revision"
+            onPrevLesson={
+              prevMod
+                ? () => router.push(`/student/lessons/${prevMod.id}`)
                 : undefined
             }
-            isTeacher={isTeacher}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            submitLabel={status === "flagged" ? "Resubmit revision" : undefined}
           />
         )}
       </div>

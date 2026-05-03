@@ -32,12 +32,9 @@ export default function AdminModulesLevelsPage() {
   
     function getTermStats(term: number) {
       const termModules = modules.filter((m) => m.term === term);
-      const published = termModules.filter((m) => m.published).length;
   
       return {
         total: termModules.length,
-        published,
-        draft: termModules.length - published,
       };
     }
   
@@ -92,18 +89,6 @@ export default function AdminModulesLevelsPage() {
                       {stats.total} modules
                     </p>
                   </div>
-  
-                  {stats.total > 0 && (
-                    <div className="h-1.5 rounded-full bg-[var(--color-purple-light)] overflow-hidden">
-                      <div
-                        className="h-full bg-[var(--color-cyan)]"
-                        style={{
-                          width: `${(stats.published / stats.total) * 100}%`,
-                        }}
-                      />
-                    </div>
-                  )}
-  
                   <div className="mt-4 text-sm text-[var(--color-purple)] opacity-0 group-hover:opacity-100 transition">
                     View modules →
                   </div>

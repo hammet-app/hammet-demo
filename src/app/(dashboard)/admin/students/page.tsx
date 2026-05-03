@@ -97,6 +97,15 @@ function StudentRow({
                 {busyAction === "send-link" ? "Sending…" : "Resend"}
               </button>
 
+              <button
+                onClick={() =>
+                  router.push(`/admin/students/${student.student_id}/edit`)
+                }
+                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-purple)]"
+              >
+                Update
+              </button>
+
               <span>·</span>
 
               {confirmRevoke ? (
@@ -141,14 +150,7 @@ function StudentRow({
             </button>
           )}
         </div>
-        <button
-          onClick={() =>
-            router.push(`/admin/students/${student.student_id}/edit`)
-          }
-          className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-purple)]"
-        >
-          Update
-        </button>
+        
 
         {student.status === "pending" && (
           <button

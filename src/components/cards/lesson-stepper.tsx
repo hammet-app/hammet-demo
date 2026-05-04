@@ -766,7 +766,7 @@ export function LessonStepper({
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({top:0, behavior: "smooth"});
   }, [cur]);
 
   return (

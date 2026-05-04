@@ -328,7 +328,7 @@ function ActivityBlock({
         >
           Activity box
         </label>
-        {isTeacher && (
+        {!isTeacher && (
           <textarea
             value={activityText}
             onChange={(e) => onActivityChange(e.target.value)}
@@ -390,7 +390,7 @@ function ReflectionBlock({
             ({REFLECTION_MIN}–{REFLECTION_MAX} words)
           </span>
         </label>
-        {isTeacher && (
+        {!isTeacher && (
           <textarea
             value={reflectionText}
             onChange={(e) => onReflectionChange(e.target.value)}

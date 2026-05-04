@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useEffect } from "react";
 import { cn } from "@/lib/utils/utils";
 import {
   AlertTriangle,
@@ -25,8 +25,8 @@ const FONT_BODY = "var(--font-body)";
 // Reflection word-count constants
 // ─────────────────────────────────────────────────────────────────────────────
 
-const REFLECTION_MIN = 4;
-const REFLECTION_MAX = 10;
+const REFLECTION_MIN = 10;
+const REFLECTION_MAX = 300;
 
 function wordCount(text: string): number {
   const s = text.trim();
@@ -764,6 +764,10 @@ export function LessonStepper({
   const allBlocks = sections.flatMap((s) => s.blocks);
   const hasActivity = allBlocks.some((b) => b.type === "activity");
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [cur]);
 
   return (
     <div className={cn("w-full max-w-[680px] mx-auto flex flex-col gap-4", className)}>

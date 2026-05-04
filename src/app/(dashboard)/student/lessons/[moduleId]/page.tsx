@@ -244,6 +244,7 @@ export default function LessonDetailPage() {
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
             submitLabel={status === "flagged" ? "Resubmit revision" : undefined}
+            isTeacher={false}
           />
         )}
       </div>

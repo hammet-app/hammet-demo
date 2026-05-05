@@ -186,7 +186,7 @@ export default function LessonDetailPage() {
     .filter(Boolean) as string[];
 
   return (
-    <div id="lesson-scroll" className="w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div className="w-full px-4 sm:px-6 lg:px-8 py-6">
       <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4">
 
         {/* Non-fatal submit error */}

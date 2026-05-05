@@ -48,7 +48,7 @@ export function DashboardLayoutInner({
         </div>
 
         {/* Page content */}
-        <main id="lesson-scroll" className="flex-1 overflow-y-auto bg-bg-page">
+        <main id="lesson-scroll" className="min-h-screen overflow-y-auto bg-bg-page">
           {children}
         </main>
       </div>

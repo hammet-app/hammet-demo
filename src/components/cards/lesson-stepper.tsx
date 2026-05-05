@@ -799,7 +799,7 @@ export function LessonStepper({
           style={{ transform: `translateX(-${cur * 100}%)` }}
         >
           {/* Page 0 — Intro */}
-          <div className="flex-shrink-0 w-full pb-2" aria-hidden={cur !== 0}>
+          <div className="flex-shrink-0 w-full" aria-hidden={cur !== 0}>
             <IntroPage
               title={title}
               description={description}
@@ -813,7 +813,7 @@ export function LessonStepper({
           {sections.map((section, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-full pb-2"
+              className="flex-shrink-0 w-full"
               aria-hidden={cur !== i + 1}
             >
               <SectionPage
@@ -828,7 +828,7 @@ export function LessonStepper({
 
           {/* Page N+1 — Submit */}
           <div
-            className="flex-shrink-0 w-full pb-2"
+            className="flex-shrink-0 w-full"
             aria-hidden={cur !== total - 1}
           >
             <SubmitPage hasActivity={hasActivity} hasReflection={hasReflection} isTeacher={isTeacher} />

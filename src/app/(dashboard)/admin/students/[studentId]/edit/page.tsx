@@ -15,10 +15,10 @@ export default function UpdateStudentPage() {
   const studentId = params.studentId as string;
 
   const [email, setEmail] = useState("");
-  const [class_level, setClassLevel] = useState("");
-  const [class_arm, setClassArm] = useState("");
-  const [parent_phone, setParentPhone] = useState("");
-  const [parent_email, setParentEmail] = useState("");
+  const [classLevel, setClassLevel] = useState("");
+  const [classArm, setClassArm] = useState("");
+  const [parentPhone, setParentPhone] = useState("");
+  const [parentEmail, setParentEmail] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,13 @@ export default function UpdateStudentPage() {
 
     try {
         await updateStudent(studentId, 
-            {email, class_level, class_arm, parent_email, parent_phone} satisfies UserUpdateRequest,
+            {
+              email, 
+              class_level:classLevel, 
+              class_arm: classArm, 
+              parent_email: parentEmail, 
+              parent_phone: parentPhone
+            } satisfies UserUpdateRequest,
             accessToken,
             refreshToken
         )
@@ -80,7 +86,7 @@ export default function UpdateStudentPage() {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Class Level</label>
           <input
-            value={class_level}
+            value={classLevel}
             onChange={(e) => setClassLevel(e.target.value)}
             className="px-4 py-2 rounded-xl border"
             placeholder="SS1, SS2..."
@@ -91,7 +97,7 @@ export default function UpdateStudentPage() {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Class Arm</label>
           <input
-            value={class_arm}
+            value={classArm}
             onChange={(e) => setClassArm(e.target.value)}
             className="px-4 py-2 rounded-xl border"
             placeholder="A, B..."
@@ -102,7 +108,7 @@ export default function UpdateStudentPage() {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Full Name</label>
           <input
-            value={parent_email}
+            value={parentEmail}
             onChange={(e) => setParentEmail(e.target.value)}
             className="px-4 py-2 rounded-xl border"
             placeholder="Enter full name"
@@ -113,7 +119,7 @@ export default function UpdateStudentPage() {
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium">Full Name</label>
           <input
-            value={parent_phone}
+            value={parentPhone}
             onChange={(e) => setParentPhone(e.target.value)}
             className="px-4 py-2 rounded-xl border"
             placeholder="Enter full name"

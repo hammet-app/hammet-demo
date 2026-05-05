@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getDashboardRoute } from "@/lib/auth/routes";
-import { SidebarUI } from "./sidebarui";
+import { SidebarUI } from "@/components/layout/sidebarui";
 
 interface SidebarProps {
   roles: UserRole[];

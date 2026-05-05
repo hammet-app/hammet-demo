@@ -908,6 +908,26 @@ export function LessonStepper({
   const total = pages.length;
   const [cur, setCur] = useState(0);
   const touchStartX = useRef<number | null>(null);
+
+  // ── Dynamic height: stage clips to the current page's natural height ──────
+  // All pages are rendered off-screen simultaneously for smooth slide animation.
+  // Without this, the stage height is set by the tallest page, leaving blank
+  // space below short pages.
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [stageHeight, setStageHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    const el = pageRefs.current[cur];
+    if (!el) return;
+    // ResizeObserver keeps height correct as textareas are resized
+    const ro = new ResizeObserver(() => {
+      setStageHeight(el.scrollHeight);
+    });
+    ro.observe(el);
+    setStageHeight(el.scrollHeight);
+    return () => ro.disconnect();
+  }, [cur]);
+
   const isLastPage = cur === total - 1;
 
   const blocked = useCallback(
@@ -966,7 +986,11 @@ export function LessonStepper({
       </div>
 
       {/* Sliding stage */}
-      <div className="overflow-hidden touch-pan-y" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+      <div className="overflow-hidden touch-pan-y transition-[height] duration-300 ease-out"
+        style={{ height: stageHeight }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         <div
           className="flex transition-transform duration-300 ease-out will-change-transform"
           style={{ transform: `translateX(-${cur * 100}%)` }}

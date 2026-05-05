@@ -502,7 +502,7 @@ function IntroPage({
   toolNames?: string[];
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2.5">
       <div className="bg-[#3B0764] rounded-[14px] px-5 py-5 relative overflow-hidden">
         <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-[#06B6D4]/20 pointer-events-none" />
         <div className="absolute -bottom-4 left-8 w-16 h-16 rounded-full bg-[#5B21B6]/40 pointer-events-none" />
@@ -564,7 +564,7 @@ function SectionPage({
   isTeacher?:boolean;
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2.5">
       {section.heading && (
         <h2
           className="text-[18px] sm:text-[20px] font-bold text-[#534AB7] pb-2 border-b-2 border-[#EEEDFE] leading-snug"

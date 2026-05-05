@@ -720,13 +720,14 @@ export function LessonStepper({
   className,
   isTeacher,
 }: LessonStepperProps) {
-  // Pages: [intro, ...one per section, submit]
   const total = sections.length + 2;
   const [cur, setCur] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const isLastPage = cur === total - 1;
 
-  // Current section — null on intro (0) and submit (total-1) pages
+  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [height, setHeight] = useState(0);
+
   const currentSection: CurriculumSection | null =
     cur > 0 && cur <= sections.length ? sections[cur - 1] : null;
 
@@ -761,18 +762,26 @@ export function LessonStepper({
 
   const progress = ((cur + 1) / total) * 100;
   const blocked = isTeacher ? false : isPageBlocked();
+
   const allBlocks = sections.flatMap((s) => s.blocks);
   const hasActivity = allBlocks.some((b) => b.type === "activity");
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
 
   useEffect(() => {
-    document.getElementById("lesson-scroll")?.scrollTo(0,0)
+    document.getElementById("lesson-scroll")?.scrollTo(0, 0);
+
+    const el = pageRefs.current[cur];
+    if (el) {
+      requestAnimationFrame(() => {
+        setHeight(el.offsetHeight);
+      });
+    }
   }, [cur]);
 
   return (
     <div className={cn("w-full max-w-[680px] mx-auto flex flex-col gap-4", className)}>
 
-      {/* Progress bar + step counter */}
+      {/* Progress */}
       <div className="flex items-center gap-3 px-0.5">
         <div className="flex-1 h-[6px] bg-border rounded-full overflow-hidden">
           <div
@@ -780,26 +789,27 @@ export function LessonStepper({
             style={{ width: `${progress}%` }}
           />
         </div>
-        <span
-          className="text-[12px] text-text-muted whitespace-nowrap tabular-nums"
-          style={{ fontFamily: FONT_BODY }}
-        >
+        <span className="text-[12px] text-text-muted whitespace-nowrap tabular-nums">
           {cur + 1} of {total}
         </span>
       </div>
 
-      {/* Sliding stage */}
       <div
-        className="overflow-hidden touch-pan-y"
+        className="overflow-hidden touch-pan-y transition-[height] duration-300"
+        style={{ height }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         <div
-          className="flex transition-transform duration-300 ease-out will-change-transform"
+          className="flex transition-transform duration-300 ease-out"
           style={{ transform: `translateX(-${cur * 100}%)` }}
         >
-          {/* Page 0 — Intro */}
-          <div className="flex-shrink-0 w-full" aria-hidden={cur !== 0}>
+
+          {/* Intro */}
+          <div
+            ref={(el) => {pageRefs.current[0] = el}}
+            className="flex-shrink-0 w-full"
+          >
             <IntroPage
               title={title}
               description={description}
@@ -809,12 +819,12 @@ export function LessonStepper({
             />
           </div>
 
-          {/* Pages 1…N — one per section */}
+          {/* Sections */}
           {sections.map((section, i) => (
             <div
               key={i}
+              ref={(el) => {pageRefs.current[i + 1] = el}}
               className="flex-shrink-0 w-full"
-              aria-hidden={cur !== i + 1}
             >
               <SectionPage
                 section={section}
@@ -826,79 +836,48 @@ export function LessonStepper({
             </div>
           ))}
 
-          {/* Page N+1 — Submit */}
+          {/* Submit */}
           <div
+            ref={(el) => {pageRefs.current[total - 1] = el}}
             className="flex-shrink-0 w-full"
-            aria-hidden={cur !== total - 1}
           >
-            <SubmitPage hasActivity={hasActivity} hasReflection={hasReflection} isTeacher={isTeacher} />
+            <SubmitPage
+              hasActivity={hasActivity}
+              hasReflection={hasReflection}
+              isTeacher={isTeacher}
+            />
           </div>
+
         </div>
       </div>
 
       {/* Footer */}
       <div className="flex items-center justify-between gap-3 pt-3 border-t border-border flex-wrap">
         {!isLastPage ? (
-          <div
-            className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]"
-            style={{ fontFamily: FONT_BODY }}
-          >
-            <span className="w-[7px] h-[7px] rounded-full bg-[#1D9E75] shrink-0" />
+          <div className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]">
+            <span className="w-[7px] h-[7px] rounded-full bg-[#1D9E75]" />
             {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
           </div>
-        ) : (
-          <div />
-        )}
+        ) : <div />}
 
         <div className="flex items-center gap-2">
           {(cur > 0 || onPrevLesson) && (
-            <button
-              onClick={goBack}
-              className="inline-flex items-center gap-1 text-[13px] font-bold text-text-secondary border border-border px-3.5 py-2 rounded-[8px] hover:bg-gray-50 transition-colors"
-              style={{ fontFamily: FONT_BODY }}
-            >
-              <ChevronLeft size={14} />
-              Back
+            <button onClick={goBack} className="btn-secondary">
+              <ChevronLeft size={14} /> Back
             </button>
           )}
 
-          {isTeacher ?(
-            <button
-              onClick={goNext}
-              className="inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 rounded-[8px] bg-[#5B21B6] text-white"
-            >
+          {isTeacher ? (
+            <button onClick={goNext} className="btn-primary">
               {isLastPage ? "Finish" : "Next"}
-              <ChevronRight size={14} />
             </button>
-          ): isLastPage ? (
-            <button
-              onClick={onSubmit}
-              disabled={isSubmitting}
-              className={cn(
-                "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 rounded-[8px] transition-colors",
-                !isSubmitting
-                  ? "bg-[#1D9E75] text-white hover:bg-[#178a65]"
-                  : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
-              )}
-              style={{ fontFamily: FONT_BODY }}
-            >
-              {isSubmitting ? "Submitting…" : (submitLabel ?? "Submit lesson")}
-              {!isSubmitting && <ChevronRight size={14} />}
+          ) : isLastPage ? (
+            <button onClick={onSubmit} disabled={isSubmitting} className="btn-success">
+              {isSubmitting ? "Submitting…" : "Submit lesson"}
             </button>
           ) : (
-            <button
-              onClick={goNext}
-              disabled={blocked}
-              className={cn(
-                "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 rounded-[8px] transition-colors",
-                !blocked
-                  ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]"
-                  : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
-              )}
-              style={{ fontFamily: FONT_BODY }}
-            >
-              Next
-              <ChevronRight size={14} />
+            <button onClick={goNext} disabled={blocked} className="btn-primary">
+              Next <ChevronRight size={14} />
             </button>
           )}
         </div>

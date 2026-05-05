@@ -979,14 +979,14 @@ export function LessonStepper({
                   introProps={page.isFirst ? introProps : undefined}
                 />
               )}
-              {isTeacher && page.kind === "activity" && (
+              {!isTeacher && page.kind === "activity" && (
                 <ActivityPageView
                   page={page}
                   activityText={activityText}
                   onActivityChange={onActivityChange}
                 />
               )}
-              {isTeacher && page.kind === "reflection" && (
+              {!isTeacher && page.kind === "reflection" && (
                 <ReflectionPageView
                   page={page}
                   reflectionText={reflectionText}

@@ -34,6 +34,69 @@ function wordCount(text: string): number {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Page-building logic
+//
+// Each section produces:
+//   1. A content page — section heading + all non-interactive blocks + task blocks
+//   2. One ejected page per activity block in the section
+//   3. One ejected page per reflection block in the section
+//
+// Page 0 is special: the intro card is merged with the first section's
+// content so the opening page isn't just a title card.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type ContentPage = {
+  kind: "content";
+  heading?: string | null;
+  blocks: CurriculumModuleBlock[]; // non-interactive + task blocks only
+  isFirst: boolean; // true = merged with intro card
+};
+
+type EjectedPage = {
+  kind: "activity" | "reflection";
+  block: CurriculumModuleBlock;
+  moduleTitle: string;
+};
+
+type SubmitPage = { kind: "submit" };
+
+export type StepperPage = ContentPage | EjectedPage | SubmitPage;
+
+export function buildPages(
+  sections: CurriculumSection[],
+  moduleTitle: string
+): StepperPage[] {
+  const pages: StepperPage[] = [];
+
+  sections.forEach((section, sectionIdx) => {
+    const contentBlocks = section.blocks.filter(
+      (b) => b.type !== "activity" && b.type !== "reflection"
+    );
+    const ejected = section.blocks.filter(
+      (b) => b.type === "activity" || b.type === "reflection"
+    );
+
+    pages.push({
+      kind: "content",
+      heading: section.heading,
+      blocks: contentBlocks,
+      isFirst: sectionIdx === 0,
+    });
+
+    for (const block of ejected) {
+      pages.push({
+        kind: block.type as "activity" | "reflection",
+        block,
+        moduleTitle,
+      });
+    }
+  });
+
+  pages.push({ kind: "submit" });
+  return pages;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Inline text formatter (body blocks only)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -484,11 +547,24 @@ function Block({
   }
 }
 
+function ContentBlock({ block }: { block: CurriculumModuleBlock }) {
+  switch (block.type) {
+    case "subheading":  return <SubheadingBlock block={block} />;
+    case "body":        return <BodyBlock block={block} />;
+    case "image":       return <ImageBlock block={block} />;
+    case "ai_prompt":   return <AiPromptBlock block={block} />;
+    case "video_embed": return <VideoEmbedBlock block={block} />;
+    case "tool_link":   return <ToolLinkBlock block={block} />;
+    case "task":        return <TaskBlock block={block} />;
+    default:            return null;
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Page renderers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function IntroPage({
+function IntroCard({
   title,
   description,
   weekNumber,
@@ -502,48 +578,58 @@ function IntroPage({
   toolNames?: string[];
 }) {
   return (
-    <div className="flex flex-col gap-2.5">
-      <div className="bg-[#3B0764] rounded-[14px] px-5 py-5 relative overflow-hidden">
-        <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-[#06B6D4]/20 pointer-events-none" />
-        <div className="absolute -bottom-4 left-8 w-16 h-16 rounded-full bg-[#5B21B6]/40 pointer-events-none" />
-        <div className="relative z-10 flex flex-wrap gap-2 mb-3">
-          <span
-            className="text-[11px] font-bold px-2.5 py-[3px] rounded-full bg-white/[0.14] text-white/90"
-            style={{ fontFamily: FONT_BODY }}
-          >
-            Week {weekNumber} · Term {term}
+    <div className="bg-[#3B0764] rounded-[14px] px-5 py-4 relative overflow-hidden">
+      <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full bg-[#06B6D4]/20 pointer-events-none" />
+      <div className="absolute -bottom-4 left-8 w-16 h-16 rounded-full bg-[#5B21B6]/40 pointer-events-none" />
+      <div className="relative z-10 flex flex-wrap gap-1.5 mb-2.5">
+        <span className="text-[11px] font-bold px-2.5 py-[3px] rounded-full bg-white/[0.14] text-white/90" style={{ fontFamily: FONT_BODY }}>
+          Week {weekNumber} · Term {term}
+        </span>
+        {toolNames?.map((name, i) => (
+          <span key={i} className="text-[11px] font-bold px-2.5 py-[3px] rounded-full bg-[#06B6D4]/25 text-[#a5f3fc]" style={{ fontFamily: FONT_BODY }}>
+            {name}
           </span>
-          {toolNames?.map((name, i) => (
-            <span
-              key={i}
-              className="text-[11px] font-bold px-2.5 py-[3px] rounded-full bg-[#06B6D4]/25 text-[#a5f3fc]"
-              style={{ fontFamily: FONT_BODY }}
-            >
-              {name}
-            </span>
-          ))}
-        </div>
-        <h1
-          className="relative z-10 text-[22px] sm:text-[24px] font-bold text-white leading-snug"
+        ))}
+      </div>
+      <h1 className="relative z-10 text-[20px] sm:text-[22px] font-bold text-white leading-snug" style={{ fontFamily: FONT_HEAD }}>
+        {title}
+      </h1>
+      {description && (
+        <p className="relative z-10 text-[13px] sm:text-[14px] text-white/65 mt-1.5 leading-[1.6]" style={{ fontFamily: FONT_BODY }}>
+          {description}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ContentPageView({
+  page,
+  introProps,
+}: {
+  page: ContentPage;
+  introProps?: {
+    title: string;
+    description?: string;
+    weekNumber: number;
+    term: number;
+    toolNames?: string[];
+  };
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      {page.isFirst && introProps && <IntroCard {...introProps} />}
+      {page.heading && (
+        <h2
+          className="text-[18px] sm:text-[20px] font-bold text-[#534AB7] pb-2 border-b-2 border-[#EEEDFE] leading-snug"
           style={{ fontFamily: FONT_HEAD }}
         >
-          {title}
-        </h1>
-        {description && (
-          <p
-            className="relative z-10 text-[14px] sm:text-[15px] text-white/65 mt-2 leading-[1.6]"
-            style={{ fontFamily: FONT_BODY }}
-          >
-            {description}
-          </p>
-        )}
-      </div>
-      <p
-        className="text-center text-[12px] text-text-muted"
-        style={{ fontFamily: FONT_BODY }}
-      >
-        Swipe or tap Next to begin
-      </p>
+          {page.heading}
+        </h2>
+      )}
+      {page.blocks.map((block, i) => (
+        <ContentBlock key={i} block={block} />
+      ))}
     </div>
   );
 }
@@ -588,7 +674,109 @@ function SectionPage({
   );
 }
 
-function SubmitPage({
+function ActivityPageView({
+  page,
+  activityText,
+  onActivityChange,
+}: {
+  page: EjectedPage;
+  activityText: string;
+  onActivityChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <h2
+        className="text-[16px] sm:text-[18px] font-bold text-text-primary leading-snug"
+        style={{ fontFamily: FONT_HEAD }}
+      >
+        {page.moduleTitle}
+      </h2>
+      <div className="bg-[#FAEEDA] border-l-[3px] border-[#EF9F27] rounded-r-[10px] px-3.5 py-3">
+        <BlockLabel className="text-[#854F0B]" required={page.block.required}>Activity</BlockLabel>
+        <p className="text-[16px] sm:text-[18px] text-[#633806] leading-[1.6]" style={{ fontFamily: FONT_BODY }}>
+          {page.block.content}
+        </p>
+      </div>
+      <div>
+        <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
+          Activity box
+        </label>
+        <textarea
+          value={activityText}
+          onChange={(e) => onActivityChange(e.target.value)}
+          placeholder="Write your activity here…"
+          rows={4}
+          className={cn(
+            "w-full resize-y border border-border rounded-[10px] px-3.5 py-2.5",
+            "text-[16px] sm:text-[18px] leading-[1.6]",
+            "outline-none transition-colors bg-bg-card text-text-primary",
+            "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+          )}
+          style={{ fontFamily: FONT_BODY }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ReflectionPageView({
+  page,
+  reflectionText,
+  onReflectionChange,
+}: {
+  page: EjectedPage;
+  reflectionText: string;
+  onReflectionChange: (v: string) => void;
+}) {
+  const wc = wordCount(reflectionText);
+  const wcColor =
+    wc >= REFLECTION_MIN && wc <= REFLECTION_MAX
+      ? "text-[#1D9E75]"
+      : wc > REFLECTION_MAX
+      ? "text-[#D85A30]"
+      : "text-text-muted";
+
+  return (
+    <div className="flex flex-col gap-3">
+      <h2
+        className="text-[16px] sm:text-[18px] font-bold text-text-primary leading-snug"
+        style={{ fontFamily: FONT_HEAD }}
+      >
+        {page.moduleTitle}
+      </h2>
+      <div className="bg-[#E6F1FB] border-l-[3px] border-[#378ADD] rounded-r-[10px] px-3.5 py-3">
+        <BlockLabel className="text-[#0C447C]" required={page.block.required}>Reflection prompt</BlockLabel>
+        <p className="text-[16px] sm:text-[18px] text-[#185FA5] leading-[1.6]" style={{ fontFamily: FONT_BODY }}>
+          {page.block.content}
+        </p>
+      </div>
+      <div>
+        <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
+          Your reflection{" "}
+          <span className="font-normal text-[12px] text-text-muted">({REFLECTION_MIN}–{REFLECTION_MAX} words)</span>
+        </label>
+        <textarea
+          value={reflectionText}
+          onChange={(e) => onReflectionChange(e.target.value)}
+          placeholder="Write your reflection here…"
+          rows={4}
+          className={cn(
+            "w-full resize-y border border-border rounded-[10px] px-3.5 py-2.5",
+            "text-[16px] sm:text-[18px] leading-[1.6]",
+            "outline-none transition-colors bg-bg-card text-text-primary",
+            "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+          )}
+          style={{ fontFamily: FONT_BODY }}
+        />
+        <p className={cn("text-[12px] text-right mt-1 tabular-nums", wcColor)} style={{ fontFamily: FONT_BODY }}>
+          {wc} / {REFLECTION_MAX} words
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function SubmitPageView({
   hasActivity,
   hasReflection,
   isTeacher,
@@ -657,20 +845,19 @@ function SubmitPage({
 // Blocks all required interactive inputs in a section before allowing Next
 // ─────────────────────────────────────────────────────────────────────────────
 
-function isSectionBlocked(
-  section: CurriculumSection,
+function isPageBlocked(
+  page: StepperPage,
   activityText: string,
   reflectionText: string,
   isTeacher?: boolean
 ): boolean {
   if (isTeacher) return false;
-  for (const block of section.blocks) {
-    if (!block.required) continue;
-    if (block.type === "activity" && activityText.trim().length < 5) return true;
-    if (block.type === "reflection") {
-      const wc = wordCount(reflectionText);
-      if (wc < REFLECTION_MIN || wc > REFLECTION_MAX) return true;
-    }
+  if (page.kind === "activity" && page.block.required) {
+    return activityText.trim().length < 5;
+  }
+  if (page.kind === "reflection" && page.block.required) {
+    const wc = wordCount(reflectionText);
+    return wc < REFLECTION_MIN || wc > REFLECTION_MAX;
   }
   return false;
 }
@@ -678,21 +865,18 @@ function isSectionBlocked(
 // ─────────────────────────────────────────────────────────────────────────────
 // Main LessonStepper component
 // ─────────────────────────────────────────────────────────────────────────────
-
 export interface LessonStepperProps {
   title: string;
   description?: string;
   weekNumber: number;
   term: number;
   toolNames?: string[];
-  /** Sections from content_json.sections */
   sections: CurriculumSection[];
   activityText: string;
   onActivityChange: (text: string) => void;
   reflectionText: string;
   onReflectionChange: (text: string) => void;
   savedOffline?: boolean;
-  /** Called when Back is pressed on page 0 — navigate to previous lesson */
   onPrevLesson?: () => void;
   onSubmit: () => void;
   isSubmitting?: boolean;
@@ -720,25 +904,19 @@ export function LessonStepper({
   className,
   isTeacher,
 }: LessonStepperProps) {
-  // Pages: [intro, ...one per section, submit]
-  const total = sections.length + 2;
+  const pages = buildPages(sections, title);
+  const total = pages.length;
   const [cur, setCur] = useState(0);
   const touchStartX = useRef<number | null>(null);
   const isLastPage = cur === total - 1;
-  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [height, setHeight] = useState(0);
 
-  // Current section — null on intro (0) and submit (total-1) pages
-  const currentSection: CurriculumSection | null =
-    cur > 0 && cur <= sections.length ? sections[cur - 1] : null;
-
-  const isPageBlocked = useCallback((): boolean => {
-    if (!currentSection) return false;
-    return isSectionBlocked(currentSection, activityText, reflectionText);
-  }, [currentSection, activityText, reflectionText]);
+  const blocked = useCallback(
+    () => isPageBlocked(pages[cur], activityText, reflectionText),
+    [pages, cur, activityText, reflectionText]
+  );
 
   function goNext() {
-    if (isPageBlocked()) return;
+    if (blocked()) return;
     if (isLastPage) { onSubmit(); return; }
     setCur((c) => Math.min(total - 1, c + 1));
   }
@@ -757,127 +935,91 @@ export function LessonStepper({
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     touchStartX.current = null;
     if (Math.abs(dx) < 44) return;
-    if (dx < 0) goNext();
-    else goBack();
+    if (dx < 0) goNext(); else goBack();
   }
 
   const progress = ((cur + 1) / total) * 100;
-  const blocked = isTeacher ? false : isPageBlocked();
   const allBlocks = sections.flatMap((s) => s.blocks);
   const hasActivity = allBlocks.some((b) => b.type === "activity");
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
 
-  useEffect(() => {
-    const el = pageRefs.current[cur];
-    if (el) {
-      setHeight(el.offsetHeight);
-    }
-  }, [cur]);
+  const introProps = { title, description, weekNumber, term, toolNames };
 
   useEffect(() => {
     document.getElementById("lesson-scroll")?.scrollTo(0,0)
   }, [cur]);
 
   return (
-    <div className={cn("w-full max-w-[680px] mx-auto flex flex-col gap-4", className)}>
+    <div className={cn("w-full max-w-[680px] mx-auto flex flex-col gap-3", className)}>
 
       {/* Progress bar + step counter */}
       <div className="flex items-center gap-3 px-0.5">
-        <div className="flex-1 h-[6px] bg-border rounded-full overflow-hidden">
+        <div className="flex-1 h-[5px] bg-border rounded-full overflow-hidden">
           <div
             className="h-full bg-[#5B21B6] rounded-full transition-[width] duration-300 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <span
-          className="text-[12px] text-text-muted whitespace-nowrap tabular-nums"
-          style={{ fontFamily: FONT_BODY }}
-        >
+        <span className="text-[12px] text-text-muted whitespace-nowrap tabular-nums" style={{ fontFamily: FONT_BODY }}>
           {cur + 1} of {total}
         </span>
       </div>
 
       {/* Sliding stage */}
-      <div
-        className="overflow-hidden touch-pan-y transition-[height] duration-300"
-        style={{ height }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className="overflow-hidden touch-pan-y" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
         <div
           className="flex transition-transform duration-300 ease-out will-change-transform"
           style={{ transform: `translateX(-${cur * 100}%)` }}
         >
-          {/* Page 0 — Intro */}
-          <div
-            ref={(el) => {pageRefs.current[0] = el}}
-            className="flex-shrink-0 w-full"
-            aria-hidden={cur !== 0}
-          >
-            <IntroPage
-              title={title}
-              description={description}
-              weekNumber={weekNumber}
-              term={term}
-              toolNames={toolNames}
-            />
-          </div>
-
-          {/* Pages 1…N — one per section */}
-          {sections.map((section, i) => (
-            <div
-              key={i}
-              ref={(el) => {pageRefs.current[0] = el}}
-              className="flex-shrink-0 w-full pb-2"
-              aria-hidden={cur !== i + 1}
-            >
-              <SectionPage
-                section={section}
-                activityText={activityText}
-                onActivityChange={onActivityChange}
-                reflectionText={reflectionText}
-                onReflectionChange={onReflectionChange}
-              />
+          {pages.map((page, i) => (
+            <div key={i} className="flex-shrink-0 w-full" aria-hidden={i !== cur}>
+              {page.kind === "content" && (
+                <ContentPageView
+                  page={page}
+                  introProps={page.isFirst ? introProps : undefined}
+                />
+              )}
+              {isTeacher && page.kind === "activity" && (
+                <ActivityPageView
+                  page={page}
+                  activityText={activityText}
+                  onActivityChange={onActivityChange}
+                />
+              )}
+              {isTeacher && page.kind === "reflection" && (
+                <ReflectionPageView
+                  page={page}
+                  reflectionText={reflectionText}
+                  onReflectionChange={onReflectionChange}
+                />
+              )}
+              {page.kind === "submit" && (
+                <SubmitPageView hasActivity={hasActivity} hasReflection={hasReflection} isTeacher={isTeacher}/>
+              )}
             </div>
           ))}
-
-          {/* Page N+1 — Submit */}
-          <div
-            ref={(el) => {pageRefs.current[0] = el}}
-            className="flex-shrink-0 w-full pb-2"
-            aria-hidden={cur !== total - 1}
-          >
-            <SubmitPage hasActivity={hasActivity} hasReflection={hasReflection} isTeacher={isTeacher} />
-          </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between gap-3 pt-3 border-t border-border flex-wrap">
+      <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-border flex-wrap">
         {!isLastPage ? (
-          <div
-            className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]"
-            style={{ fontFamily: FONT_BODY }}
-          >
-            <span className="w-[7px] h-[7px] rounded-full bg-[#1D9E75] shrink-0" />
+          <div className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]" style={{ fontFamily: FONT_BODY }}>
+            <span className="w-[6px] h-[6px] rounded-full bg-[#1D9E75] shrink-0" />
             {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
           </div>
-        ) : (
-          <div />
-        )}
+        ) : <div />}
 
         <div className="flex items-center gap-2">
           {(cur > 0 || onPrevLesson) && (
             <button
               onClick={goBack}
-              className="inline-flex items-center gap-1 text-[13px] font-bold text-text-secondary border border-border px-3.5 py-2 rounded-[8px] hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center gap-1 text-[13px] font-bold text-text-secondary border border-border px-3 py-1.5 rounded-[8px] hover:bg-gray-50 transition-colors"
               style={{ fontFamily: FONT_BODY }}
             >
-              <ChevronLeft size={14} />
-              Back
+              <ChevronLeft size={14} /> Back
             </button>
           )}
-
           {isTeacher ?(
             <button
               onClick={goNext}
@@ -886,15 +1028,13 @@ export function LessonStepper({
               {isLastPage ? "Finish" : "Next"}
               <ChevronRight size={14} />
             </button>
-          ): isLastPage ? (
+          ) : isLastPage ? (
             <button
               onClick={onSubmit}
               disabled={isSubmitting}
               className={cn(
-                "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 rounded-[8px] transition-colors",
-                !isSubmitting
-                  ? "bg-[#1D9E75] text-white hover:bg-[#178a65]"
-                  : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
+                "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
+                !isSubmitting ? "bg-[#1D9E75] text-white hover:bg-[#178a65]" : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
               )}
               style={{ fontFamily: FONT_BODY }}
             >
@@ -904,17 +1044,14 @@ export function LessonStepper({
           ) : (
             <button
               onClick={goNext}
-              disabled={blocked}
+              disabled={blocked()}
               className={cn(
-                "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 rounded-[8px] transition-colors",
-                !blocked
-                  ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]"
-                  : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
+                "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
+                !blocked() ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]" : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
               )}
               style={{ fontFamily: FONT_BODY }}
             >
-              Next
-              <ChevronRight size={14} />
+              Next <ChevronRight size={14} />
             </button>
           )}
         </div>
@@ -922,3 +1059,4 @@ export function LessonStepper({
     </div>
   );
 }
+

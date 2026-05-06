@@ -67,11 +67,12 @@ export function SidebarUI({
             }
 
             return (
-              <div
+              <Link
                 key={item.href}
+                href={item.href}
                 onClick={onNavigate}
                 className={`
-                  flex items-center gap-2 px-3 py-2 rounded-md text-sm cursor-pointer
+                  flex items-center gap-2 px-3 py-2 rounded-md text-sm
                   transition
                   ${
                     isActive
@@ -88,7 +89,7 @@ export function SidebarUI({
                     {item.badge}
                   </span>
                 )}
-              </div>
+              </Link>
             );
           })}
         </nav>

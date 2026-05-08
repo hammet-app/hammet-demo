@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { getDashboardRoute } from "@/lib/auth/routes";
 
 interface SidebarProps {
-  roles: UserRole[];
+  roles: UserRole[]; // Accepts multiple roles in situations where one user is a teacher and school admin
   activeRole: UserRole;
   setActiveRole: (role: UserRole) => void;
   activePath: string;

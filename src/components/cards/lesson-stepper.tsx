@@ -634,46 +634,6 @@ function ContentPageView({
   );
 }
 
-function SectionPage({
-  section,
-  activityText,
-  onActivityChange,
-  reflectionText,
-  onReflectionChange,
-  isTeacher,
-}: {
-  section: CurriculumSection;
-  activityText: string;
-  onActivityChange: (v: string) => void;
-  reflectionText: string;
-  onReflectionChange: (v: string) => void;
-  isTeacher?:boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-2.5">
-      {section.heading && (
-        <h2
-          className="text-[18px] sm:text-[20px] font-bold text-[#534AB7] pb-2 border-b-2 border-[#EEEDFE] leading-snug"
-          style={{ fontFamily: FONT_HEAD }}
-        >
-          {section.heading}
-        </h2>
-      )}
-      {section.blocks.map((block, i) => (
-        <Block
-          key={i}
-          block={block}
-          activityText={activityText}
-          onActivityChange={onActivityChange}
-          reflectionText={reflectionText}
-          onReflectionChange={onReflectionChange}
-          isTeacher={isTeacher}
-        />
-      ))}
-    </div>
-  );
-}
-
 function ActivityPageView({
   page,
   activityText,
@@ -970,7 +930,7 @@ export function LessonStepper({
   }, [cur]);
 
   return (
-    <div className={cn("w-full max-w-[680px] mx-auto flex flex-col gap-3", className)}>
+    <div className={cn("w-full max-w-[680px] mx-auto flex flex-col gap-3 h-full", className)}>
 
       {/* Progress bar + step counter */}
       <div className="flex items-center gap-3 px-0.5">
@@ -986,7 +946,7 @@ export function LessonStepper({
       </div>
 
       {/* Sliding stage */}
-      <div className="overflow-hidden touch-pan-y transition-[height] duration-300 ease-out"
+      <div className="flex-1 overflow-hidden touch-pan-y transition-[height] duration-300 ease-out"
         style={{ height: stageHeight }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}

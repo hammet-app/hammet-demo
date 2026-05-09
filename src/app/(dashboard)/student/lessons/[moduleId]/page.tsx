@@ -1,19 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
 import { submitLesson } from "@/lib/sync";
-import { LessonStepper } from "@/components/cards/lesson-stepper";
+import { cn } from "@/lib/utils/utils"
+import { LessonStepper, buildPages, isPageBlocked } from "@/components/cards/lesson-stepper";
 import { PageShell } from "@/components/layout/page-shell";
 import { StatusPill } from "@/components/ui/status-pill";
-import { Loader2, CheckCircle2, Clock, ChevronRight } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import type {
   CurriculumModule,
   ModulesResponse,
   Submission,
 } from "@/lib/api/api-types";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Font constants (match lesson-stepper.tsx)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FONT_BODY = "var(--font-body)";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Offline save helper
@@ -61,6 +68,9 @@ export default function LessonDetailPage() {
   const [savedOffline, setSavedOffline] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+
+  // Stepper page state lives here so the fixed footer can access it
+  const [currentPage, setCurrentPage] = useState(0);
 
   // ── Load module + list + submission history in parallel ──────────────────
   useEffect(() => {
@@ -126,6 +136,26 @@ export default function LessonDetailPage() {
       : null;
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
+  // ── Stepper page navigation ───────────────────────────────────────────────
+  const pages = module ? buildPages(module.content_json.sections, module.title) : [];
+  const total = pages.length;
+  const isLastPage = currentPage === total - 1;
+  const blocked = module ? isPageBlocked(pages[currentPage], activityText, reflectionText) : false;
+
+  const goNext = useCallback(() => {
+    if (blocked) return;
+    if (isLastPage) { handleSubmit(); return; }
+    setCurrentPage((p) => Math.min(total - 1, p + 1));
+  }, [blocked, isLastPage, total]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const goBack = useCallback(() => {
+    if (currentPage === 0) {
+      if (prevMod) router.push(`/student/lessons/${prevMod.id}`);
+      return;
+    }
+    setCurrentPage((p) => Math.max(0, p - 1));
+  }, [currentPage, prevMod, router]);
+
   // ── Submit ───────────────────────────────────────────────────────────────
   async function handleSubmit() {
     if (!accessToken || !module) return;
@@ -185,70 +215,142 @@ export default function LessonDetailPage() {
     .map((b) => b.tool_name || b.content)
     .filter(Boolean) as string[];
 
+  const showStepper = status === null || status === "flagged";
+  const submitLabel = status === "flagged" ? "Resubmit revision" : undefined;
+
   return (
-    <div className="w-full h-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
-      <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4 flex-1">
+    <>
+      {/*
+        Content area — pb-[72px] ensures content is never hidden behind the
+        fixed footer bar. The main element in DashboardLayoutInner is already
+        overflow-y-auto so this scrolls correctly.
+      */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 pt-5 pb-[72px]">
+        <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4">
 
-        {/* Non-fatal submit error */}
-        {submitError && (
-          <div className="text-[13px] text-warning-dark bg-warning-light border border-warning/20 rounded-[10px] px-4 py-3">
-            {submitError}
-          </div>
-        )}
+          {/* Non-fatal submit error */}
+          {submitError && (
+            <div className="text-[13px] text-warning-dark bg-warning-light border border-warning/20 rounded-[10px] px-4 py-3">
+              {submitError}
+            </div>
+          )}
 
-        {/* Already submitted or approved */}
-        {(status === "submitted" || status === "approved") && (
-          <SubmittedNotice
-            status={status}
-            submittedAt={existingSubmission!.submitted_at}
-            onNext={
-              nextMod
-                ? () => router.push(`/student/lessons/${nextMod.id}`)
-                : undefined
-            }
-            onBack={() => router.push("/student/lessons")}
-          />
-        )}
+          {/* Already submitted or approved */}
+          {(status === "submitted" || status === "approved") && (
+            <SubmittedNotice
+              status={status}
+              submittedAt={existingSubmission!.submitted_at}
+              onNext={
+                nextMod
+                  ? () => router.push(`/student/lessons/${nextMod.id}`)
+                  : undefined
+              }
+              onBack={() => router.push("/student/lessons")}
+            />
+          )}
 
-        {/* Teacher feedback banner — shown above stepper when flagged */}
-        {status === "flagged" && existingSubmission?.teacher_note && (
-          <div className="border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
-              Teacher feedback — revision required
-            </p>
-            <p className="text-[13px] text-warning-dark leading-[1.6]">
-              {existingSubmission.teacher_note}
-            </p>
-          </div>
-        )}
+          {/* Teacher feedback banner — shown above stepper when flagged */}
+          {status === "flagged" && existingSubmission?.teacher_note && (
+            <div className="border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
+                Teacher feedback — revision required
+              </p>
+              <p className="text-[13px] text-warning-dark leading-[1.6]">
+                {existingSubmission.teacher_note}
+              </p>
+            </div>
+          )}
 
-        {/* Stepper — shown when not yet submitted, or flagged for revision */}
-        {(status === null || status === "flagged") && (
-          <LessonStepper
-            title={module.title}
-            description={module.description}
-            weekNumber={module.week_number}
-            term={module.term}
-            toolNames={toolNames}
-            sections={module.content_json.sections}
-            activityText={activityText}
-            onActivityChange={setActivityText}
-            reflectionText={reflectionText}
-            onReflectionChange={setReflectionText}
-            savedOffline={savedOffline}
-            onPrevLesson={
-              prevMod
-                ? () => router.push(`/student/lessons/${prevMod.id}`)
-                : undefined
-            }
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            submitLabel={status === "flagged" ? "Resubmit revision" : undefined}
-            isTeacher={false}
-          />
-        )}
+          {/* Stepper — shown when not yet submitted, or flagged for revision */}
+          {showStepper && (
+            <LessonStepper
+              title={module.title}
+              description={module.description}
+              weekNumber={module.week_number}
+              term={module.term}
+              toolNames={toolNames}
+              sections={module.content_json.sections}
+              activityText={activityText}
+              onActivityChange={setActivityText}
+              reflectionText={reflectionText}
+              onReflectionChange={setReflectionText}
+              savedOffline={savedOffline}
+              onPrevLesson={
+                prevMod
+                  ? () => router.push(`/student/lessons/${prevMod.id}`)
+                  : undefined
+              }
+              currentPage={currentPage}
+              onSwipeNext={goNext}
+              onSwipeBack={goBack}
+              isTeacher={false}
+            />
+          )}
+        </div>
       </div>
-    </div>
+
+      {/*
+        Fixed footer — always visible at the bottom of the viewport, above
+        the sidebar on desktop (ml-[240px] matches sidebar width).
+        Never depends on content height, works identically on every page.
+      */}
+      {showStepper && (
+        <div className="fixed bottom-0 left-0 right-0 md:left-[240px] z-10 bg-bg-page border-t border-border">
+          <div className="w-full max-w-[680px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+
+            {/* Offline status */}
+            <div className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]" style={{ fontFamily: FONT_BODY }}>
+              <span className="w-[6px] h-[6px] rounded-full bg-[#1D9E75] shrink-0" />
+              {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
+            </div>
+
+            {/* Nav buttons */}
+            <div className="flex items-center gap-2">
+              {(currentPage > 0 || prevMod) && (
+                <button
+                  onClick={goBack}
+                  className="inline-flex items-center gap-1 text-[13px] font-bold text-text-secondary border border-border px-3 py-1.5 rounded-[8px] hover:bg-gray-50 transition-colors"
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  <ChevronLeft size={14} /> Back
+                </button>
+              )}
+
+              {isLastPage ? (
+                <button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
+                    !isSubmitting
+                      ? "bg-[#1D9E75] text-white hover:bg-[#178a65]"
+                      : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  {isSubmitting ? "Submitting…" : (submitLabel ?? "Submit lesson")}
+                  {!isSubmitting && <ChevronRight size={14} />}
+                </button>
+              ) : (
+                <button
+                  onClick={goNext}
+                  disabled={blocked}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
+                    !blocked
+                      ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]"
+                      : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  Next <ChevronRight size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

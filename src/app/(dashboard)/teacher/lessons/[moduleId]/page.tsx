@@ -1,16 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getModule, getTeacherModules } from "@/lib/api/teacher";
-import { LessonStepper } from "@/components/cards/lesson-stepper"; 
+import { LessonStepper, buildPages, isPageBlocked } from "@/components/cards/lesson-stepper"; 
 import { PageShell } from "@/components/layout/page-shell";
 import { Loader2, CheckCircle2, Clock } from "lucide-react";
 import type {
   CurriculumModule,
   ModulesResponse,
 } from "@/lib/api/api-types";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Font constants (match lesson-stepper.tsx)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const FONT_BODY = "var(--font-body)";
 
 
 type LoadState = "loading" | "error" | "ready";
@@ -30,8 +36,12 @@ export default function LessonDetailPage() {
   const [activityText, setActivityText] = useState("")
   const [reflectionText, setReflectionText] = useState("")
 
-  const isTeacher = user?.roles.includes("teacher")
+  // Stepper page state lives here so the fixed footer can access it
+  const [currentPage, setCurrentPage] = useState(0);
 
+
+  const isTeacher = user?.roles.includes("teacher")
+  
   useEffect(() => {
     if (!accessToken || !classLevel || !moduleId) return;
 
@@ -64,11 +74,25 @@ export default function LessonDetailPage() {
   const currentIdx = sortedModules.findIndex((m) => m.id === moduleId);
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
-  function handlePrevious() {
-    router.push(
-      prevMod ? `/teacher/lessons/${prevMod.id}` : "/teacher/lessons"
-    );
-  }
+  const pages = module ? buildPages(module.content_json.sections, module.title) : [];
+  const total = pages.length;
+  const isLastPage = currentPage === total - 1;
+  const blocked = module ? isPageBlocked(pages[currentPage], activityText, reflectionText, isTeacher) : false;
+
+  const goNext = useCallback(() => {
+      if (blocked) return;
+      if (isLastPage) { handleSubmit(); return; }
+      setCurrentPage((p) => Math.min(total - 1, p + 1));
+    }, [blocked, isLastPage, total]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+    const goBack = useCallback(() => {
+      if (currentPage === 0) {
+        if (prevMod) router.push(`/teacher/lessons/${prevMod.id}`);
+        return;
+      }
+      setCurrentPage((p) => Math.max(0, p - 1));
+    }, [currentPage, prevMod, router]);
+
 
   // ── Submit ──
   async function handleSubmit() {
@@ -106,34 +130,41 @@ export default function LessonDetailPage() {
   const status = null;
 
   return (
-    <div className="w-full h-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
-      <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4 flex-1">
-        
-        {/* Lesson */}
-        {(status === null) && (
-          <LessonStepper
-            title={module.title}
-            description={module.description}
-            weekNumber={module.week_number}
-            term={module.term}
-            toolNames={toolNames}
-            sections={module.content_json.sections}
-            activityText={activityText}
-            onActivityChange={setActivityText}
-            reflectionText={reflectionText}
-            onReflectionChange={setReflectionText}
-            onPrevLesson={
-              prevMod
-                ? () => router.push(`/student/lessons/${prevMod.id}`)
-                : undefined
-            }
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            submitLabel={status === "flagged" ? "Resubmit revision" : undefined}
-            isTeacher={true}
-          />
-        )}
+    <>
+      {/*
+        Content area — pb-[72px] ensures content is never hidden behind the
+        fixed footer bar. The main element in DashboardLayoutInner is already
+        overflow-y-auto so this scrolls correctly.
+      */}
+      <div className="w-full h-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
+        <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4 flex-1">
+          
+          {/* Lesson */}
+          {(status === null) && (
+            <LessonStepper
+              title={module.title}
+              description={module.description}
+              weekNumber={module.week_number}
+              term={module.term}
+              toolNames={toolNames}
+              sections={module.content_json.sections}
+              activityText={activityText}
+              onActivityChange={setActivityText}
+              reflectionText={reflectionText}
+              onReflectionChange={setReflectionText}
+              onPrevLesson={
+                prevMod
+                  ? () => router.push(`/student/lessons/${prevMod.id}`)
+                  : undefined
+              }
+              currentPage={currentPage}
+              onSwipeNext={goNext}
+              onSwipeBack={goBack}
+              isTeacher={true}
+            />
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

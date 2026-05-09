@@ -50,12 +50,14 @@ type ContentPage = {
   heading?: string | null;
   blocks: CurriculumModuleBlock[]; // non-interactive + task blocks only
   isFirst: boolean; // true = merged with intro card
+  isTeacher?: boolean
 };
 
 type EjectedPage = {
   kind: "activity" | "reflection";
   block: CurriculumModuleBlock;
   moduleTitle: string;
+  isTeacher?: boolean 
 };
 
 type SubmitPage = { kind: "submit" };
@@ -94,6 +96,28 @@ export function buildPages(
 
   pages.push({ kind: "submit" });
   return pages;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Per-page blocking logic (exported so lesson-detail-page can use it)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function isPageBlocked(
+  page: StepperPage,
+  activityText: string,
+  reflectionText: string,
+  isTeacher: boolean = false
+): boolean {
+  if (isTeacher) return false;
+  
+  if (page.kind === "activity" && page.block.required) {
+    return activityText.trim().length < 5;
+  }
+  if (page.kind === "reflection" && page.block.required) {
+    const wc = wordCount(reflectionText);
+    return wc < REFLECTION_MIN || wc > REFLECTION_MAX;
+  }
+  return false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -638,10 +662,12 @@ function ActivityPageView({
   page,
   activityText,
   onActivityChange,
+  isTeacher
 }: {
   page: EjectedPage;
   activityText: string;
   onActivityChange: (v: string) => void;
+  isTeacher?: boolean
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -661,19 +687,21 @@ function ActivityPageView({
         <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
           Activity box
         </label>
-        <textarea
-          value={activityText}
-          onChange={(e) => onActivityChange(e.target.value)}
-          placeholder="Write your activity here…"
-          rows={4}
-          className={cn(
-            "w-full resize-y border border-border rounded-[10px] px-3.5 py-2.5",
-            "text-[16px] sm:text-[18px] leading-[1.6]",
-            "outline-none transition-colors bg-bg-card text-text-primary",
-            "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
-          )}
-          style={{ fontFamily: FONT_BODY }}
-        />
+        {!isTeacher && (
+          <textarea
+            value={activityText}
+            onChange={(e) => onActivityChange(e.target.value)}
+            placeholder="Write your activity here…"
+            rows={4}
+            className={cn(
+              "w-full resize-y border border-border rounded-[10px] px-3.5 py-2.5",
+              "text-[16px] sm:text-[18px] leading-[1.6]",
+              "outline-none transition-colors bg-bg-card text-text-primary",
+              "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+            )}
+            style={{ fontFamily: FONT_BODY }}
+          />
+        )}
       </div>
     </div>
   );
@@ -683,10 +711,12 @@ function ReflectionPageView({
   page,
   reflectionText,
   onReflectionChange,
+  isTeacher
 }: {
   page: EjectedPage;
   reflectionText: string;
   onReflectionChange: (v: string) => void;
+  isTeacher?: boolean
 }) {
   const wc = wordCount(reflectionText);
   const wcColor =
@@ -715,22 +745,22 @@ function ReflectionPageView({
           Your reflection{" "}
           <span className="font-normal text-[12px] text-text-muted">({REFLECTION_MIN}–{REFLECTION_MAX} words)</span>
         </label>
-        <textarea
-          value={reflectionText}
-          onChange={(e) => onReflectionChange(e.target.value)}
-          placeholder="Write your reflection here…"
-          rows={4}
-          className={cn(
-            "w-full resize-y border border-border rounded-[10px] px-3.5 py-2.5",
-            "text-[16px] sm:text-[18px] leading-[1.6]",
-            "outline-none transition-colors bg-bg-card text-text-primary",
-            "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
-          )}
-          style={{ fontFamily: FONT_BODY }}
-        />
-        <p className={cn("text-[12px] text-right mt-1 tabular-nums", wcColor)} style={{ fontFamily: FONT_BODY }}>
-          {wc} / {REFLECTION_MAX} words
-        </p>
+        {!isTeacher && (
+          <><textarea
+            value={reflectionText}
+            onChange={(e) => onReflectionChange(e.target.value)}
+            placeholder="Write your reflection here…"
+            rows={4}
+            className={cn(
+              "w-full resize-y border border-border rounded-[10px] px-3.5 py-2.5",
+              "text-[16px] sm:text-[18px] leading-[1.6]",
+              "outline-none transition-colors bg-bg-card text-text-primary",
+              "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+            )}
+            style={{ fontFamily: FONT_BODY }} /><p className={cn("text-[12px] text-right mt-1 tabular-nums", wcColor)} style={{ fontFamily: FONT_BODY }}>
+              {wc} / {REFLECTION_MAX} words
+            </p></>
+        )}
       </div>
     </div>
   );
@@ -801,30 +831,10 @@ function SubmitPageView({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Page-level validation
-// Blocks all required interactive inputs in a section before allowing Next
+// LessonStepper — progress bar + sliding content only, no footer
+// Footer (Back/Next) lives in lesson-detail-page as a fixed bar
 // ─────────────────────────────────────────────────────────────────────────────
 
-function isPageBlocked(
-  page: StepperPage,
-  activityText: string,
-  reflectionText: string,
-  isTeacher?: boolean
-): boolean {
-  if (isTeacher) return false;
-  if (page.kind === "activity" && page.block.required) {
-    return activityText.trim().length < 5;
-  }
-  if (page.kind === "reflection" && page.block.required) {
-    const wc = wordCount(reflectionText);
-    return wc < REFLECTION_MIN || wc > REFLECTION_MAX;
-  }
-  return false;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main LessonStepper component
-// ─────────────────────────────────────────────────────────────────────────────
 export interface LessonStepperProps {
   title: string;
   description?: string;
@@ -838,9 +848,11 @@ export interface LessonStepperProps {
   onReflectionChange: (text: string) => void;
   savedOffline?: boolean;
   onPrevLesson?: () => void;
-  onSubmit: () => void;
-  isSubmitting?: boolean;
-  submitLabel?: string;
+  /** Current page index — controlled by lesson-detail-page */
+  currentPage: number;
+  /** Called on swipe left (advance) or swipe right (back) */
+  onSwipeNext: () => void;
+  onSwipeBack: () => void;
   className?: string;
   isTeacher?: boolean;
 }
@@ -858,80 +870,46 @@ export function LessonStepper({
   onReflectionChange,
   savedOffline = false,
   onPrevLesson,
-  onSubmit,
-  isSubmitting = false,
-  submitLabel,
+  currentPage,
+  onSwipeNext,
+  onSwipeBack,
   className,
   isTeacher,
 }: LessonStepperProps) {
   const pages = buildPages(sections, title);
   const total = pages.length;
-  const [cur, setCur] = useState(0);
   const touchStartX = useRef<number | null>(null);
 
-  // ── Dynamic height: stage clips to the current page's natural height ──────
-  // All pages are rendered off-screen simultaneously for smooth slide animation.
-  // Without this, the stage height is set by the tallest page, leaving blank
-  // space below short pages.
-  const pageRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [stageHeight, setStageHeight] = useState<number | undefined>(undefined);
+  const allBlocks = sections.flatMap((s) => s.blocks);
+  const hasActivity = allBlocks.some((b) => b.type === "activity");
+  const hasReflection = allBlocks.some((b) => b.type === "reflection");
+  const introProps = { title, description, weekNumber, term, toolNames };
+  const page = pages[currentPage];
 
-  useEffect(() => {
-    const el = pageRefs.current[cur];
-    if (!el) return;
-    // ResizeObserver keeps height correct as textareas are resized
-    const ro = new ResizeObserver(() => {
-      setStageHeight(el.scrollHeight);
-    });
-    ro.observe(el);
-    setStageHeight(el.scrollHeight);
-    return () => ro.disconnect();
-  }, [cur]);
-
-  const isLastPage = cur === total - 1;
-
-  const blocked = useCallback(
-    () => isPageBlocked(pages[cur], activityText, reflectionText),
-    [pages, cur, activityText, reflectionText]
-  );
-
-  function goNext() {
-    if (blocked()) return;
-    if (isLastPage) { onSubmit(); return; }
-    setCur((c) => Math.min(total - 1, c + 1));
-  }
-
-  function goBack() {
-    if (cur === 0) { onPrevLesson?.(); return; }
-    setCur((c) => Math.max(0, c - 1));
-  }
-
+  // ── Swipe ──
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
   }
-
   function handleTouchEnd(e: React.TouchEvent) {
     if (touchStartX.current === null) return;
     const dx = e.changedTouches[0].clientX - touchStartX.current;
     touchStartX.current = null;
     if (Math.abs(dx) < 44) return;
-    if (dx < 0) goNext(); else goBack();
+    if (dx < 0) onSwipeNext(); else onSwipeBack();
   }
 
-  const progress = ((cur + 1) / total) * 100;
-  const allBlocks = sections.flatMap((s) => s.blocks);
-  const hasActivity = allBlocks.some((b) => b.type === "activity");
-  const hasReflection = allBlocks.some((b) => b.type === "reflection");
-
-  const introProps = { title, description, weekNumber, term, toolNames };
+  const progress = ((currentPage + 1) / total) * 100;
 
   useEffect(() => {
     document.getElementById("lesson-scroll")?.scrollTo(0,0)
-  }, [cur]);
+  }, [currentPage]);
 
   return (
-    <div className={cn("w-full max-w-[680px] mx-auto flex flex-col gap-3 h-full", className)}>
-
+    <div
+      className={cn("w-full max-w-[680px] mx-auto flex flex-col gap-3", className)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Progress bar + step counter */}
       <div className="flex items-center gap-3 px-0.5">
         <div className="flex-1 h-[5px] bg-border rounded-full overflow-hidden">
@@ -941,104 +919,24 @@ export function LessonStepper({
           />
         </div>
         <span className="text-[12px] text-text-muted whitespace-nowrap tabular-nums" style={{ fontFamily: FONT_BODY }}>
-          {cur + 1} of {total}
+          {currentPage + 1} of {total}
         </span>
       </div>
 
-      {/* Sliding stage */}
-      <div className="flex-1 overflow-hidden touch-pan-y transition-[height] duration-300 ease-out"
-        style={{ height: stageHeight }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div
-          className="flex transition-transform duration-300 ease-out will-change-transform"
-          style={{ transform: `translateX(-${cur * 100}%)` }}
-        >
-          {pages.map((page, i) => (
-            <div key={i} className="flex-shrink-0 w-full" aria-hidden={i !== cur}>
-              {page.kind === "content" && (
-                <ContentPageView
-                  page={page}
-                  introProps={page.isFirst ? introProps : undefined}
-                />
-              )}
-              {!isTeacher && page.kind === "activity" && (
-                <ActivityPageView
-                  page={page}
-                  activityText={activityText}
-                  onActivityChange={onActivityChange}
-                />
-              )}
-              {!isTeacher && page.kind === "reflection" && (
-                <ReflectionPageView
-                  page={page}
-                  reflectionText={reflectionText}
-                  onReflectionChange={onReflectionChange}
-                />
-              )}
-              {page.kind === "submit" && (
-                <SubmitPageView hasActivity={hasActivity} hasReflection={hasReflection} isTeacher={isTeacher}/>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Footer */}
-      <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-border flex-wrap">
-        {!isLastPage ? (
-          <div className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]" style={{ fontFamily: FONT_BODY }}>
-            <span className="w-[6px] h-[6px] rounded-full bg-[#1D9E75] shrink-0" />
-            {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
-          </div>
-        ) : <div />}
-
-        <div className="flex items-center gap-2">
-          {(cur > 0 || onPrevLesson) && (
-            <button
-              onClick={goBack}
-              className="inline-flex items-center gap-1 text-[13px] font-bold text-text-secondary border border-border px-3 py-1.5 rounded-[8px] hover:bg-gray-50 transition-colors"
-              style={{ fontFamily: FONT_BODY }}
-            >
-              <ChevronLeft size={14} /> Back
-            </button>
-          )}
-          {isTeacher ?(
-            <button
-              onClick={goNext}
-              className="inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2 rounded-[8px] bg-[#5B21B6] text-white"
-            >
-              {isLastPage ? "Finish" : "Next"}
-              <ChevronRight size={14} />
-            </button>
-          ) : isLastPage ? (
-            <button
-              onClick={onSubmit}
-              disabled={isSubmitting}
-              className={cn(
-                "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
-                !isSubmitting ? "bg-[#1D9E75] text-white hover:bg-[#178a65]" : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
-              )}
-              style={{ fontFamily: FONT_BODY }}
-            >
-              {isSubmitting ? "Submitting…" : (submitLabel ?? "Submit lesson")}
-              {!isSubmitting && <ChevronRight size={14} />}
-            </button>
-          ) : (
-            <button
-              onClick={goNext}
-              disabled={blocked()}
-              className={cn(
-                "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
-                !blocked() ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]" : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
-              )}
-              style={{ fontFamily: FONT_BODY }}
-            >
-              Next <ChevronRight size={14} />
-            </button>
-          )}
-        </div>
+      {/* Current page — height is purely content-driven, no siblings inflating it */}
+      <div>
+        {page.kind === "content" && (
+          <ContentPageView page={page} introProps={page.isFirst ? introProps : undefined} />
+        )}
+        {page.kind === "activity" && (
+          <ActivityPageView page={page} activityText={activityText} onActivityChange={onActivityChange} />
+        )}
+        {page.kind === "reflection" && (
+          <ReflectionPageView page={page} reflectionText={reflectionText} onReflectionChange={onReflectionChange} />
+        )}
+        {page.kind === "submit" && (
+          <SubmitPageView hasActivity={hasActivity} hasReflection={hasReflection} />
+        )}
       </div>
     </div>
   );

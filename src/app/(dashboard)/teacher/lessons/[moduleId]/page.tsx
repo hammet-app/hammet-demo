@@ -1,12 +1,13 @@
 "use client";
 
+import { cn } from "@/lib/utils/utils"
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getModule, getTeacherModules } from "@/lib/api/teacher";
 import { LessonStepper, buildPages, isPageBlocked } from "@/components/cards/lesson-stepper"; 
 import { PageShell } from "@/components/layout/page-shell";
-import { Loader2, CheckCircle2, Clock } from "lucide-react";
+import { Loader2, ChevronRight, ChevronLeft } from "lucide-react";
 import type {
   CurriculumModule,
   ModulesResponse,
@@ -167,6 +168,63 @@ export default function LessonDetailPage() {
           )}
         </div>
       </div>
+
+      {/*
+        Fixed footer — always visible at the bottom of the viewport, above
+        the sidebar on desktop (ml-[240px] matches sidebar width).
+        Never depends on content height, works identically on every page.
+      */}
+      {showStepper && (
+        <div className="fixed bottom-0 left-0 right-0 md:left-[240px] z-10 bg-bg-page border-t border-border">
+          <div className="w-full max-w-[680px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
+
+            {/* Nav buttons */}
+            <div className="flex items-center gap-2">
+              {(currentPage > 0 || prevMod) && (
+                <button
+                  onClick={goBack}
+                  className="inline-flex items-center gap-1 text-[13px] font-bold text-text-secondary border border-border px-3 py-1.5 rounded-[8px] hover:bg-gray-50 transition-colors"
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  <ChevronLeft size={14} /> Back
+                </button>
+              )}
+
+              {isLastPage ? (
+                <button
+                  onClick={()=>{
+                    router.push("/teacher/lessons")
+                  }}
+                  disabled={isSubmitting}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
+                    !isSubmitting
+                      ? "bg-[#1D9E75] text-white hover:bg-[#178a65]"
+                      : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  
+                </button>
+              ) : (
+                <button
+                  onClick={goNext}
+                  disabled={blocked}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
+                    !blocked
+                      ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]"
+                      : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  Next <ChevronRight size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

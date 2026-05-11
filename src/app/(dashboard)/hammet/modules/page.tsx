@@ -96,25 +96,47 @@ export default function HammetModulesPage() {
       title="Modules"
       description={`${modules.length} total across ${levels.length} levels`}
       actions={
-        <button
-          onClick={() => router.push("/hammet/modules/bulk")}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/hammet/modules/bulk")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Upload CSV
-        </button>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Upload CSV
+          </button>
+
+          <button
+            onClick={() => router.push("/hammet/modules/update")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Update Modules
+          </button>
+        </div>
       }
     >
       {isLoading ? (

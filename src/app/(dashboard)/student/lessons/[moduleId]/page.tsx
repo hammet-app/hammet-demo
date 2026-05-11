@@ -175,9 +175,22 @@ export default function LessonDetailPage() {
         refreshToken
       );
 
-      router.push(
-        nextMod ? `/student/lessons/${nextMod.id}` : "/student/lessons"
-      );
+      setExistingSubmission({
+        id: crypto.randomUUID(), // temporary client value
+        module_title: module.title,
+        term: module.term,
+        week_number: module.week_number,
+        module_id: moduleId,
+        activity_text: activityText,
+        reflection_text: reflectionText,
+        file_url: null,
+        synced_at: null,
+        local_id: crypto.randomUUID(),
+        submitted_at: new Date().toISOString(),
+        status: "submitted",
+        teacher_note: null,
+      });
+
     } catch {
       setSubmitError(
         "Failed to submit. Your work is saved offline and will sync when you reconnect."

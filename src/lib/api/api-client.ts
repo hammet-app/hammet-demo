@@ -161,7 +161,8 @@ export class ApiError<T = unknown> extends Error {
   constructor(
     public readonly status: number,
     public readonly data: T | null,
-    message: string
+    message: string,
+    
   ) {
     super(message);
     this.name = "ApiError";

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { ApiError } from "@/lib/api/api-client";
 import { previewPromotion, confirmPromotion } from "@/lib/api/admin";
 import { PageShell } from "@/components/layout/page-shell";
 import type {
@@ -64,8 +65,18 @@ export default function PromotionPage() {
 
     setPreview(res);
     setStage("preview");
-  } catch {
-    setError("Failed to generate preview. Check your CSV and try again.");
+  } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 403) {
+          setError(`Your account has been suspended. Contact your school admin.`);
+        } else if (err.status === 422) {
+          setError(`Please check your details and try again.${err.message}` );
+        } else {
+          setError(`${err.message} or ${err.data.details}` );
+        }
+      } else if (err instanceof Error) {
+        setError(`Unable to connect. Check your internet connection. ${err.message}`);
+      }
   } finally {
     setLoading(false);
   }

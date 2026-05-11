@@ -215,7 +215,6 @@ export type Submission = {
   module_title: string;
   term: number;
   week_number: number;
-  session_number: number;
   activity_text: string;
   reflection_text: string | null;
   file_url: string | null;

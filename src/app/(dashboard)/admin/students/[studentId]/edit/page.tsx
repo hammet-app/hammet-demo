@@ -32,11 +32,11 @@ export default function UpdateStudentPage() {
     try {
         await updateStudent(studentId, 
             {
-              email: email.trim(), 
-              class_level:classLevel.trim(), 
-              class_arm: classArm.trim(), 
-              parent_email: parentEmail.trim(), 
-              parent_phone: parentPhone.trim()
+              email: email.trim() || undefined,
+              parent_phone: parentPhone.trim() || undefined,
+              class_level: classLevel.trim() || undefined,
+              class_arm: classArm.trim() || undefined,
+              parent_email: parentEmail.trim() || undefined,
             } satisfies UserUpdateRequest,
             accessToken,
             refreshToken

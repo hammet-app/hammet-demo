@@ -197,10 +197,7 @@ export default function LessonDetailPage() {
                   }}
                   disabled={isSubmitting}
                   className={cn(
-                    "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
-                    !isSubmitting
-                      ? "bg-[#1D9E75] text-white hover:bg-[#178a65]"
-                      : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
+                    "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors"
                   )}
                   style={{ fontFamily: FONT_BODY }}
                 >
@@ -211,10 +208,7 @@ export default function LessonDetailPage() {
                   onClick={goNext}
                   disabled={blocked}
                   className={cn(
-                    "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
-                    !blocked
-                      ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]"
-                      : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
+                    "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors"
                   )}
                   style={{ fontFamily: FONT_BODY }}
                 >

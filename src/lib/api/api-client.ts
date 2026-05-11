@@ -20,6 +20,7 @@ interface RequestOptions {
 }
 
 async function requestForm<T>(
+  method: HttpMethod,
   path: string,
   formData: FormData,
   options: RequestOptions = {}
@@ -34,7 +35,7 @@ async function requestForm<T>(
 
   const makeRequest = (authToken?: string | null) =>
     fetch(`${API_BASE}${path}`, {
-      method: "POST",
+      method,
       credentials: "include",
       headers: authToken
         ? { Authorization: `Bearer ${authToken}` }
@@ -150,7 +151,10 @@ export const apiClient = {
     request<T>("DELETE", path, undefined, { token, ...options }),
 
   postForm: <T>(path: string, form: FormData, token?: string | null, options?: RequestOptions) => 
-    requestForm<T>(path, form, { token, ...options }),
+    requestForm<T>("POST", path, form, { token, ...options }),
+
+  putForm: <T>(path: string, form: FormData, token?: string | null, options?: RequestOptions) => 
+    requestForm<T>("PUT", path, form, { token, ...options }),
 
   patch: <T>(path: string, body?: unknown, token?: string | null, options?: RequestOptions) =>
     request<T>("PATCH", path, body, { token, ...options }),

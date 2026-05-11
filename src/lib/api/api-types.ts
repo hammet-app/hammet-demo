@@ -623,7 +623,9 @@ export type CreateModuleRequest = {
 
 // PUT /admin/modules/[moduleId] — full replace, no partial update
 // reuses CreateModuleRequest as request body
-export type UpdateModuleResponse = CurriculumModule;
+export type UpdateModuleResponse = {
+  success: boolean;
+};
 
 
 // ============================================================

@@ -63,13 +63,12 @@ export async function createModule(
 }
 
 export async function updateModule(
-  moduleId: string,
   body: CreateModuleRequest,
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<UpdateModuleResponse> {
   return apiClient.put<UpdateModuleResponse>(
-    `/admin/modules/${moduleId}`,
+    `/admin/modules`,
     body,
     token,
     { onRefresh }

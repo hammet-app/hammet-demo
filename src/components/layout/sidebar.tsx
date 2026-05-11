@@ -34,6 +34,12 @@ export function Sidebar({
 
   const entries = navConfig[activeRole];
 
+  function formatRole(role: string) {
+    return role
+      .replace("_", " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
   return (
     <aside
       className={cn(
@@ -56,7 +62,7 @@ export function Sidebar({
           >
             {roles.map((role) => (
               <option key={role} value={role}>
-                {role}
+                {formatRole(role)}
               </option>
             ))}
           </select>

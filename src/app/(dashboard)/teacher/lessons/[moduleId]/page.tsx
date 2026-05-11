@@ -122,12 +122,14 @@ export default function LessonDetailPage() {
     );
   }
 
+  // Tool names — derived from tool_link blocks across all sections
   const toolNames = module.content_json.sections
     .flatMap((s) => s.blocks)
     .filter((b) => b.type === "tool_link")
     .map((b) => b.tool_name || b.content)
     .filter(Boolean) as string[];
-  const status = null;
+
+  const showStepper = isTeacher
 
   return (
     <>
@@ -140,7 +142,7 @@ export default function LessonDetailPage() {
         <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4 flex-1">
           
           {/* Lesson */}
-          {(status === null) && (
+          {showStepper && (
             <LessonStepper
               title={module.title}
               description={module.description}
@@ -154,7 +156,7 @@ export default function LessonDetailPage() {
               onReflectionChange={setReflectionText}
               onPrevLesson={
                 prevMod
-                  ? () => router.push(`/student/lessons/${prevMod.id}`)
+                  ? () => router.push(`/teacher/lessons/${prevMod.id}`)
                   : undefined
               }
               currentPage={currentPage}

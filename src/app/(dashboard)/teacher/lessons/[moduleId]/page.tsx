@@ -204,7 +204,7 @@ export default function LessonDetailPage() {
                   )}
                   style={{ fontFamily: FONT_BODY }}
                 >
-                  
+                  Lessons
                 </button>
               ) : (
                 <button

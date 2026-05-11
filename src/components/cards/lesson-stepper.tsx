@@ -683,11 +683,12 @@ function ActivityPageView({
           {page.block.content}
         </p>
       </div>
-      <div>
-        <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
-          Activity box
-        </label>
-        {!isTeacher && (
+      {!isTeacher && (
+        <div>
+        
+          <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
+            Activity box
+          </label>
           <textarea
             value={activityText}
             onChange={(e) => onActivityChange(e.target.value)}
@@ -701,8 +702,8 @@ function ActivityPageView({
             )}
             style={{ fontFamily: FONT_BODY }}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -741,12 +742,13 @@ function ReflectionPageView({
         </p>
       </div>
       <div>
-        <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
-          Your reflection{" "}
-          <span className="font-normal text-[12px] text-text-muted">({REFLECTION_MIN}–{REFLECTION_MAX} words)</span>
-        </label>
         {!isTeacher && (
-          <><textarea
+          <>
+          <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
+            Your reflection{" "}
+            <span className="font-normal text-[12px] text-text-muted">({REFLECTION_MIN}–{REFLECTION_MAX} words)</span>
+          </label>
+          <textarea
             value={reflectionText}
             onChange={(e) => onReflectionChange(e.target.value)}
             placeholder="Write your reflection here…"

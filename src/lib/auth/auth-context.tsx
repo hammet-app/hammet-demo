@@ -65,6 +65,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
  let refreshPromise: Promise<string | null> | null = null;
 
 const refreshToken = useCallback(async (): Promise<string | null> => {
+  // Prevent refresh after explicit logout
+  if (localStorage.getItem("logged_out") === "true") {
+    return null;
+  }
+  
   if (refreshPromise) {
     return refreshPromise; // reuse ongoing refresh
   }
@@ -126,6 +131,7 @@ const refreshToken = useCallback(async (): Promise<string | null> => {
   const setSession = useCallback(
     (user: AuthUser, accessToken: string) => {
       setState({ user, accessToken, isLoading: false, isResolved: true });
+      localStorage.removeItem("logged_out");
       scheduleRefresh();
     },
     [scheduleRefresh]
@@ -133,6 +139,7 @@ const refreshToken = useCallback(async (): Promise<string | null> => {
 
   // ── Logout ──
   const logout = useCallback(async () => {
+    localStorage.setItem("logged_out", "true");
     try {
       await fetch(`${API_BASE}/auth/logout`, {
         method: "POST",

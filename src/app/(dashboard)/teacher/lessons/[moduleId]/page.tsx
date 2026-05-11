@@ -138,8 +138,8 @@ export default function LessonDetailPage() {
         fixed footer bar. The main element in DashboardLayoutInner is already
         overflow-y-auto so this scrolls correctly.
       */}
-      <div className="w-full h-full px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
-        <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4 flex-1">
+      <div className="w-full px-4 sm:px-6 lg:px-8 pt-5 pb-[72px]">
+        <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4">
           
           {/* Lesson */}
           {showStepper && (

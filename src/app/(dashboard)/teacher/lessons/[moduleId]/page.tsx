@@ -88,7 +88,7 @@ export default function LessonDetailPage() {
   
     const goBack = useCallback(() => {
       if (currentPage === 0) {
-        if (prevMod) router.push(`/teacher/lessons/${prevMod.id}`);
+        router.push(`/teacher/lessons`);
         return;
       }
       setCurrentPage((p) => Math.max(0, p - 1));

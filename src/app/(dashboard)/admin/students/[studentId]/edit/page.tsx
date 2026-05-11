@@ -24,7 +24,7 @@ export default function UpdateStudentPage() {
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit() {
-    if (!accessToken || studentId) return;
+    if (!accessToken || !studentId) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -89,7 +89,7 @@ export default function UpdateStudentPage() {
             value={classLevel}
             onChange={(e) => setClassLevel(e.target.value)}
             className="px-4 py-2 rounded-xl border"
-            placeholder="SS1, SS2..."
+            placeholder="SSS1, SSS2..."
           />
         </div>
 

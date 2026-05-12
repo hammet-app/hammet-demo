@@ -161,7 +161,17 @@ export const apiClient = {
   };
 
 // ─── ApiError ────────────────────────────────────────────────
-export class ApiError<T = unknown> extends Error {
+interface ApiErrorResponse {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    detail?: unknown;
+  };
+}
+
+
+export class ApiError<T = ApiErrorResponse> extends Error {
   constructor(
     public readonly status: number,
     public readonly data: T | null,
@@ -172,3 +182,4 @@ export class ApiError<T = unknown> extends Error {
     this.name = "ApiError";
   }
 }
+

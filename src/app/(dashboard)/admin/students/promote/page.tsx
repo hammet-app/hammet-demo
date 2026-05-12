@@ -70,9 +70,21 @@ export default function PromotionPage() {
         if (err.status === 403) {
           setError(`Your account has been suspended. Contact your school admin.`);
         } else if (err.status === 422) {
-          setError(`Please check your details and try again.${err.message}` );
+          setError(
+            `Invalid data. ${
+              Array.isArray(err.details)
+                ? err.details.map((e: any) => e.message).join(", ")
+                : err.message
+            }`
+          );
         } else {
-          setError(`${err.message} or ${err.data.details}` );
+          setError(
+            `Invalid data. ${
+              Array.isArray(err.details)
+                ? err.details.map((e: any) => e.message).join(", ")
+                : err.message
+            }`
+          );
         }
       } else if (err instanceof Error) {
         setError(`Unable to connect. Check your internet connection. ${err.message}`);

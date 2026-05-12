@@ -45,7 +45,13 @@ export default function BulkImportPage() {
         } else if (err.status === 409) {
           setServerError("Some records already exist or conflict with existing data.");
         } else if (err.status === 400 || err.status === 422) {
-          setServerError(`Invalid data. (${err.details}||${err.message})`);
+          setServerError(
+            `Invalid data. ${
+              Array.isArray(err.details)
+                ? err.details.map((e: any) => e.message).join(", ")
+                : err.message
+            }`
+          );
         } else if (err.status === 500) {
           setServerError("Server error. Please try again.");
         } else {

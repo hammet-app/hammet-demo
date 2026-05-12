@@ -7,9 +7,9 @@ import { ApiError } from "@/lib/api/api-client";
 import { PageShell } from "@/components/layout/page-shell";
 import { BulkRegisterRequest, BulkRegisterResponse } from "@/lib/api/api-types";
 
-const PLACEHOLDER = `Chisom Obi,chisom@school.edu.ng,SSS1,A,parent@email.com,+2348001234567
-Motilola Lambo,moti@school.edu.ng,JS2,B,dad@email.com,+2347012345678
-Aisha Bello,aisha@school.edu.ng,SSS3,,mum@email.com,+2348098765432`;
+const PLACEHOLDER = `Chisom Obi,chisom@school.edu.ng,SSS1,A,parent@email.com,+2348001234567,2011-01-09
+Motilola Lambo,moti@school.edu.ng,JS2,B,dad@email.com,+2347012345678,2014-04-10
+Aisha Bello,aisha@school.edu.ng,SSS3,,mum@email.com,+2348098765432,2010-09-21`;
 
 export default function BulkImportPage() {
   const { accessToken, refreshToken } = useAuth();
@@ -32,28 +32,28 @@ export default function BulkImportPage() {
     setResult(null);
 
     try {
-      const res = await bulkRegisterStudents({csvText: csvText }satisfies BulkRegisterRequest, accessToken, refreshToken);
+      const res = await bulkRegisterStudents({csvText: csvText } satisfies BulkRegisterRequest, accessToken, refreshToken);
       setResult(res);
     } catch (err) {
-  if (err instanceof ApiError) {
-    if (err.status === 401) {
-      setServerError("Authentication required. Please log in again.");
-    } else if (err.status === 403) {
-      setServerError("You are not allowed to perform this action.");
-    } else if (err.status === 404) {
-      setServerError("School or resource not found.");
-    } else if (err.status === 409) {
-      setServerError("Some records already exist or conflict with existing data.");
-    } else if (err.status === 400 || err.status === 422) {
-      setServerError(`Invalid data. ${err.message}`);
-    } else if (err.status === 500) {
-      setServerError("Server error. Please try again.");
-    } else {
-      setServerError(err.message);
-    }
-  } else if (err instanceof Error) {
-    setServerError(`Unable to connect. ${err.message}`);
-  }
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          setServerError("Authentication required. Please log in again.");
+        } else if (err.status === 403) {
+          setServerError("You are not allowed to perform this action.");
+        } else if (err.status === 404) {
+          setServerError("School or resource not found.");
+        } else if (err.status === 409) {
+          setServerError("Some records already exist or conflict with existing data.");
+        } else if (err.status === 400 || err.status === 422) {
+          setServerError(`Invalid data. ${err.message}`);
+        } else if (err.status === 500) {
+          setServerError("Server error. Please try again.");
+        } else {
+          setServerError(err.message);
+        }
+      } else if (err instanceof Error) {
+        setServerError(`Unable to connect. ${err.message}`);
+      }
 
     } finally {
       setSubmitting(false);

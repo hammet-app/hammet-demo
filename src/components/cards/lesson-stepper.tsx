@@ -931,13 +931,13 @@ export function LessonStepper({
           <ContentPageView page={page} introProps={page.isFirst ? introProps : undefined} />
         )}
         {page.kind === "activity" && (
-          <ActivityPageView page={page} activityText={activityText} onActivityChange={onActivityChange} />
+          <ActivityPageView page={page} activityText={activityText} onActivityChange={onActivityChange} isTeacher={isTeacher}/>
         )}
         {page.kind === "reflection" && (
-          <ReflectionPageView page={page} reflectionText={reflectionText} onReflectionChange={onReflectionChange} />
+          <ReflectionPageView page={page} reflectionText={reflectionText} onReflectionChange={onReflectionChange} isTeacher={isTeacher}/>
         )}
         {page.kind === "submit" && (
-          <SubmitPageView hasActivity={hasActivity} hasReflection={hasReflection} />
+          <SubmitPageView hasActivity={hasActivity} hasReflection={hasReflection} isTeacher={isTeacher}/>
         )}
       </div>
     </div>

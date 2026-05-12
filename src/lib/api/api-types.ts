@@ -133,6 +133,7 @@ export type RegisterStudentRequest = {
   class_arm: string | null;
   parent_email: string;         // stored on user record, used for parent link
   parent_phone: string;         // stored on user record, used for parent link
+  date_of_birth: string;
 };
 
 export type RegisterStudentResponse = {
@@ -516,6 +517,7 @@ export type AdminStudentsResponse = {
 // PATCH /admin/students/[id]
 export type UserUpdateRequest = {
   email?: string;
+  date_of_birth?: string;
   class_level?: string;
   class_arm?: string;
   parent_phone?: string;

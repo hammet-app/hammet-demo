@@ -18,6 +18,7 @@ type FormState = {
   class_arm: string;
   parent_email: string;
   parent_phone: string;
+  date_of_birth: string;
 };
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
@@ -32,6 +33,7 @@ function validate(form: FormState, availableArms: string[]): FormErrors {
   if (availableArms.length > 0 && !form.class_arm) errs.class_arm = "Select arm";
   if (!form.parent_email.trim()) errs.parent_email = "Parent email is required";
   if (!form.parent_phone.trim()) errs.parent_phone = "Phone is required";
+  if (!form.date_of_birth.trim()) errs.date_of_birth = "Date of Birth";
   return errs;
 }
 
@@ -50,6 +52,7 @@ export default function NewStudentPage() {
     class_arm: "",
     parent_email: "",
     parent_phone: "",
+    date_of_birth: "",
   });
 
   const [created, setCreated] = useState<RegisterStudentResponse | null>(null);
@@ -106,6 +109,7 @@ export default function NewStudentPage() {
         class_arm: "",
         parent_email: "",
         parent_phone: "",
+        date_of_birth: "",
       });
     } catch (err) {
       if (err instanceof ApiError) {
@@ -243,6 +247,21 @@ export default function NewStudentPage() {
                 />
               </div>
               <FieldError message={errors.parent_phone} />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-1 block">
+                Date of Birth
+              </label>
+
+              <input
+                type="date"
+                value={form.date_of_birth}
+                onChange={(e) => set("date_of_birth", e.target.value)}
+                className="w-full px-4 py-3 rounded-xl border"
+              />
+
+              <FieldError message={errors.date_of_birth} />
             </div>
 
             <button

@@ -19,6 +19,7 @@ export default function UpdateStudentPage() {
   const [classArm, setClassArm] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [parentEmail, setParentEmail] = useState("");
+  const [date_of_birth, setDOB] = useState("")
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export default function UpdateStudentPage() {
         await updateStudent(studentId, 
             {
               email: email.trim() || undefined,
+              date_of_birth: date_of_birth.trim() || undefined,
               parent_phone: parentPhone.trim() || undefined,
               class_level: classLevel.trim() || undefined,
               class_arm: classArm.trim() || undefined,
@@ -80,6 +82,19 @@ export default function UpdateStudentPage() {
             className="px-4 py-2 rounded-xl border"
             placeholder="Enter email"
           />
+        </div>
+
+        <div>
+            <label className="text-sm font-medium mb-1 block">
+              Date of Birth
+            </label>
+
+            <input
+              type="date"
+              value={date_of_birth}
+              onChange={(e) => setDOB(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border"
+            />
         </div>
 
         {/* Class Level */}

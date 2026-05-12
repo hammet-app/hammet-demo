@@ -181,5 +181,13 @@ export class ApiError<T = ApiErrorResponse> extends Error {
     super(message);
     this.name = "ApiError";
   }
+
+  get details() {
+    return (this.data as ApiErrorResponse)?.error?.detail;
+  }
+
+  get code() {
+    return (this.data as ApiErrorResponse)?.error?.code;
+  }
 }
 

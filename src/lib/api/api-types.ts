@@ -256,6 +256,19 @@ export type StudentPortfolio = {
   total: number;
 };
 
+export interface PerformancePoint {
+  term: number;
+  level: string;
+  label: number;      // week_number
+  y: number;          // moving average 0–1
+  band: "Needs Work" | "Improving" | "Strong";
+}
+
+export interface PerformanceParams {
+  term?: number[];
+  level?: string[];
+}
+
 
 
 // ============================================================
@@ -688,7 +701,9 @@ export type ParentVerifyRequest = {
 };
 
 export type ParentVerifyResponse = {
-  verified: boolean;
+  available_levels: string[],
+  current_term: number,
+  current_level: string,
 };
 
 // GET /parent/[token]/portal
@@ -698,8 +713,10 @@ export type ParentPortal = {
   class_level: string;
   class_arm: string | null;
   school_name: string;
-  term_progress: TermProgress;
-  portfolio: PortfolioEntry[];
+  term_progress: TermProgress | null;
+  portfolio_entry: unknown[];
+  // TODO: backend field pending — will be PerformancePoint[] once wired up
+  performance: PerformancePoint[];
 };
 
 

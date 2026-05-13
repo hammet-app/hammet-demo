@@ -1,17 +1,5 @@
 import { apiClient } from "@/lib/api/api-client";
-
-export interface PerformancePoint {
-  term: number;
-  level: string;
-  label: number;      // week_number
-  y: number;          // moving average 0–1
-  band: "Needs Work" | "Improving" | "Strong";
-}
-
-export interface PerformanceParams {
-  term?: number[];
-  level?: string[];
-}
+import { PerformancePoint, PerformanceParams } from "./api-types";
 
 export const performanceApi = {
   getPerformance: (

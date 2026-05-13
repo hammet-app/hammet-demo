@@ -9,6 +9,7 @@ import {
   sendParentLink,
   revokeParentLink,
 } from "@/lib/api/admin";
+import { ApiError } from "@/lib/api/api-client";
 import { resendCode } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import type { AdminStudent } from "@/lib/api/api-types";
@@ -290,11 +291,12 @@ export default function AdminStudentsPage() {
                 : s
             )
           );
-        } catch (err: any) {
-          if (err?.response?.status === 404) {
-            setActionError(
-              "Student has not completed any module. Please ensure that student has completed a class before attempting to send a parent link."
-            );
+        } catch (err) {
+          if (err instanceof ApiError){
+            if (err.status === 404) {
+              setActionError(
+                "Student has not completed any module. Please ensure that student has completed a class before attempting to send a parent link."
+              );}
           } else {
             setActionError("Action failed.");
           }

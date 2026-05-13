@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { ParentShell } from "@/components/ui/parent-shell";
 import { PerformanceChart } from "@/components/cards/performance-chart";
 import type {
@@ -329,8 +329,8 @@ function PortalView({
 // ---------------------------------------------------------------------------
 
 export default function ParentPortalPage() {
-  const params = useParams<{ token: string }>();
-  const linkToken = params.token;
+  const params = useSearchParams();
+  const linkToken = params.get("token");
 
   const [stage, setStage] = useState<Stage>({ type: "loading" });
 
@@ -357,6 +357,7 @@ export default function ParentPortalPage() {
 
   // Step 2 — submit answer → available levels + defaults → initial portal fetch
   async function handleAnswer(answer: string) {
+    if (!linkToken) return;
     const currentStage = stage;
     if (
       currentStage.type !== "challenge" &&
@@ -440,7 +441,7 @@ export default function ParentPortalPage() {
       selectedLevels: levels,
       portalLoading: true,
     });
-
+    if (!linkToken) return;
     try {
       const portal = await parentApi.getPortal(linkToken, {
         term: terms,

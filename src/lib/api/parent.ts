@@ -13,7 +13,7 @@ export const parentApi = {
     apiClient.get<ParentVerifyChallenge>(`/parent/${encodeURIComponent(linkToken)}/verify`),
 
   postVerify: (linkToken: string, body: ParentVerifyRequest) =>
-    apiClient.post<ParentVerifyResponse>(`/parent/${encodeURIComponent(linkToken)}/verify`, body),
+    apiClient.post<ParentVerifyResponse>(`/parent/${encodeURIComponent(linkToken)}/verify`, body.answer),
 
   getPortal: (
     linkToken: string,

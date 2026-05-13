@@ -5,9 +5,6 @@ import { useParams } from "next/navigation";
 import { ParentShell } from "@/components/ui/parent-shell";
 import { PerformanceChart } from "@/components/cards/performance-chart";
 import type {
-  ParentVerifyChallenge,
-  ParentVerifyRequest,
-  ParentVerifyResponse,
   ParentPortal,
 } from "@/lib/api/api-types";
 import { parentApi } from "@/lib/api/parent";

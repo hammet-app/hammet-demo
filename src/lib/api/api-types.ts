@@ -719,6 +719,11 @@ export type ParentPortal = {
   performance: PerformancePoint[];
 };
 
+export type ParentPortalRequest = {
+  term: number[] | null;
+  level: string[] | null;
+}
+
 
 
 // ============================================================

@@ -10,14 +10,14 @@ import { apiClient } from "@/lib/api/api-client";
 
 export const parentApi = {
   getChallenge: (linkToken: string) =>
-    apiClient.get<ParentVerifyChallenge>("/parent/{token}/verify"),
+    apiClient.get<ParentVerifyChallenge>(`/parent/${encodeURIComponent(linkToken)}/verify`),
 
   postVerify: (linkToken: string, body: ParentVerifyRequest) =>
-    apiClient.post<ParentVerifyResponse>("/parent/{token}/verify"),
+    apiClient.post<ParentVerifyResponse>(`/parent/${encodeURIComponent(linkToken)}/verify`),
 
   getPortal: (
     linkToken: string,
     filters: ParentPortalRequest
   ) =>
-    apiClient.post<ParentPortal>("/parent/{token}/portal", filters)
+    apiClient.post<ParentPortal>(`/parent/${encodeURIComponent(linkToken)}/portal`, filters)
 };

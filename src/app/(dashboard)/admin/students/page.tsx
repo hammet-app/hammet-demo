@@ -276,19 +276,31 @@ export default function AdminStudentsPage() {
 
     try {
       if (action.type === "send-link") {
-        const res = await sendParentLink(
-          action.studentId,
-          accessToken,
-          refreshToken
-        );
+        try {
+          const res = await sendParentLink(
+            action.studentId,
+            accessToken,
+            refreshToken
+          );
 
-        setStudents((prev) =>
-          prev.map((s) =>
-            s.student_id === action.studentId
-              ? { ...s, parent_link_sent_at: res.expires_at }
-              : s
-          )
-        );
+          setStudents((prev) =>
+            prev.map((s) =>
+              s.student_id === action.studentId
+                ? { ...s, parent_link_sent_at: res.expires_at }
+                : s
+            )
+          );
+        } catch (err: any) {
+          if (err?.response?.status === 404) {
+            setActionError(
+              "Student has not completed any module. Please ensure that student has completed a class before attempting to send a parent link."
+            );
+          } else {
+            setActionError("Action failed.");
+          }
+
+          return;
+        }
       } else if (action.type === "revoke-link") {
         await revokeParentLink(
           action.studentId,
@@ -317,6 +329,7 @@ export default function AdminStudentsPage() {
         const student = students.find(
           (s) => s.student_id === action.studentId
         );
+
         if (!student) return;
 
         const res = await resendCode(

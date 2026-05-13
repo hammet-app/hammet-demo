@@ -22,7 +22,7 @@ export default function LessonsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!accessToken || !user?.class_level) return;
+    if (!accessToken || !user?.class_level || !user?.term) return;
 
     async function load() {
       try {

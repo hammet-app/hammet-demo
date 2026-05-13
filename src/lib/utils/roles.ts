@@ -12,6 +12,7 @@ export interface AuthUser {
   school_id: string;
   class_level: string | null;
   class_arm: string | null;
+  term: number | null;
 }
 
 /** Derives the primary display role from the roles array. */

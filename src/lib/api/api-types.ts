@@ -53,6 +53,7 @@ export type LoginResponse = {
     school_id: string;
     class_level: string | null; // null for non-students
     class_arm: string | null;
+    term: number | null;
   };
 };
 

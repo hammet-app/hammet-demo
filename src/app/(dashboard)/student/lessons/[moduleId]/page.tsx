@@ -74,13 +74,13 @@ export default function LessonDetailPage() {
 
   // ── Load module + list + submission history in parallel ──────────────────
   useEffect(() => {
-    if (!accessToken || !user?.class_level) return;
+    if (!accessToken || !user?.class_level || !user?.term) return;
 
     async function load() {
       try {
         const [mod, list, history] = await Promise.all([
           studentApi.getModule(moduleId, accessToken!, refreshToken),
-          studentApi.getModules(1, user!.class_level!, accessToken!, refreshToken),
+          studentApi.getModules(user!.term!, user!.class_level!, accessToken!, refreshToken),
           studentApi.getSubmissions(accessToken!, refreshToken),
         ]);
 

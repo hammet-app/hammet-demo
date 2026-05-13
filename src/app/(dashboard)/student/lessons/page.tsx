@@ -28,7 +28,7 @@ export default function LessonsPage() {
       try {
         const [modulesData, progressData] = await Promise.all([
           studentApi.getModules(
-            1, // current term — expand later when multi-term is needed
+            user!.term!, // current term — expand later when multi-term is needed
             user!.class_level!,
             accessToken!,
             refreshToken

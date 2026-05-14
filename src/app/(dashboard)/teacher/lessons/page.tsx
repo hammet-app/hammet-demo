@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getTeacherClasses, getTeacherModules } from "@/lib/api/teacher";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
@@ -12,14 +12,22 @@ import { ApiError } from "@/lib/api/api-client";
 export default function LessonsPage() {
   const { accessToken, refreshToken } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialLevel = searchParams.get("level") || "";
 
   const [modules, setModules] = useState<ModuleSummary[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
-  const [classLevel, setClassLevel] = useState<string>("");
+  const [classLevel, setClassLevel] = useState<string>(initialLevel);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingModules, setIsLoadingModules] = useState(false);
   const [error, setError] = useState("");
+
+  const handleLevelChange = (lvl: string) => {
+    setClassLevel(lvl);
+
+    router.replace(`/teacher/lessons?level=${encodeURIComponent(lvl)}`);
+  };
 
   // ── Load teacher classes ──
   useEffect(() => {
@@ -37,10 +45,19 @@ export default function LessonsPage() {
 
         setLevels(uniqueLevels);
 
-        // auto-select first level
+        // remember the old level set by the teacher
         if (uniqueLevels.length > 0) {
+        const levelFromUrl = searchParams.get("level");
+
+        if (
+          levelFromUrl &&
+          uniqueLevels.includes(levelFromUrl)
+        ) {
+          setClassLevel(levelFromUrl);
+        } else {
           setClassLevel(uniqueLevels[0]);
         }
+      }
       } catch (err) {
         setError("Failed to load classes.");
       } finally {
@@ -113,7 +130,7 @@ export default function LessonsPage() {
           {levels.map((lvl) => (
             <button
               key={lvl}
-              onClick={() => setClassLevel(lvl)}
+              onClick={() => handleLevelChange(lvl)}
               className={`px-3 py-1.5 rounded-md text-sm font-medium border ${
                 lvl === classLevel
                   ? "bg-purple text-white"

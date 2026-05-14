@@ -145,7 +145,13 @@ function formatInlineText(text?: string): string {
     }
     if (/^\s*\d+\.\s+/.test(trimmed)) {
       if (inUl) { result += "</ul>"; inUl = false; }
-      if (!inOl) { result += `<ol class="list-decimal ml-5 space-y-1.5 mt-2 mb-2">`; inOl = true; }
+      if (!inOl) {
+        const start = Number(trimmed.match(/^(\d+)\./)?.[1] || 1);
+
+        result += `<ol start="${start}" class="list-decimal ml-5 space-y-1.5 mt-2 mb-2">`;
+
+        inOl = true;
+      }
       result += `<li>${trimmed.replace(/^\d+\.\s+/, "")}</li>`;
       continue;
     }

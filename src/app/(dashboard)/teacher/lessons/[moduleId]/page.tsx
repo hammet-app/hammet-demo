@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { getModule, getTeacherModules } from "@/lib/api/teacher";
 import { LessonStepper, buildPages, isPageBlocked } from "@/components/cards/lesson-stepper"; 
 import { PageShell } from "@/components/layout/page-shell";
-import { Loader2, ChevronRight, ChevronLeft } from "lucide-react";
+import { Loader2, ChevronRight, ChevronLeft, ArrowLeft } from "lucide-react";
 import type {
   CurriculumModule,
   ModulesResponse,
@@ -141,6 +141,22 @@ export default function LessonDetailPage() {
       */}
       <div className="w-full px-4 sm:px-6 lg:px-8 pt-5 pb-[72px]">
         <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4">
+
+          {/* Top back button */}
+          <button
+            onClick={() =>
+              router.push(
+                classLevel
+                  ? `/teacher/lessons?level=${encodeURIComponent(classLevel)}`
+                  : "/teacher/lessons"
+              )
+            }
+            className="w-fit inline-flex items-center gap-2 text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors"
+            style={{ fontFamily: FONT_BODY }}
+          >
+            <ArrowLeft size={16} />
+            Back to lessons
+          </button>
           
           {/* Lesson */}
           {showStepper && (

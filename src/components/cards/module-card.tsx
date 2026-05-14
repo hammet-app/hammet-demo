@@ -6,7 +6,7 @@ interface ModuleCardProps {
   title: string;
   weekNumber: number;
   term: number;
-  status: SubmissionStatus;
+  status?: SubmissionStatus | null;
   onClick?: () => void;
   locked?: boolean;
   className?: string;
@@ -59,7 +59,7 @@ export function ModuleCard({
       </div>
 
       {/* Status */}
-      <StatusPill status={status} />
+      <StatusPill status={status!} />
     </button>
   );
 }

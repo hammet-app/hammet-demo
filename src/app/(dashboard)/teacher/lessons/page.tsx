@@ -159,7 +159,7 @@ export default function LessonsPage() {
                   title={module.title}
                   weekNumber={module.week_number}
                   term={module.term}
-                  status={"not_started"}
+                  status={null}
                   onClick={() =>
                         router.push(`/teacher/lessons/${module.id}?level=${classLevel}`)
                     }

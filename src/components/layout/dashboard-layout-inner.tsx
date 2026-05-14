@@ -12,6 +12,7 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { UserRole } from "@/lib/utils/roles";
+import { usePersistedRole } from "@/hooks/use-online-status";
 
 export function DashboardLayoutInner({
   children,
@@ -26,7 +27,7 @@ export function DashboardLayoutInner({
 
   const roles = user.roles as UserRole[];
 
-  const [activeRole, setActiveRole] = useState<UserRole>(() => roles[0]);
+  const [activeRole, setActiveRole] = usePersistedRole(roles);
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">

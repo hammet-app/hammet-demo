@@ -26,19 +26,29 @@ export function useOnlineStatus(): boolean {
 
 
 export function usePersistedRole(roles: UserRole[]) {
-  const [activeRole, setActiveRole] = useState<UserRole>(roles[0]);
+  const [activeRole, setActiveRole] = useState<UserRole>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("activeRole") as UserRole | null;
+
+      if (saved && roles.includes(saved)) {
+        return saved;
+      }
+    }
+
+    return roles[0];
+  });
 
   useEffect(() => {
-    const saved = localStorage.getItem("activeRole") as UserRole | null;
-
-    if (saved && roles.includes(saved)) {
-      setActiveRole(saved);
+    // Handle cases where saved role no longer exists
+    if (!roles.includes(activeRole)) {
+      setActiveRole(roles[0]);
     }
-  }, [roles]);
+  }, [roles, activeRole]);
 
   useEffect(() => {
     localStorage.setItem("activeRole", activeRole);
   }, [activeRole]);
 
   return [activeRole, setActiveRole] as const;
+
 }

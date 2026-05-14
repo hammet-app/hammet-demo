@@ -59,7 +59,7 @@ export function ModuleCard({
       </div>
 
       {/* Status */}
-      <StatusPill status={status!} />
+      {status && <StatusPill status={status} />}
     </button>
   );
 }

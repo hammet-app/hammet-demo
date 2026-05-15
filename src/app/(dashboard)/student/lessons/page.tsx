@@ -90,6 +90,7 @@ export default function LessonsPage() {
           ? `Term ${progress?.current_term ?? "—"} · ${user.class_level}${user.class_arm ?? ""}`
           : undefined
       }
+      className="relative min-h-screen w-full bg-gradient-to-b from-[#4B0081] via-[#B8B8F8] to-[#E4E4FE]"
     >
       {isLoading ? (
         <>

@@ -43,7 +43,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "w-[240px] bg-purple-dark flex flex-col h-full overflow-y-auto shrink-0",
+        "flex min-h-screen w-[320px] flex-col bg-[#4B0081] px-5 py-4 text-white",
         className
       )}
     >
@@ -124,13 +124,12 @@ export function Sidebar({
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-2.5 px-5 py-[9px] text-[13.5px]",
-                  "border-l-[3px] border-transparent transition-colors duration-100",
+                  "rounded-md px-5 py-2 text-xs transition-all",
                   isActive
-                    ? "bg-white/10 text-white border-l-cyan font-medium"
+                    ? "bg-white/20 text-white"
                     : item.danger
                     ? "text-red-400/70 hover:text-red-300 hover:bg-red-500/[0.08]"
-                    : "text-white/60 hover:text-white/90 hover:bg-white/[0.07]"
+                    : "bg-white/10 text-white/80 hover:bg-white/20"
                 )}
               >
                 <Icon size={16} className="shrink-0" />

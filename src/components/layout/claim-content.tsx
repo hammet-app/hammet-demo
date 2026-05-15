@@ -164,7 +164,7 @@ export default function ClaimPage() {
         "/auth/claim",
         payload
       );
-
+      console.log(data)
       setSession(data.user, data.access_token);
       setStep("success");
 

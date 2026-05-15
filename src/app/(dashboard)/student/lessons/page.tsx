@@ -93,121 +93,182 @@ export default function LessonsPage() {
     >
       {isLoading ? (
         <>
-          {/* Stats skeleton */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-6">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-bg-card border border-border rounded-[10px] h-24 animate-pulse" />
+              <div
+                key={i}
+                className="h-[110px] rounded-[10px] border border-border bg-bg-card animate-pulse"
+              />
             ))}
           </div>
+
           <ListSkeleton rows={6} />
         </>
       ) : error ? (
-        <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
+        <div className="rounded-[10px] border border-danger/20 bg-danger-light px-4 py-3 text-[13px] text-danger">
           {error}
         </div>
       ) : (
         <>
-          {/* Term progress stats */}
+          {/* Hero */}
+          <div className="relative overflow-hidden rounded-[10px] bg-purple-dark px-5 py-4 shadow-[0px_10px_23.5px_rgba(0,0,0,0.37)] mb-6">
+            <div className="relative z-10 flex items-center justify-between">
+              <div className="space-y-1">
+                <h1 className="text-[20px] font-semibold text-white">
+                  My Lessons
+                </h1>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[13px] text-white">
+                    Term {progress?.current_term ?? "—"}
+                  </span>
+
+                  {user?.class_level && (
+                    <span className="rounded bg-white/20 px-2.5 py-0.5 text-[11px] text-white">
+                      {user.class_level}
+                      {user.class_arm ?? ""}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="pointer-events-none absolute -right-16 -top-20 h-[220px] w-[220px] rounded-full bg-white/10 blur-3xl" />
+          </div>
+
+          {/* Stats */}
           {tp && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 mb-6">
               <StatCard
                 label="Total modules"
                 value={tp.total_modules}
                 icon={BookOpen}
                 iconVariant="purple"
               />
+
               <StatCard
                 label="Submitted"
                 value={tp.submitted_modules}
-                sub={`${Math.round((tp.submitted_modules / tp.total_modules) * 100)}% done`}
+                sub={`${Math.round(
+                  (tp.submitted_modules / tp.total_modules) * 100
+                )}% done`}
                 icon={Clock}
                 iconVariant="cyan"
               />
+
               <StatCard
                 label="Approved"
                 value={tp.approved_modules}
                 icon={CheckCircle2}
                 iconVariant="green"
               />
+
               <StatCard
                 label="Flagged"
                 value={tp.flagged_modules}
-                sub={tp.flagged_modules > 0 ? "Needs revision" : undefined}
+                sub={
+                  tp.flagged_modules > 0
+                    ? "Needs revision"
+                    : undefined
+                }
                 icon={Flag}
-                iconVariant={tp.flagged_modules > 0 ? "amber" : "purple"}
+                iconVariant={
+                  tp.flagged_modules > 0
+                    ? "amber"
+                    : "purple"
+                }
               />
             </div>
           )}
 
-          {/* Term progress bar */}
+          {/* Progress */}
           {tp && (
-            <div className="bg-bg-card border border-border rounded-[10px] px-4 py-3 mb-6 flex items-center gap-4">
+            <div className="mb-8 flex flex-col gap-4 rounded-[10px] border border-purple-dark bg-white px-5 py-4 shadow-[0px_10px_25px_rgba(0,0,0,0.12)] lg:flex-row lg:items-center">
               <div className="flex-1">
-                <div className="flex justify-between text-[12px] mb-1.5">
-                  <span className="text-text-secondary font-medium">
-                    Term {progress?.current_term} progress
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-[12px] font-medium text-text-secondary">
+                    Term {progress?.current_term} Progress
                   </span>
-                  <span className="text-cyan font-semibold">
-                    {Math.round((tp.approved_modules / tp.total_modules) * 100)}%
+
+                  <span className="text-[12px] font-semibold text-cyan">
+                    {Math.round(
+                      (tp.approved_modules / tp.total_modules) * 100
+                    )}
+                    %
                   </span>
                 </div>
-                <div className="h-2 bg-border rounded-full overflow-hidden">
+
+                <div className="h-2 overflow-hidden rounded-full bg-border">
                   <div
-                    className="h-full bg-cyan rounded-full transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-purple-dark via-[#8A38F5] to-cyan transition-all duration-500"
                     style={{
-                      width: `${Math.round((tp.approved_modules / tp.total_modules) * 100)}%`,
+                      width: `${Math.round(
+                        (tp.approved_modules / tp.total_modules) * 100
+                      )}%`,
                     }}
                   />
                 </div>
               </div>
-              <div className="text-right shrink-0">
-                <p className="text-[13px] font-semibold text-text-primary">
+
+              <div className="shrink-0 text-right">
+                <p className="text-[15px] font-semibold text-text-primary">
                   {tp.approved_modules} / {tp.total_modules}
                 </p>
-                <p className="text-[11px] text-text-muted">modules approved</p>
+
+                <p className="text-[11px] text-text-muted">
+                  modules approved
+                </p>
               </div>
             </div>
           )}
 
-          {/* Module list grouped by week */}
-          {Object.keys(byWeek)
-            .map(Number)
-            .sort((a, b) => a - b)
-            .map((week, index, arr) => {
-              const module = byWeek[week][0]; // only one module per week
+          {/* Weeks */}
+          <div className="rounded-t-[20px] bg-white px-0 py-2">
+            {Object.keys(byWeek)
+              .map(Number)
+              .sort((a, b) => a - b)
+              .map((week, index, arr) => {
+                const module = byWeek[week][0];
 
-              let unlocked = true;
+                let unlocked = true;
 
-              if (index > 0) {
-                const prevWeek = arr[index - 1];
-                const prevModule = byWeek[prevWeek][0];
-                const prevStatus = statusMap.get(prevModule.id);
+                if (index > 0) {
+                  const prevWeek = arr[index - 1];
+                  const prevModule = byWeek[prevWeek][0];
+                  const prevStatus = statusMap.get(prevModule.id);
 
-                unlocked =
-                  prevStatus === "submitted" || prevStatus === "approved";
-              }
+                  unlocked =
+                    prevStatus === "submitted" ||
+                    prevStatus === "approved";
+                }
 
-              return (
-                <div key={week} className="mb-6">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2.5">
-                    Week {week}
-                  </p>
+                return (
+                  <div key={week} className="mb-4">
+                    <p className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-widest text-text-muted">
+                      Week {week}
+                    </p>
 
-                  <ModuleCard
-                    key={module.id}
-                    title={module.title}
-                    weekNumber={module.week_number}
-                    term={module.term}
-                    status={statusMap.get(module.id) ?? "not_started"}
-                    locked={!unlocked}
-                    onClick={() => {
-                      if (!unlocked) return;
-                      router.push(`/student/lessons/${module.id}`);
-                    }}
-                  />
-                </div>
-              );
-            })}
+                    <ModuleCard
+                      key={module.id}
+                      title={module.title}
+                      weekNumber={module.week_number}
+                      term={module.term}
+                      status={
+                        statusMap.get(module.id) ?? "not_started"
+                      }
+                      locked={!unlocked}
+                      onClick={() => {
+                        if (!unlocked) return;
+
+                        router.push(
+                          `/student/lessons/${module.id}`
+                        );
+                      }}
+                    />
+                  </div>
+                );
+              })}
+          </div>
         </>
       )}
     </PageShell>

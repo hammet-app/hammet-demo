@@ -43,7 +43,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "flex min-h-screen w-[340px] flex-col bg-[#4B0081] px-5 py-[15px] text-white",
+        "flex min-h-screen w-[300px] flex-col bg-[#4B0081] px-5 py-[15px] text-white",
         className
       )}
     >

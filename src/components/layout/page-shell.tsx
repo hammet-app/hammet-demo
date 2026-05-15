@@ -35,7 +35,7 @@ export function PageShell({
           </a>
         )}
 
-        <div className="flex items-start justify-between gap-4">
+        <div className="relative min-h-screen w-full bg-gradient-to-b from-[#4B0081] via-[#B8B8F8] to-[#E4E4FE]">
           <div>
             <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-text-primary">
               {title}

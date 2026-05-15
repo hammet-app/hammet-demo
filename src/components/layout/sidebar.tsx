@@ -96,9 +96,7 @@ export function Sidebar({
 
           const item = entry as NavItem;
 
-          const isActive =
-            activePath === item.href ||
-            activePath.startsWith(item.href + "/");
+          const isActive = activePath === item.href;
 
           const Icon = item.icon;
 

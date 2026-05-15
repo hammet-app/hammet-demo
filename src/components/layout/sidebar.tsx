@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { getDashboardRoute } from "@/lib/auth/routes";
 
 interface SidebarProps {
-  roles: UserRole[]; // Accepts multiple roles in situations where one user is a teacher and school admin
+  roles: UserRole[];
   activeRole: UserRole;
   setActiveRole: (role: UserRole) => void;
   activePath: string;
@@ -43,13 +43,12 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "flex min-h-screen w-[320px] flex-col bg-[#4B0081] px-5 py-4 text-white",
+        "flex min-h-screen w-[340px] flex-col bg-[#4B0081] px-5 py-[15px] text-white",
         className
       )}
     >
-      {/* Role switcher */}
       {roles.length > 1 && (
-        <div className="px-4 py-3">
+        <div className="mb-8">
           <select
             value={activeRole}
             onChange={(e) => {
@@ -58,10 +57,14 @@ export function Sidebar({
               setActiveRole(newRole);
               router.push(getDashboardRoute(newRole));
             }}
-            className="w-full bg-white/10 text-white px-2 py-1 rounded"
+            className="w-full rounded-md bg-white/10 px-3 py-2 text-sm text-white outline-none"
           >
             {roles.map((role) => (
-              <option key={role} value={role}>
+              <option
+                key={role}
+                value={role}
+                className="bg-[#4B0081] text-white"
+              >
                 {formatRole(role)}
               </option>
             ))}
@@ -69,13 +72,13 @@ export function Sidebar({
         </div>
       )}
 
-      <nav className="flex-1 py-4">
+      <nav className="flex flex-1 flex-col gap-[25px]">
         {entries.map((entry, i) => {
           if (entry.type === "section") {
             return (
               <p
                 key={i}
-                className="px-5 pt-5 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-white/30"
+                className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40"
               >
                 {entry.label}
               </p>
@@ -86,15 +89,17 @@ export function Sidebar({
             return (
               <div
                 key={i}
-                className="mx-5 my-3 border-t border-white/[0.08]"
+                className="my-2 border-t border-white/20"
               />
             );
           }
 
           const item = entry as NavItem;
+
           const isActive =
             activePath === item.href ||
             activePath.startsWith(item.href + "/");
+
           const Icon = item.icon;
 
           if (item.action === "logout") {
@@ -107,42 +112,46 @@ export function Sidebar({
                   router.push("/login");
                 }}
                 className={cn(
-                  "w-full justify-start gap-2.5 px-5 py-[9px] text-[13.5px]",
-                  "text-red-400 hover:text-red-300 hover:bg-red-500/[0.12]"
+                  "h-auto w-full justify-start rounded-md bg-white px-5 py-2",
+                  "text-[#D80004] hover:bg-white/90 hover:text-[#D80004]"
                 )}
               >
-                <Icon size={16} />
-                <span className="leading-none">{item.label}</span>
+                <Icon size={16} className="mr-2 shrink-0" />
+
+                <span className="text-xs font-medium leading-none">
+                  {item.label}
+                </span>
               </Button>
             );
           }
 
-          if (item.href) {
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onNavigate}
-                className={cn(
-                  "rounded-md px-5 py-2 text-xs transition-all",
-                  isActive
-                    ? "bg-white/20 text-white"
-                    : item.danger
-                    ? "text-red-400/70 hover:text-red-300 hover:bg-red-500/[0.08]"
-                    : "bg-white/10 text-white/80 hover:bg-white/20"
-                )}
-              >
-                <Icon size={16} className="shrink-0" />
-                <span className="flex-1 leading-none">{item.label}</span>
+          return (
+            <Link
+              key={item.href}
+              href={item.href!}
+              onClick={onNavigate}
+              className={cn(
+                "flex items-center gap-[10px] rounded-md px-5 py-2 text-xs transition-all",
+                isActive
+                  ? "bg-[rgba(127,128,255,0.5)] text-white"
+                  : item.danger
+                  ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
+                  : "bg-[rgba(127,128,255,0.25)] text-white hover:bg-[rgba(127,128,255,0.5)]"
+              )}
+            >
+              <Icon size={16} className="shrink-0" />
 
-                {item.badge != null && item.badge > 0 && (
-                  <span className="ml-auto bg-cyan text-purple-dark text-[10px] font-bold px-1.5 py-[1px] rounded-full min-w-[18px] text-center leading-[16px]">
-                    {item.badge}
-                  </span>
-                )}
-              </Link>
-            );
-          }
+              <span className="flex-1 leading-none">
+                {item.label}
+              </span>
+
+              {item.badge != null && item.badge > 0 && (
+                <span className="min-w-[18px] rounded-full bg-cyan px-1.5 py-[1px] text-center text-[10px] font-bold leading-[16px] text-[#4B0081]">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
         })}
       </nav>
     </aside>

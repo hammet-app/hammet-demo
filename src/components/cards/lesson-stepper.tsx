@@ -208,11 +208,11 @@ export function isPageBlocked(
   page: StepperPage,
   activityText: string,
   reflectionText: string,
-  taskFiles: TaskFilesState,
-  aiForm: AiFormState,
+  taskFiles: TaskFilesState| null,
+  aiForm: AiFormState | null,
   isTeacher: boolean = false
 ): boolean {
-  if (isTeacher) return false;
+  if (isTeacher || !taskFiles || !aiForm) return false;
 
   if (page.kind === "activity" && page.block.required) {
     return activityText.trim().length < 5;
@@ -1498,14 +1498,14 @@ export interface LessonStepperProps {
   reflectionText: string;
   onReflectionChange: (text: string) => void;
   /** Task file state — keyed by block ID */
-  taskFiles: TaskFilesState;
+  taskFiles?: TaskFilesState;
   /** Called when student selects files for a task block */
-  onTaskFilesSelected: (blockId: string, files: FileList) => void;
+  onTaskFilesSelected?: (blockId: string, files: FileList) => void;
   /** Called when student removes a file from a task block */
-  onTaskFileRemove: (blockId: string, index: number) => void;
+  onTaskFileRemove?: (blockId: string, index: number) => void;
   /** AI form state */
-  aiForm: AiFormState;
-  onAiFormChange: (next: AiFormState) => void;
+  aiForm?: AiFormState;
+  onAiFormChange?: (next: AiFormState) => void;
   savedOffline?: boolean;
   onPrevLesson?: () => void;
   currentPage: number;
@@ -1546,8 +1546,8 @@ export function LessonStepper({
   const allBlocks = sections.flatMap((s) => s.blocks);
   const hasActivity = allBlocks.some((b) => b.type === "activity");
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
-  const hasTask = allBlocks.some((b) => b.type === "task");
-  const hasAiForm = allBlocks.some((b) => b.type === "tool_link");
+  const hasTask = !isTeacher && allBlocks.some((b) => b.type === "task");
+  const hasAiForm = !isTeacher && allBlocks.some((b) => b.type === "tool_link");
 
   const introProps = { title, description, weekNumber, term, toolNames };
   const page = pages[currentPage];
@@ -1621,20 +1621,20 @@ export function LessonStepper({
             isTeacher={isTeacher}
           />
         )}
-        {page.kind === "task" && (
+        {page.kind === "task" && !isTeacher && (
           <TaskPageView
             page={page}
-            taskFiles={taskFiles}
-            onFilesSelected={onTaskFilesSelected}
-            onFileRemove={onTaskFileRemove}
+            taskFiles={taskFiles ?? {}}
+            onFilesSelected={onTaskFilesSelected!}
+            onFileRemove={onTaskFileRemove!}
             isTeacher={isTeacher}
           />
         )}
-        {page.kind === "ai_form" && (
+        {page.kind === "ai_form" && !isTeacher && (
           <AiFormPageView
             page={{ ...page, toolNames: lessonToolNames }}
-            aiForm={aiForm}
-            onAiFormChange={onAiFormChange}
+            aiForm={aiForm!}
+            onAiFormChange={onAiFormChange!}
             isTeacher={isTeacher}
           />
         )}

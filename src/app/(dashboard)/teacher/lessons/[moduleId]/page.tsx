@@ -5,7 +5,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getModule, getTeacherModules } from "@/lib/api/teacher";
-import { LessonStepper, buildPages, isPageBlocked } from "@/components/cards/lesson-stepper"; 
+import {
+  LessonStepper,
+  buildPages,
+  isPageBlocked,
+  EMPTY_AI_FORM,
+  type TaskFilesState,
+  type TaskFileEntry,
+  type AiFormState,
+} from "@/components/cards/lesson-stepper";
 import { PageShell } from "@/components/layout/page-shell";
 import { Loader2, ChevronRight, ChevronLeft, ArrowLeft } from "lucide-react";
 import type {
@@ -78,7 +86,7 @@ export default function LessonDetailPage() {
   const pages = module ? buildPages(module.content_json.sections, module.title) : [];
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
-  const blocked = module ? isPageBlocked(pages[currentPage], activityText, reflectionText, isTeacher) : false;
+  const blocked = module ? isPageBlocked(pages[currentPage], activityText, reflectionText,null, null, isTeacher) : false;
 
   const goNext = useCallback(() => {
       if (blocked) return;

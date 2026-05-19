@@ -11,6 +11,11 @@ import {
   ExternalLink,
   HelpCircle,
   ImageOff,
+  Paperclip,
+  Star,
+  Upload,
+  X,
+  Bot,
 } from "lucide-react";
 import type { CurriculumModuleBlock, CurriculumSection } from "@/lib/api/api-types";
 
@@ -34,35 +39,109 @@ function wordCount(text: string): number {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Task file state — keyed by block ID
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type TaskFileEntry = {
+  /** Uploaded URL (online path) or null if pending */
+  url: string | null;
+  /** Local File object — present until uploaded or queued */
+  file?: File;
+  /** Dexie offline queue ID — set when queued offline */
+  dexieId?: string;
+  /** Upload state */
+  status: "uploading" | "done" | "queued" | "error";
+  errorMsg?: string; // set when status === "error"
+};
+
+export type TaskFilesState = Record<string, TaskFileEntry[]>; // blockId → entries
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Form state
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type AiFormNoReason =
+  | "forgot"
+  | "didnt_need"
+  | "no_access"
+  | "not_comfortable"
+  | "other";
+
+export type AiFormPromptChoice = "same" | "edited";
+
+export type AiFormState = {
+  used: boolean | null;
+  // if used === false
+  noReason: AiFormNoReason | null;
+  noReasonOther: string; // max 20 words — for "other"
+  // if used === true
+  toolUsed: string; // tool_name from lesson or "other"
+  toolOther: string; // max 10 words
+  taskDesc: string; // free-text: what did you use it for
+  promptChoice: AiFormPromptChoice | null;
+  editedPrompt: string; // if promptChoice === "edited"
+  rating: number | null; // 1–5
+  ratingComment: string; // optional
+};
+
+export const EMPTY_AI_FORM: AiFormState = {
+  used: null,
+  noReason: null,
+  noReasonOther: "",
+  toolUsed: "",
+  toolOther: "",
+  taskDesc: "",
+  promptChoice: null,
+  editedPrompt: "",
+  rating: null,
+  ratingComment: "",
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Page-building logic
 //
-// Each section produces:
-//   1. A content page — section heading + all non-interactive blocks + task blocks
-//   2. One ejected page per activity block in the section
-//   3. One ejected page per reflection block in the section
-//
-// Page 0 is special: the intro card is merged with the first section's
-// content so the opening page isn't just a title card.
+// Pages in order:
+//   • Per section: one content page + ejected activity/reflection pages
+//   • One task page (if any task blocks exist)
+//   • One AI form page (if any tool_link blocks exist) — before submit
+//   • Submit page
 // ─────────────────────────────────────────────────────────────────────────────
 
 type ContentPage = {
   kind: "content";
   heading?: string | null;
-  blocks: CurriculumModuleBlock[]; // non-interactive + task blocks only
-  isFirst: boolean; // true = merged with intro card
-  isTeacher?: boolean
+  blocks: CurriculumModuleBlock[];
+  isFirst: boolean;
+  isTeacher?: boolean;
 };
 
 type EjectedPage = {
   kind: "activity" | "reflection";
   block: CurriculumModuleBlock;
   moduleTitle: string;
-  isTeacher?: boolean 
+  isTeacher?: boolean;
+};
+
+type TaskPage = {
+  kind: "task";
+  blocks: CurriculumModuleBlock[]; // all task blocks across all sections
+  isTeacher?: boolean;
+};
+
+type AiFormPage = {
+  kind: "ai_form";
+  toolNames: string[]; // from tool_link blocks
+  isTeacher?: boolean;
 };
 
 type SubmitPage = { kind: "submit" };
 
-export type StepperPage = ContentPage | EjectedPage | SubmitPage;
+export type StepperPage =
+  | ContentPage
+  | EjectedPage
+  | TaskPage
+  | AiFormPage
+  | SubmitPage;
 
 export function buildPages(
   sections: CurriculumSection[],
@@ -70,9 +149,17 @@ export function buildPages(
 ): StepperPage[] {
   const pages: StepperPage[] = [];
 
+  const allBlocks = sections.flatMap((s) => s.blocks);
+  const taskBlocks = allBlocks.filter((b) => b.type === "task");
+  const toolLinkBlocks = allBlocks.filter((b) => b.type === "tool_link");
+
   sections.forEach((section, sectionIdx) => {
+    // Content page — exclude task, activity, reflection blocks
     const contentBlocks = section.blocks.filter(
-      (b) => b.type !== "activity" && b.type !== "reflection"
+      (b) =>
+        b.type !== "activity" &&
+        b.type !== "reflection" &&
+        b.type !== "task"
     );
     const ejected = section.blocks.filter(
       (b) => b.type === "activity" || b.type === "reflection"
@@ -94,22 +181,39 @@ export function buildPages(
     }
   });
 
+  // Single task page for all task blocks
+  if (taskBlocks.length > 0) {
+    pages.push({ kind: "task", blocks: taskBlocks });
+  }
+
+  // AI form page — only if lesson has tool links
+  if (toolLinkBlocks.length > 0) {
+    pages.push({
+      kind: "ai_form",
+      toolNames: toolLinkBlocks
+        .map((b) => b.tool_name ?? b.content ?? "")
+        .filter(Boolean),
+    });
+  }
+
   pages.push({ kind: "submit" });
   return pages;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Per-page blocking logic (exported so lesson-detail-page can use it)
+// Per-page blocking logic
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function isPageBlocked(
   page: StepperPage,
   activityText: string,
   reflectionText: string,
+  taskFiles: TaskFilesState,
+  aiForm: AiFormState,
   isTeacher: boolean = false
 ): boolean {
   if (isTeacher) return false;
-  
+
   if (page.kind === "activity" && page.block.required) {
     return activityText.trim().length < 5;
   }
@@ -117,8 +221,46 @@ export function isPageBlocked(
     const wc = wordCount(reflectionText);
     return wc < REFLECTION_MIN || wc > REFLECTION_MAX;
   }
+  if (page.kind === "task") {
+    // Each required task block must have at least one file
+    return page.blocks
+      .filter((b) => b.required)
+      .some((b) => !taskFiles[b.id]?.length);
+  }
+  if (page.kind === "ai_form") {
+    return !isAiFormComplete(aiForm);
+  }
   return false;
 }
+
+function isAiFormComplete(f: AiFormState): boolean {
+  if (f.used === null) return false;
+  if (f.used === false) {
+    if (!f.noReason) return false;
+    if (f.noReason === "other" && wordCount(f.noReasonOther) === 0) return false;
+  }
+  if (f.used === true) {
+    if (!f.toolUsed) return false;
+    if (f.toolUsed === "other" && wordCount(f.toolOther) === 0) return false;
+    if (!f.taskDesc.trim()) return false;
+    if (!f.promptChoice) return false;
+    if (f.promptChoice === "edited" && !f.editedPrompt.trim()) return false;
+    if (f.rating === null) return false;
+  }
+  return true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Accepted file types
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ACCEPTED_TYPES = [
+  "image/*",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "video/*",
+].join(",");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Inline text formatter (body blocks only)
@@ -147,9 +289,7 @@ function formatInlineText(text?: string): string {
       if (inUl) { result += "</ul>"; inUl = false; }
       if (!inOl) {
         const start = Number(trimmed.match(/^(\d+)\./)?.[1] || 1);
-
         result += `<ol start="${start}" class="list-decimal ml-5 space-y-1.5 mt-2 mb-2">`;
-
         inOl = true;
       }
       result += `<li>${trimmed.replace(/^\d+\.\s+/, "")}</li>`;
@@ -509,73 +649,569 @@ function ReflectionBlock({
   );
 }
 
-function TaskBlock({ block }: { block: CurriculumModuleBlock }) {
+// ─────────────────────────────────────────────────────────────────────────────
+// File pill — shows a single uploaded/queued file
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FilePill({
+  entry,
+  onRemove,
+}: {
+  entry: TaskFileEntry;
+  onRemove: () => void;
+}) {
+  const name = entry.file?.name ?? entry.url?.split("/").pop() ?? "File";
+  const statusColor =
+    entry.status === "done"
+      ? "text-[#1D9E75]"
+      : entry.status === "queued"
+      ? "text-[#EF9F27]"
+      : entry.status === "error"
+      ? "text-[#D85A30]"
+      : "text-text-muted";
+  const statusLabel =
+    entry.status === "done"
+      ? "Uploaded"
+      : entry.status === "queued"
+      ? "Queued offline"
+      : entry.status === "error"
+      ? entry.errorMsg ?? "Error"
+      : "Uploading…";
+
   return (
-    <div className="bg-[#E1F5EE] border border-[#5DCAA5]/60 rounded-[10px] px-4 py-3.5 flex gap-3 items-start">
-      <div className="w-8 h-8 rounded-[8px] bg-[#1D9E75] flex items-center justify-center shrink-0 mt-0.5">
-        <CheckSquare size={15} className="text-white" />
-      </div>
-      <div>
-        <BlockLabel className="text-[#0F6E56]">Task</BlockLabel>
+    <div className="flex items-center gap-2.5 bg-bg-page border border-border rounded-[8px] px-3 py-2">
+      <Paperclip size={13} className="text-text-muted shrink-0" />
+      <div className="flex-1 min-w-0">
         <p
-          className="text-[16px] sm:text-[18px] text-[#085041] leading-[1.6]"
+          className="text-[13px] font-medium text-text-primary truncate"
           style={{ fontFamily: FONT_BODY }}
         >
-          {block.content}
+          {name}
+        </p>
+        <p className={cn("text-[11px]", statusColor)} style={{ fontFamily: FONT_BODY }}>
+          {statusLabel}
         </p>
       </div>
+      <button
+        onClick={onRemove}
+        className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-border transition-colors shrink-0"
+        aria-label="Remove file"
+      >
+        <X size={11} className="text-text-muted" />
+      </button>
     </div>
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Block dispatcher — all block types in one place
+// Task page view
 // ─────────────────────────────────────────────────────────────────────────────
 
-function Block({
-  block,
-  activityText,
-  onActivityChange,
-  reflectionText,
-  onReflectionChange,
+function TaskPageView({
+  page,
+  taskFiles,
+  onFilesSelected,
+  onFileRemove,
   isTeacher,
 }: {
-  block: CurriculumModuleBlock;
-  activityText: string;
-  onActivityChange: (v: string) => void;
-  reflectionText: string;
-  onReflectionChange: (v: string) => void;
+  page: TaskPage;
+  taskFiles: TaskFilesState;
+  onFilesSelected: (blockId: string, files: FileList) => void;
+  onFileRemove: (blockId: string, index: number) => void;
   isTeacher?: boolean;
 }) {
-  switch (block.type) {
-    case "subheading":  return <SubheadingBlock block={block} />;
-    case "body":        return <BodyBlock block={block} />;
-    case "image":       return <ImageBlock block={block} />;
-    case "ai_prompt":   return <AiPromptBlock block={block} />;
-    case "video_embed": return <VideoEmbedBlock block={block} />;
-    case "tool_link":   return <ToolLinkBlock block={block} />;
-    case "activity":
-      return (
-        <ActivityBlock
-          block={block}
-          activityText={activityText}
-          onActivityChange={onActivityChange}
-          isTeacher={isTeacher}
-        />
-      );
-    case "reflection":
-      return (
-        <ReflectionBlock
-          block={block}
-          reflectionText={reflectionText}
-          onReflectionChange={onReflectionChange}
-          isTeacher={isTeacher}
-        />
-      );
-    case "task": return <TaskBlock block={block} />;
-    default:     return null;
-  }
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-[8px] bg-[#1D9E75] flex items-center justify-center shrink-0">
+          <CheckSquare size={15} className="text-white" />
+        </div>
+        <h2
+          className="text-[18px] sm:text-[20px] font-bold text-text-primary leading-snug"
+          style={{ fontFamily: FONT_HEAD }}
+        >
+          Tasks
+        </h2>
+      </div>
+
+      {page.blocks.map((block) => {
+        const entries = taskFiles[block.id] ?? [];
+        const inputId = `task-upload-${block.id}`;
+
+        return (
+          <div key={block.id} className="flex flex-col gap-3">
+            {/* Task instruction */}
+            <div className="bg-[#E1F5EE] border border-[#5DCAA5]/60 rounded-[10px] px-4 py-3.5 flex gap-3 items-start">
+              <div className="w-7 h-7 rounded-[7px] bg-[#1D9E75] flex items-center justify-center shrink-0 mt-0.5">
+                <CheckSquare size={13} className="text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <BlockLabel className="text-[#0F6E56]" required={block.required}>
+                  Task
+                </BlockLabel>
+                <p
+                  className="text-[15px] sm:text-[17px] text-[#085041] leading-[1.6]"
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  {block.content}
+                </p>
+              </div>
+            </div>
+
+            {/* Upload area — students only */}
+            {!isTeacher && (
+              <div className="flex flex-col gap-2">
+                <label
+                  className="block text-[13px] font-bold text-text-primary"
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  Upload your work
+                  <span className="font-normal text-[12px] text-text-muted ml-1.5">
+                    (images, documents, videos)
+                  </span>
+                </label>
+
+                {/* File list */}
+                {entries.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    {entries.map((entry, i) => (
+                      <FilePill
+                        key={i}
+                        entry={entry}
+                        onRemove={() => onFileRemove(block.id, i)}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload button */}
+                <label
+                  htmlFor={inputId}
+                  className={cn(
+                    "flex items-center justify-center gap-2 border-2 border-dashed border-[#5DCAA5]/60",
+                    "rounded-[10px] px-4 py-3.5 cursor-pointer transition-colors",
+                    "hover:border-[#1D9E75] hover:bg-[#E1F5EE]/40",
+                    "text-[13px] font-bold text-[#1D9E75]"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  <Upload size={15} />
+                  {entries.length === 0 ? "Choose files" : "Add more files"}
+                  <input
+                    id={inputId}
+                    type="file"
+                    multiple
+                    accept={ACCEPTED_TYPES}
+                    className="sr-only"
+                    onChange={(e) => {
+                      if (e.target.files?.length) {
+                        onFilesSelected(block.id, e.target.files);
+                        // Reset so same file can be re-selected
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AI Form page view
+// ─────────────────────────────────────────────────────────────────────────────
+
+const NO_REASON_OPTIONS: { value: AiFormNoReason; label: string }[] = [
+  { value: "forgot", label: "I forgot to use it" },
+  { value: "didnt_need", label: "I didn't need it" },
+  { value: "no_access", label: "I didn't have access" },
+  { value: "not_comfortable", label: "I wasn't comfortable using it" },
+  { value: "other", label: "Other" },
+];
+
+const STAR_LABELS = ["Poor", "Fair", "Good", "Great", "Excellent"];
+
+function AiFormPageView({
+  page,
+  aiForm,
+  onAiFormChange,
+  isTeacher,
+}: {
+  page: AiFormPage;
+  aiForm: AiFormState;
+  onAiFormChange: (next: AiFormState) => void;
+  isTeacher?: boolean;
+}) {
+  const set = (patch: Partial<AiFormState>) =>
+    onAiFormChange({ ...aiForm, ...patch });
+
+  const toolOptions = [
+    ...page.toolNames.map((name) => ({ value: name, label: name })),
+    { value: "other", label: "Other" },
+  ];
+
+  // Word count helpers
+  const noOtherWC = wordCount(aiForm.noReasonOther);
+  const toolOtherWC = wordCount(aiForm.toolOther);
+
+  return (
+    <div className="flex flex-col gap-5">
+      {/* Header */}
+      <div className="flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-[8px] bg-[#5B21B6] flex items-center justify-center shrink-0">
+          <Bot size={15} className="text-white" />
+        </div>
+        <div>
+          <h2
+            className="text-[18px] sm:text-[20px] font-bold text-text-primary leading-snug"
+            style={{ fontFamily: FONT_HEAD }}
+          >
+            AI Usage Check-in
+          </h2>
+          <p className="text-[12px] text-text-muted" style={{ fontFamily: FONT_BODY }}>
+            This lesson included AI tools. Tell us how it went.
+          </p>
+        </div>
+      </div>
+
+      {/* Q1: Did you use AI? */}
+      <AiFormQuestion label="Did you use AI for this lesson?" required>
+        <div className="flex gap-2">
+          {[
+            { value: true, label: "Yes, I did" },
+            { value: false, label: "No, I didn't" },
+          ].map((opt) => (
+            <button
+              key={String(opt.value)}
+              onClick={() =>
+                set({
+                  used: opt.value,
+                  // reset downstream on toggle
+                  noReason: null,
+                  noReasonOther: "",
+                  toolUsed: "",
+                  toolOther: "",
+                  taskDesc: "",
+                  promptChoice: null,
+                  editedPrompt: "",
+                  rating: null,
+                  ratingComment: "",
+                })
+              }
+              className={cn(
+                "flex-1 px-3 py-2.5 rounded-[10px] border text-[14px] font-bold transition-all",
+                aiForm.used === opt.value
+                  ? "bg-[#3B0764] border-[#3B0764] text-white"
+                  : "border-border bg-bg-card text-text-primary hover:border-[#5B21B6]/50"
+              )}
+              style={{ fontFamily: FONT_BODY }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </AiFormQuestion>
+
+      {/* No branch: why not? */}
+      {aiForm.used === false && (
+        <AiFormQuestion label="Why didn't you use AI?" required>
+          <div className="flex flex-col gap-1.5">
+            {NO_REASON_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() =>
+                  set({ noReason: opt.value, noReasonOther: "" })
+                }
+                className={cn(
+                  "flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
+                  aiForm.noReason === opt.value
+                    ? "bg-[#3B0764] border-[#3B0764] text-white"
+                    : "border-border bg-bg-card text-text-primary hover:border-[#5B21B6]/50"
+                )}
+                style={{ fontFamily: FONT_BODY }}
+              >
+                <span
+                  className={cn(
+                    "w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors",
+                    aiForm.noReason === opt.value
+                      ? "border-white bg-white"
+                      : "border-current"
+                  )}
+                >
+                  {aiForm.noReason === opt.value && (
+                    <span className="w-2 h-2 rounded-full bg-[#3B0764]" />
+                  )}
+                </span>
+                <span className="text-[14px]">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {aiForm.noReason === "other" && (
+            <div className="mt-2">
+              <textarea
+                value={aiForm.noReasonOther}
+                onChange={(e) => set({ noReasonOther: e.target.value })}
+                placeholder="Briefly explain (max 20 words)…"
+                rows={2}
+                className={cn(
+                  "w-full resize-none border border-border rounded-[10px] px-3.5 py-2.5",
+                  "text-[15px] leading-[1.6] outline-none transition-colors bg-bg-card text-text-primary",
+                  "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10",
+                  noOtherWC > 20 && "border-[#D85A30] focus:border-[#D85A30]"
+                )}
+                style={{ fontFamily: FONT_BODY }}
+              />
+              <p
+                className={cn(
+                  "text-[11px] text-right mt-1 tabular-nums",
+                  noOtherWC > 20 ? "text-[#D85A30]" : "text-text-muted"
+                )}
+                style={{ fontFamily: FONT_BODY }}
+              >
+                {noOtherWC} / 20 words
+              </p>
+            </div>
+          )}
+        </AiFormQuestion>
+      )}
+
+      {/* Yes branch */}
+      {aiForm.used === true && (
+        <>
+          {/* Q2a: Which AI? */}
+          <AiFormQuestion label="Which AI tool did you use?" required>
+            <div className="flex flex-col gap-1.5">
+              {toolOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() =>
+                    set({ toolUsed: opt.value, toolOther: "" })
+                  }
+                  className={cn(
+                    "flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
+                    aiForm.toolUsed === opt.value
+                      ? "bg-[#3B0764] border-[#3B0764] text-white"
+                      : "border-border bg-bg-card text-text-primary hover:border-[#5B21B6]/50"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  <span
+                    className={cn(
+                      "w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors",
+                      aiForm.toolUsed === opt.value
+                        ? "border-white bg-white"
+                        : "border-current"
+                    )}
+                  >
+                    {aiForm.toolUsed === opt.value && (
+                      <span className="w-2 h-2 rounded-full bg-[#3B0764]" />
+                    )}
+                  </span>
+                  <span className="text-[14px]">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {aiForm.toolUsed === "other" && (
+              <div className="mt-2">
+                <input
+                  type="text"
+                  value={aiForm.toolOther}
+                  onChange={(e) => set({ toolOther: e.target.value })}
+                  placeholder="Name the AI tool (max 10 words)…"
+                  className={cn(
+                    "w-full border border-border rounded-[10px] px-3.5 py-2.5",
+                    "text-[15px] leading-[1.6] outline-none transition-colors bg-bg-card text-text-primary",
+                    "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10",
+                    toolOtherWC > 10 && "border-[#D85A30] focus:border-[#D85A30]"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                />
+                <p
+                  className={cn(
+                    "text-[11px] text-right mt-1 tabular-nums",
+                    toolOtherWC > 10 ? "text-[#D85A30]" : "text-text-muted"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  {toolOtherWC} / 10 words
+                </p>
+              </div>
+            )}
+          </AiFormQuestion>
+
+          {/* Q2b: What did you use it for? */}
+          <AiFormQuestion label="What did you use it for?" required>
+            <textarea
+              value={aiForm.taskDesc}
+              onChange={(e) => set({ taskDesc: e.target.value })}
+              placeholder="Describe what you asked the AI to help with…"
+              rows={3}
+              className={cn(
+                "w-full resize-y border border-border rounded-[10px] px-3.5 py-2.5",
+                "text-[15px] leading-[1.6] outline-none transition-colors bg-bg-card text-text-primary",
+                "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+              )}
+              style={{ fontFamily: FONT_BODY }}
+            />
+          </AiFormQuestion>
+
+          {/* Q3: Prompts */}
+          <AiFormQuestion label="What prompts did you use?" required>
+            <div className="flex flex-col gap-1.5">
+              {[
+                {
+                  value: "same" as AiFormPromptChoice,
+                  label: "The same one that was given",
+                },
+                {
+                  value: "edited" as AiFormPromptChoice,
+                  label: "I edited the prompt to…",
+                },
+              ].map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() =>
+                    set({ promptChoice: opt.value, editedPrompt: "" })
+                  }
+                  className={cn(
+                    "flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
+                    aiForm.promptChoice === opt.value
+                      ? "bg-[#3B0764] border-[#3B0764] text-white"
+                      : "border-border bg-bg-card text-text-primary hover:border-[#5B21B6]/50"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                >
+                  <span
+                    className={cn(
+                      "w-4 h-4 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors",
+                      aiForm.promptChoice === opt.value
+                        ? "border-white bg-white"
+                        : "border-current"
+                    )}
+                  >
+                    {aiForm.promptChoice === opt.value && (
+                      <span className="w-2 h-2 rounded-full bg-[#3B0764]" />
+                    )}
+                  </span>
+                  <span className="text-[14px]">{opt.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {aiForm.promptChoice === "edited" && (
+              <div className="mt-2">
+                <textarea
+                  value={aiForm.editedPrompt}
+                  onChange={(e) => set({ editedPrompt: e.target.value })}
+                  placeholder="Paste or write the prompt you used…"
+                  rows={3}
+                  className={cn(
+                    "w-full resize-y border border-border rounded-[10px] px-3.5 py-2.5",
+                    "text-[15px] leading-[1.6] outline-none transition-colors bg-bg-card text-text-primary",
+                    "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+                  )}
+                  style={{ fontFamily: FONT_BODY }}
+                />
+              </div>
+            )}
+          </AiFormQuestion>
+
+          {/* Q4: Experience rating */}
+          <AiFormQuestion label="How was your experience using the AI?" required>
+            <div className="flex gap-2 justify-between">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => set({ rating: star })}
+                  className="flex flex-col items-center gap-1 flex-1 group"
+                  aria-label={`Rate ${star} — ${STAR_LABELS[star - 1]}`}
+                >
+                  <Star
+                    size={26}
+                    className={cn(
+                      "transition-all",
+                      (aiForm.rating ?? 0) >= star
+                        ? "fill-[#EF9F27] text-[#EF9F27]"
+                        : "text-border group-hover:text-[#EF9F27]/60"
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold transition-colors",
+                      (aiForm.rating ?? 0) >= star
+                        ? "text-[#EF9F27]"
+                        : "text-text-muted"
+                    )}
+                    style={{ fontFamily: FONT_BODY }}
+                  >
+                    {STAR_LABELS[star - 1]}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Optional comment */}
+            <div className="mt-3">
+              <label
+                className="block text-[12px] text-text-muted mb-1.5"
+                style={{ fontFamily: FONT_BODY }}
+              >
+                Any other comments? <span className="italic">(optional)</span>
+              </label>
+              <textarea
+                value={aiForm.ratingComment}
+                onChange={(e) => set({ ratingComment: e.target.value })}
+                placeholder="Share anything else about your experience…"
+                rows={2}
+                className={cn(
+                  "w-full resize-none border border-border rounded-[10px] px-3.5 py-2.5",
+                  "text-[15px] leading-[1.6] outline-none transition-colors bg-bg-card text-text-primary",
+                  "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
+                )}
+                style={{ fontFamily: FONT_BODY }}
+              />
+            </div>
+          </AiFormQuestion>
+        </>
+      )}
+    </div>
+  );
+}
+
+function AiFormQuestion({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="flex items-center justify-between">
+        <p
+          className="text-[14px] font-bold text-text-primary leading-snug"
+          style={{ fontFamily: FONT_BODY }}
+        >
+          {label}
+        </p>
+        {required && <RequiredBadge />}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ContentBlock dispatcher — task excluded (has its own page)
+// ─────────────────────────────────────────────────────────────────────────────
 
 function ContentBlock({ block }: { block: CurriculumModuleBlock }) {
   switch (block.type) {
@@ -585,7 +1221,6 @@ function ContentBlock({ block }: { block: CurriculumModuleBlock }) {
     case "ai_prompt":   return <AiPromptBlock block={block} />;
     case "video_embed": return <VideoEmbedBlock block={block} />;
     case "tool_link":   return <ToolLinkBlock block={block} />;
-    case "task":        return <TaskBlock block={block} />;
     default:            return null;
   }
 }
@@ -668,12 +1303,12 @@ function ActivityPageView({
   page,
   activityText,
   onActivityChange,
-  isTeacher
+  isTeacher,
 }: {
   page: EjectedPage;
   activityText: string;
   onActivityChange: (v: string) => void;
-  isTeacher?: boolean
+  isTeacher?: boolean;
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -691,7 +1326,6 @@ function ActivityPageView({
       </div>
       {!isTeacher && (
         <div>
-        
           <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
             Activity box
           </label>
@@ -718,12 +1352,12 @@ function ReflectionPageView({
   page,
   reflectionText,
   onReflectionChange,
-  isTeacher
+  isTeacher,
 }: {
   page: EjectedPage;
   reflectionText: string;
   onReflectionChange: (v: string) => void;
-  isTeacher?: boolean
+  isTeacher?: boolean;
 }) {
   const wc = wordCount(reflectionText);
   const wcColor =
@@ -747,9 +1381,8 @@ function ReflectionPageView({
           {page.block.content}
         </p>
       </div>
-      <div>
-        {!isTeacher && (
-          <>
+      {!isTeacher && (
+        <div>
           <label className="block text-[13px] font-bold text-text-primary mb-1.5" style={{ fontFamily: FONT_BODY }}>
             Your reflection{" "}
             <span className="font-normal text-[12px] text-text-muted">({REFLECTION_MIN}–{REFLECTION_MAX} words)</span>
@@ -765,11 +1398,13 @@ function ReflectionPageView({
               "outline-none transition-colors bg-bg-card text-text-primary",
               "focus:border-[#5B21B6] focus:ring-2 focus:ring-[#5B21B6]/10"
             )}
-            style={{ fontFamily: FONT_BODY }} /><p className={cn("text-[12px] text-right mt-1 tabular-nums", wcColor)} style={{ fontFamily: FONT_BODY }}>
-              {wc} / {REFLECTION_MAX} words
-            </p></>
-        )}
-      </div>
+            style={{ fontFamily: FONT_BODY }}
+          />
+          <p className={cn("text-[12px] text-right mt-1 tabular-nums", wcColor)} style={{ fontFamily: FONT_BODY }}>
+            {wc} / {REFLECTION_MAX} words
+          </p>
+        </div>
+      )}
     </div>
   );
 }
@@ -777,10 +1412,14 @@ function ReflectionPageView({
 function SubmitPageView({
   hasActivity,
   hasReflection,
+  hasTask,
+  hasAiForm,
   isTeacher,
 }: {
   hasActivity: boolean;
   hasReflection: boolean;
+  hasTask: boolean;
+  hasAiForm: boolean;
   isTeacher?: boolean;
 }) {
   return (
@@ -804,7 +1443,7 @@ function SubmitPageView({
             : "Your work is saved offline and will submit when you reconnect."}
         </p>
       </div>
-      {(hasActivity || hasReflection) && (
+      {(hasActivity || hasReflection || hasTask || hasAiForm) && !isTeacher && (
         <div className="w-full bg-bg-page border border-border rounded-[10px] px-4 py-3.5 text-left">
           <p
             className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2.5"
@@ -813,24 +1452,16 @@ function SubmitPageView({
             Summary
           </p>
           {hasActivity && (
-            <div className="flex justify-between items-center py-1">
-              <span className="text-[14px] text-text-secondary" style={{ fontFamily: FONT_BODY }}>
-                Activity
-              </span>
-              <span className="text-[13px] font-bold text-[#1D9E75]" style={{ fontFamily: FONT_BODY }}>
-                Completed
-              </span>
-            </div>
+            <SummaryRow label="Activity" />
           )}
           {hasReflection && (
-            <div className="flex justify-between items-center py-1">
-              <span className="text-[14px] text-text-secondary" style={{ fontFamily: FONT_BODY }}>
-                Reflection
-              </span>
-              <span className="text-[13px] font-bold text-[#1D9E75]" style={{ fontFamily: FONT_BODY }}>
-                Completed
-              </span>
-            </div>
+            <SummaryRow label="Reflection" />
+          )}
+          {hasTask && (
+            <SummaryRow label="Task uploads" />
+          )}
+          {hasAiForm && (
+            <SummaryRow label="AI check-in" />
           )}
         </div>
       )}
@@ -838,9 +1469,21 @@ function SubmitPageView({
   );
 }
 
+function SummaryRow({ label }: { label: string }) {
+  return (
+    <div className="flex justify-between items-center py-1">
+      <span className="text-[14px] text-text-secondary" style={{ fontFamily: FONT_BODY }}>
+        {label}
+      </span>
+      <span className="text-[13px] font-bold text-[#1D9E75]" style={{ fontFamily: FONT_BODY }}>
+        Completed
+      </span>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// LessonStepper — progress bar + sliding content only, no footer
-// Footer (Back/Next) lives in lesson-detail-page as a fixed bar
+// LessonStepper
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface LessonStepperProps {
@@ -854,11 +1497,18 @@ export interface LessonStepperProps {
   onActivityChange: (text: string) => void;
   reflectionText: string;
   onReflectionChange: (text: string) => void;
+  /** Task file state — keyed by block ID */
+  taskFiles: TaskFilesState;
+  /** Called when student selects files for a task block */
+  onTaskFilesSelected: (blockId: string, files: FileList) => void;
+  /** Called when student removes a file from a task block */
+  onTaskFileRemove: (blockId: string, index: number) => void;
+  /** AI form state */
+  aiForm: AiFormState;
+  onAiFormChange: (next: AiFormState) => void;
   savedOffline?: boolean;
   onPrevLesson?: () => void;
-  /** Current page index — controlled by lesson-detail-page */
   currentPage: number;
-  /** Called on swipe left (advance) or swipe right (back) */
   onSwipeNext: () => void;
   onSwipeBack: () => void;
   className?: string;
@@ -876,6 +1526,11 @@ export function LessonStepper({
   onActivityChange,
   reflectionText,
   onReflectionChange,
+  taskFiles,
+  onTaskFilesSelected,
+  onTaskFileRemove,
+  aiForm,
+  onAiFormChange,
   savedOffline = false,
   onPrevLesson,
   currentPage,
@@ -891,10 +1546,18 @@ export function LessonStepper({
   const allBlocks = sections.flatMap((s) => s.blocks);
   const hasActivity = allBlocks.some((b) => b.type === "activity");
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
+  const hasTask = allBlocks.some((b) => b.type === "task");
+  const hasAiForm = allBlocks.some((b) => b.type === "tool_link");
+
   const introProps = { title, description, weekNumber, term, toolNames };
   const page = pages[currentPage];
 
-  // ── Swipe ──
+  // Collect tool names from tool_link blocks for AI form
+  const lessonToolNames = allBlocks
+    .filter((b) => b.type === "tool_link")
+    .map((b) => b.tool_name ?? b.content ?? "")
+    .filter(Boolean);
+
   function handleTouchStart(e: React.TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
   }
@@ -909,7 +1572,7 @@ export function LessonStepper({
   const progress = ((currentPage + 1) / total) * 100;
 
   useEffect(() => {
-    document.getElementById("lesson-scroll")?.scrollTo(0,0)
+    document.getElementById("lesson-scroll")?.scrollTo(0, 0);
   }, [currentPage]);
 
   return (
@@ -918,7 +1581,7 @@ export function LessonStepper({
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Progress bar + step counter */}
+      {/* Progress bar */}
       <div className="flex items-center gap-3 px-0.5">
         <div className="flex-1 h-[5px] bg-border rounded-full overflow-hidden">
           <div
@@ -926,27 +1589,65 @@ export function LessonStepper({
             style={{ width: `${progress}%` }}
           />
         </div>
-        <span className="text-[12px] text-text-muted whitespace-nowrap tabular-nums" style={{ fontFamily: FONT_BODY }}>
+        <span
+          className="text-[12px] text-text-muted whitespace-nowrap tabular-nums"
+          style={{ fontFamily: FONT_BODY }}
+        >
           {currentPage + 1} of {total}
         </span>
       </div>
 
-      {/* Current page — height is purely content-driven, no siblings inflating it */}
+      {/* Current page */}
       <div>
         {page.kind === "content" && (
-          <ContentPageView page={page} introProps={page.isFirst ? introProps : undefined} />
+          <ContentPageView
+            page={page}
+            introProps={page.isFirst ? introProps : undefined}
+          />
         )}
         {page.kind === "activity" && (
-          <ActivityPageView page={page} activityText={activityText} onActivityChange={onActivityChange} isTeacher={isTeacher}/>
+          <ActivityPageView
+            page={page}
+            activityText={activityText}
+            onActivityChange={onActivityChange}
+            isTeacher={isTeacher}
+          />
         )}
         {page.kind === "reflection" && (
-          <ReflectionPageView page={page} reflectionText={reflectionText} onReflectionChange={onReflectionChange} isTeacher={isTeacher}/>
+          <ReflectionPageView
+            page={page}
+            reflectionText={reflectionText}
+            onReflectionChange={onReflectionChange}
+            isTeacher={isTeacher}
+          />
+        )}
+        {page.kind === "task" && (
+          <TaskPageView
+            page={page}
+            taskFiles={taskFiles}
+            onFilesSelected={onTaskFilesSelected}
+            onFileRemove={onTaskFileRemove}
+            isTeacher={isTeacher}
+          />
+        )}
+        {page.kind === "ai_form" && (
+          <AiFormPageView
+            page={{ ...page, toolNames: lessonToolNames }}
+            aiForm={aiForm}
+            onAiFormChange={onAiFormChange}
+            isTeacher={isTeacher}
+          />
         )}
         {page.kind === "submit" && (
-          <SubmitPageView hasActivity={hasActivity} hasReflection={hasReflection} isTeacher={isTeacher}/>
+          <SubmitPageView
+            hasActivity={hasActivity}
+            hasReflection={hasReflection}
+            hasTask={hasTask}
+            hasAiForm={hasAiForm}
+            isTeacher={isTeacher}
+          />
         )}
       </div>
     </div>
   );
 }
-

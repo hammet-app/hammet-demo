@@ -4,12 +4,31 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { submitLesson } from "@/lib/sync";
-import { cn } from "@/lib/utils/utils"
-import { LessonStepper, buildPages, isPageBlocked } from "@/components/cards/lesson-stepper";
+import { cn } from "@/lib/utils/utils";
+import {
+  LessonStepper,
+  buildPages,
+  isPageBlocked,
+  EMPTY_AI_FORM,
+  type TaskFilesState,
+  type TaskFileEntry,
+  type AiFormState,
+} from "@/components/cards/lesson-stepper";
+import {
+  compressAndEnqueue,
+  uploadFilesForModule,
+  removeQueuedFile,
+} from "@/lib/file-pipeline";
+import { clearUploadedFilesForModule, submitLesson, saveSubmissionLocally } from "@/lib/db";
 import { PageShell } from "@/components/layout/page-shell";
 import { StatusPill } from "@/components/ui/status-pill";
-import { Loader2, CheckCircle2, Clock, ChevronRight, ChevronLeft } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  Clock,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
 import type {
   CurriculumModule,
   ModulesResponse,
@@ -30,6 +49,7 @@ async function saveOffline(
   studentId: string,
   moduleId: string,
   moduleTitle: string,
+  file_urls: string[],
   activityText?: string,
   reflectionText?: string
 ): Promise<void> {
@@ -38,6 +58,7 @@ async function saveOffline(
       studentId,
       moduleId,
       moduleTitle,
+      file_urls,
       activityText,
       reflectionText,
     });
@@ -69,6 +90,13 @@ export default function LessonDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
+  // Task file state — keyed by block ID
+  // Each entry tracks the file's compress/upload lifecycle shown in the UI
+  const [taskFiles, setTaskFiles] = useState<TaskFilesState>({});
+
+  // AI form state
+  const [aiForm, setAiForm] = useState<AiFormState>(EMPTY_AI_FORM);
+
   // Stepper page state lives here so the fixed footer can access it
   const [currentPage, setCurrentPage] = useState(0);
 
@@ -80,6 +108,7 @@ export default function LessonDetailPage() {
       try {
         const [mod, list, history] = await Promise.all([
           studentApi.getModule(moduleId, accessToken!, refreshToken),
+          // getModules calls cacheModules internally — Dexie is populated here
           studentApi.getModules(user!.term!, user!.class_level!, accessToken!, refreshToken),
           studentApi.getSubmissions(accessToken!, refreshToken),
         ]);
@@ -106,7 +135,7 @@ export default function LessonDetailPage() {
     load();
   }, [accessToken, moduleId, user?.class_level]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto-save to Dexie on input change ───────────────────────────────────
+  // ── Auto-save text to Dexie on change ────────────────────────────────────
   useEffect(() => {
     if (!user || !module) return;
     if (!activityText && !reflectionText) return;
@@ -116,6 +145,7 @@ export default function LessonDetailPage() {
         user.id,
         moduleId,
         module.title,
+        [],
         activityText || undefined,
         reflectionText || undefined
       );
@@ -125,7 +155,107 @@ export default function LessonDetailPage() {
     return () => clearTimeout(t);
   }, [activityText, reflectionText, moduleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Navigation helpers ───────────────────────────────────────────────────
+  // ── Task file handlers ────────────────────────────────────────────────────
+
+  const handleTaskFilesSelected = useCallback(
+    async (blockId: string, files: FileList) => {
+      if (!user) return;
+
+      const incoming = Array.from(files);
+
+      // Add placeholder entries immediately so the UI responds
+      setTaskFiles((prev) => {
+        const existing = prev[blockId] ?? [];
+        const placeholders: TaskFileEntry[] = incoming.map((file) => ({
+          url: null,
+          file,
+          status: "uploading",
+        }));
+        return { ...prev, [blockId]: [...existing, ...placeholders] };
+      });
+
+      // Compress → Dexie → Supabase Storage for each file
+      for (let i = 0; i < incoming.length; i++) {
+        const file = incoming[i];
+        // Offset by however many entries existed before we added placeholders
+        const entryIdx = (taskFiles[blockId]?.length ?? 0) + i;
+
+        // Step 1: compress + enqueue to Dexie
+        const enqueueResult = await compressAndEnqueue(
+          file,
+          user.id,
+          moduleId,
+          blockId
+        );
+
+        if (!enqueueResult.ok) {
+          // Compression rejected the file (e.g. video too large)
+          const msg =
+            enqueueResult.error.kind === "video_too_large"
+              ? `Video too large (${enqueueResult.error.sizeMb} MB). Max is ${enqueueResult.error.maxMb} MB.`
+              : "File could not be processed.";
+
+          setTaskFiles((prev) => {
+            const entries = [...(prev[blockId] ?? [])];
+            entries[entryIdx] = { url: null, file, status: "error", errorMsg: msg };
+            return { ...prev, [blockId]: entries };
+          });
+          continue;
+        }
+
+        const { dexieId } = enqueueResult;
+
+        // Step 2: attempt immediate upload to Supabase Storage
+        // uploadFilesForModule picks up the Dexie entry we just wrote
+        const uploaded = await uploadFilesForModule(moduleId);
+        const match = uploaded.find((u) => u.dexieId === dexieId);
+
+        if (match) {
+          // Upload succeeded — store the path as the URL
+          setTaskFiles((prev) => {
+            const entries = [...(prev[blockId] ?? [])];
+            entries[entryIdx] = {
+              url: match.path,
+              file,
+              dexieId,
+              status: "done",
+            };
+            return { ...prev, [blockId]: entries };
+          });
+        } else {
+          // Upload failed — blob is safely in Dexie, will retry on reconnect
+          setTaskFiles((prev) => {
+            const entries = [...(prev[blockId] ?? [])];
+            entries[entryIdx] = {
+              url: null,
+              file,
+              dexieId,
+              status: "queued",
+            };
+            return { ...prev, [blockId]: entries };
+          });
+        }
+      }
+    },
+    [user, moduleId, taskFiles]
+  );
+
+  const handleTaskFileRemove = useCallback(async (blockId: string, index: number) => {
+    setTaskFiles((prev) => {
+      const entries = [...(prev[blockId] ?? [])];
+      const removed = entries[index];
+
+      // Remove from Dexie queue if it hasn't uploaded yet
+      if (removed?.dexieId) {
+        removeQueuedFile(removed.dexieId).catch(() => {});
+      }
+
+      entries.splice(index, 1);
+      return { ...prev, [blockId]: entries };
+    });
+  }, []);
+
+  // ── Navigation helpers ────────────────────────────────────────────────────
   const sortedModules = [...allModules].sort(
     (a, b) => a.week_number - b.week_number
   );
@@ -137,10 +267,21 @@ export default function LessonDetailPage() {
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
   // ── Stepper page navigation ───────────────────────────────────────────────
-  const pages = module ? buildPages(module.content_json.sections, module.title) : [];
+  const pages = module
+    ? buildPages(module.content_json.sections, module.title)
+    : [];
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
-  const blocked = module ? isPageBlocked(pages[currentPage], activityText, reflectionText) : false;
+  const blocked = module
+    ? isPageBlocked(
+        pages[currentPage],
+        activityText,
+        reflectionText,
+        taskFiles,
+        aiForm,
+        false
+      )
+    : false;
 
   const goNext = useCallback(() => {
     if (blocked) return;
@@ -156,51 +297,84 @@ export default function LessonDetailPage() {
     setCurrentPage((p) => Math.max(0, p - 1));
   }, [currentPage, prevMod, router]);
 
-  // ── Submit ───────────────────────────────────────────────────────────────
+  // ── Submit ────────────────────────────────────────────────────────────────
   async function handleSubmit() {
-    if (!accessToken || !module) return;
-    setIsSubmitting(true);
-    setSubmitError("");
+  if (!module || !user) return;
+  setIsSubmitting(true);
+  setSubmitError("");
 
+  // Retry any queued file uploads first
+  const freshUploads = await uploadFilesForModule(moduleId);
+
+  const allPaths = Object.values(taskFiles)
+    .flat()
+    .filter((e) => e.status === "done" && e.url)
+    .map((e) => e.url!);
+
+  for (const u of freshUploads) {
+    if (!allPaths.includes(u.path)) allPaths.push(u.path);
+  }
+
+  const payload = {
+    module_id: moduleId,
+    activity_text: activityText,
+    reflection_text: reflectionText || null,
+    file_urls: allPaths.length > 0 ? allPaths : null,
+    local_id: crypto.randomUUID(),
+  };
+
+  // Try backend first
+  if (accessToken) {
     try {
-      await studentApi.submitModule(
-        {
-          module_id: moduleId,
-          activity_text: activityText,
-          reflection_text: reflectionText,
-          file_url: null,
-          local_id: crypto.randomUUID(),
-        },
-        accessToken,
-        refreshToken
-      );
+      await studentApi.submitModule(payload, accessToken, refreshToken);
+      await clearUploadedFilesForModule(moduleId);
 
       setExistingSubmission({
-        id: crypto.randomUUID(), // temporary client value
+        id: crypto.randomUUID(),
         module_title: module.title,
         term: module.term,
         week_number: module.week_number,
         module_id: moduleId,
         activity_text: activityText,
-        reflection_text: reflectionText,
-        file_url: null,
+        reflection_text: reflectionText || null,
+        file_urls: allPaths.length > 0 ? allPaths : null,
         synced_at: null,
-        local_id: crypto.randomUUID(),
+        local_id: payload.local_id,
         submitted_at: new Date().toISOString(),
         status: "submitted",
         teacher_note: null,
       });
 
-    } catch {
-      setSubmitError(
-        "Failed to submit. Your work is saved offline and will sync when you reconnect."
-      );
-    } finally {
       setIsSubmitting(false);
+      return;
+    } catch {
+      // Fall through to Dexie
     }
   }
 
-  // ── Render states ────────────────────────────────────────────────────────
+  // Backend failed or no token — save to Dexie for later sync
+  try {
+    await saveSubmissionLocally({
+      localId: payload.local_id,
+      studentId: user.id,
+      moduleId,
+      activityText: activityText || undefined,
+      reflectionText: reflectionText || undefined,
+      file_urls: allPaths,
+      submittedAt: new Date().toISOString(),
+    });
+    setSavedOffline(true);
+    setSubmitError(
+      "No connection. Your work is saved and will submit automatically when you reconnect."
+    );
+  } catch {
+    setSubmitError("Failed to save your work. Please try again.");
+  } finally {
+    setIsSubmitting(false);
+  }
+}
+
+  // ── Render states ─────────────────────────────────────────────────────────
   if (loadState === "loading") {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -221,7 +395,6 @@ export default function LessonDetailPage() {
 
   const status = existingSubmission?.status ?? null;
 
-  // Tool names — derived from tool_link blocks across all sections
   const toolNames = module.content_json.sections
     .flatMap((s) => s.blocks)
     .filter((b) => b.type === "tool_link")
@@ -233,22 +406,15 @@ export default function LessonDetailPage() {
 
   return (
     <>
-      {/*
-        Content area — pb-[72px] ensures content is never hidden behind the
-        fixed footer bar. The main element in DashboardLayoutInner is already
-        overflow-y-auto so this scrolls correctly.
-      */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 pt-5 pb-[72px]">
+      <div className="w-full px-4 sm:px-6 lg:px-8 pt-5 pb-[72px]" id="lesson-scroll">
         <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4">
 
-          {/* Non-fatal submit error */}
           {submitError && (
             <div className="text-[13px] text-warning-dark bg-warning-light border border-warning/20 rounded-[10px] px-4 py-3">
               {submitError}
             </div>
           )}
 
-          {/* Already submitted or approved */}
           {(status === "submitted" || status === "approved") && (
             <SubmittedNotice
               status={status}
@@ -262,7 +428,6 @@ export default function LessonDetailPage() {
             />
           )}
 
-          {/* Teacher feedback banner — shown above stepper when flagged */}
           {status === "flagged" && existingSubmission?.teacher_note && (
             <div className="border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
@@ -274,7 +439,6 @@ export default function LessonDetailPage() {
             </div>
           )}
 
-          {/* Stepper — shown when not yet submitted, or flagged for revision */}
           {showStepper && (
             <LessonStepper
               title={module.title}
@@ -287,6 +451,11 @@ export default function LessonDetailPage() {
               onActivityChange={setActivityText}
               reflectionText={reflectionText}
               onReflectionChange={setReflectionText}
+              taskFiles={taskFiles}
+              onTaskFilesSelected={handleTaskFilesSelected}
+              onTaskFileRemove={handleTaskFileRemove}
+              aiForm={aiForm}
+              onAiFormChange={setAiForm}
               savedOffline={savedOffline}
               onPrevLesson={
                 prevMod
@@ -302,22 +471,18 @@ export default function LessonDetailPage() {
         </div>
       </div>
 
-      {/*
-        Fixed footer — always visible at the bottom of the viewport, above
-        the sidebar on desktop (ml-[240px] matches sidebar width).
-        Never depends on content height, works identically on every page.
-      */}
       {showStepper && (
         <div className="fixed bottom-0 left-0 right-0 md:left-[240px] z-10 bg-bg-page border-t border-border">
           <div className="w-full max-w-[680px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
 
-            {/* Offline status */}
-            <div className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]" style={{ fontFamily: FONT_BODY }}>
+            <div
+              className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]"
+              style={{ fontFamily: FONT_BODY }}
+            >
               <span className="w-[6px] h-[6px] rounded-full bg-[#1D9E75] shrink-0" />
               {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
             </div>
 
-            {/* Nav buttons */}
             <div className="flex items-center gap-2">
               {(currentPage > 0 || prevMod) && (
                 <button
@@ -332,10 +497,10 @@ export default function LessonDetailPage() {
               {isLastPage ? (
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || blocked}
                   className={cn(
                     "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
-                    !isSubmitting
+                    !isSubmitting && !blocked
                       ? "bg-[#1D9E75] text-white hover:bg-[#178a65]"
                       : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
                   )}

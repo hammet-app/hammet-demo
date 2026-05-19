@@ -28,6 +28,7 @@ export type CurriculumModuleBlock = {
   tool_name?: string;
   required?: boolean;
   is_valid?: boolean;
+  id: string;
 };
 
 // Re-export full api-types here as you build them out.
@@ -219,7 +220,7 @@ export type Submission = {
   week_number: number;
   activity_text: string;
   reflection_text: string | null;
-  file_url: string | null;
+  file_urls: string[] | null;
   status: "submitted" | "approved" | "flagged";
   teacher_note: string | null;    // populated when flagged
   submitted_at: string;
@@ -244,7 +245,7 @@ export type PortfolioEntry = {
   term: number;
   week_number: number;
   reflection_text: string | null;
-  file_url: string | null;
+  file_urls: string | null;
   approved_at: string;            // auto-generated on approval by Celery
   // denormalised — no join needed
   student_name: string;
@@ -294,6 +295,7 @@ export type ModulesResponse = {
 
 
 export interface CurriculumSection {
+  id?: string | null;
   heading?: string | null;
   blocks: CurriculumModuleBlock[];
 }
@@ -322,7 +324,7 @@ export type CreateSubmissionRequest = {
   module_id: string;
   activity_text: string;
   reflection_text: string | null;
-  file_url: string | null;
+  file_urls: string[] | null;
   local_id: string;             // client UUID for offline dedup
 };
 
@@ -343,7 +345,7 @@ export type CreateSubmissionResponse = {
 export type SyncSubmissionItem = {
   module_id: string;
   reflection_text: string | null;
-  file_url: string | null;
+  file_url: string[] | null;
   local_id: string;
 };
 

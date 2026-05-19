@@ -122,22 +122,25 @@ function PortfolioEntryCard({ entry }: { entry: PortfolioEntry }) {
           )}
 
           {/* File attachment */}
-          {entry.file_url && (
-            <div>
-              <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2">
-                <FileText size={12} />
-                Attachment
+          {entry.file_urls?.map((fileUrl, index) =>
+            fileUrl ? (
+              <div key={index}>
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2">
+                  <FileText size={12} />
+                  Attachment
+                </div>
+
+                <a
+                  href={fileUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-[13px] font-medium text-cyan hover:text-cyan-dark transition-colors no-underline"
+                >
+                  <ExternalLink size={13} />
+                  View uploaded file {index + 1}
+                </a>
               </div>
-              <a
-                href={entry.file_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-cyan hover:text-cyan-dark transition-colors no-underline"
-              >
-                <ExternalLink size={13} />
-                View uploaded file
-              </a>
-            </div>
+            ) : null
           )}
 
           {/* Meta */}

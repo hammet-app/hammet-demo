@@ -245,7 +245,7 @@ export type PortfolioEntry = {
   term: number;
   week_number: number;
   reflection_text: string | null;
-  file_urls: string | null;
+  file_urls: string[] | null;
   approved_at: string;            // auto-generated on approval by Celery
   // denormalised — no join needed
   student_name: string;

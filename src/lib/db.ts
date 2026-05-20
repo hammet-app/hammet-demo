@@ -5,6 +5,7 @@
 
 import Dexie, { type Table } from 'dexie'
 import { useAuth } from '@/lib/auth/auth-context'
+import { CurriculumContentJson } from './api/api-types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,16 +35,16 @@ export interface LocalPortfolioEntry {
 export interface CachedModule {
   id: string
   term: number
-  weekNumber: number
-  sessionNumber: number
+  week_number: number
   level: string
   title: string
-  learningObjective: string
-  contentJson: object
-  aiTools: string[]
-  portfolioArtefactType: string
+  learning_objective?: string
+  contentJson: CurriculumContentJson
+  aiTools?: string[]
   version: number
-  cachedAt: string
+  updated_at: string
+  published: boolean
+  progress: string | null
 }
 
 export interface LocalFileQueue {
@@ -238,6 +239,11 @@ export async function getModulesForTerm(
   return db.modules.where('[term+level]').equals([term, level]).toArray()
 }
 
+export async function getCachedModule(
+  moduleId: string
+): Promise<CachedModule | undefined> {
+  return db.modules.get(moduleId)
+}
 // ── Sync function ─────────────────────────────────────────────────────────────
 // Call this:
 // 1. When the app comes back online (useOnlineStatus hook)

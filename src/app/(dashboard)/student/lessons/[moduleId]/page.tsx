@@ -268,7 +268,7 @@ export default function LessonDetailPage() {
 
   // ── Stepper page navigation ───────────────────────────────────────────────
   const pages = module
-    ? buildPages(module.content_json.sections, module.title)
+    ? buildPages(module.contentJson.sections, module.title)
     : [];
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
@@ -395,7 +395,7 @@ export default function LessonDetailPage() {
 
   const status = existingSubmission?.status ?? null;
 
-  const toolNames = module.content_json.sections
+  const toolNames = module.contentJson.sections
     .flatMap((s) => s.blocks)
     .filter((b) => b.type === "tool_link")
     .map((b) => b.tool_name || b.content)
@@ -446,7 +446,7 @@ export default function LessonDetailPage() {
               weekNumber={module.week_number}
               term={module.term}
               toolNames={toolNames}
-              sections={module.content_json.sections}
+              sections={module.contentJson.sections}
               activityText={activityText}
               onActivityChange={setActivityText}
               reflectionText={reflectionText}

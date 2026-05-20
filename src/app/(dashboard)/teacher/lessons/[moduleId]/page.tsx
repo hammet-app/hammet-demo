@@ -83,7 +83,7 @@ export default function LessonDetailPage() {
   const currentIdx = sortedModules.findIndex((m) => m.id === moduleId);
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
-  const pages = module ? buildPages(module.content_json.sections, module.title) : [];
+  const pages = module ? buildPages(module.contentJson.sections, module.title) : [];
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
   const blocked = module ? isPageBlocked(pages[currentPage], activityText, reflectionText,null, null, isTeacher) : false;
@@ -132,7 +132,7 @@ export default function LessonDetailPage() {
   }
 
   // Tool names — derived from tool_link blocks across all sections
-  const toolNames = module.content_json.sections
+  const toolNames = module.contentJson.sections
     .flatMap((s) => s.blocks)
     .filter((b) => b.type === "tool_link")
     .map((b) => b.tool_name || b.content)
@@ -174,7 +174,7 @@ export default function LessonDetailPage() {
               weekNumber={module.week_number}
               term={module.term}
               toolNames={toolNames}
-              sections={module.content_json.sections}
+              sections={module.contentJson.sections}
               activityText={activityText}
               onActivityChange={setActivityText}
               reflectionText={reflectionText}

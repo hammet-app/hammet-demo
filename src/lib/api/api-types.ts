@@ -284,7 +284,13 @@ export type ModuleSummary = {
   term: number;
   week_number: number;
   level: string;
-  published: boolean;
+  learning_objective?: string
+  contentJson: CurriculumContentJson
+  aiTools?: string[]
+  version: number
+  updated_at: string
+  published: boolean
+  progress: string|null
 };
 
 export type ModulesResponse = {
@@ -312,10 +318,11 @@ export interface CurriculumModule {
   term: number;
   week_number: number;
   level: string;
-  content_json: CurriculumContentJson;
-  created_at: string;
-  updated_at: string;
-  published: boolean;
+  contentJson: CurriculumContentJson;
+  version: number
+  updated_at: string
+  published: boolean
+  progress: string|null
 }
 
 

@@ -17,22 +17,22 @@ interface AuthGuardProps {
  * Place this inside the (dashboard) group layout, inside AuthProvider.
  */
 export function AuthGuard({ children }: AuthGuardProps) {
-  const { user, isLoading, isResolved } = useAuth();
+  const { user, isLoading, isResolved, isOffline } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    // Once resolved with no user → send to login
-    if (isResolved && !user) {
+    // Only redirect if we've resolved AND there's no user AND we're not
+    // in offline mode with a cached session.
+    if (isResolved && !user && !isOffline) {
       router.replace("/login");
     }
-  }, [isResolved, user, router]);
+  }, [isResolved, user, isOffline, router]);
 
-  // ── Loading: silent refresh in flight ──
   if (isLoading || !isResolved) {
     return <DashboardSkeleton />;
   }
 
-  // ── No user: redirect is firing, show nothing ──
+  // Offline with no cached session at all — redirect is firing
   if (!user) {
     return null;
   }

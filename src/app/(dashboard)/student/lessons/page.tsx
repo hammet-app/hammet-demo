@@ -33,10 +33,10 @@ export default function LessonsPage() {
             accessToken!,
             refreshToken
           ),
-          studentApi.getProgress(accessToken!, refreshToken),
+          studentApi.getProgress(accessToken!, refreshToken).catch(() => null),
         ]);
         setModules(modulesData.modules);
-        setProgress(progressData);
+        if (progressData) setProgress(progressData);
       } catch (err) {
         if (err instanceof ApiError) {
           if (err.status === 401) {

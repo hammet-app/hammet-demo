@@ -110,7 +110,7 @@ export default function LessonDetailPage() {
           studentApi.getModule(moduleId, accessToken!, refreshToken),
           // getModules calls cacheModules internally — Dexie is populated here
           studentApi.getModules(user!.term!, user!.class_level!, accessToken!, refreshToken),
-          studentApi.getSubmissions(accessToken!, refreshToken),
+          studentApi.getSubmissions(accessToken!, refreshToken).catch(() => ({submissions: []})),
         ]);
 
         setModule(mod);

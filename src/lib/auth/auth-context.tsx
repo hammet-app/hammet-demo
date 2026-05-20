@@ -10,24 +10,30 @@ import {
   type ReactNode,
 } from "react";
 import type { AuthUser } from "@/lib/utils/roles";
+import {
+  persistSession,
+  getPersistedSession,
+  clearPersistedSession,
+} from "@/lib/db";
 
 // ─── Types ────────────────────────────────────────────────────
 
 interface AuthState {
   user: AuthUser | null;
   accessToken: string | null;
-  /** True while the initial silent refresh is in flight */
   isLoading: boolean;
-  /** True once the initial refresh attempt has resolved (success or fail) */
   isResolved: boolean;
+  /**
+   * True when the user was hydrated from IndexedDB and the network
+   * refresh either failed or hasn't resolved yet. Pages that need
+   * live data can use this to show a "offline mode" indicator.
+   */
+  isOffline: boolean;
 }
 
 interface AuthContextValue extends AuthState {
-  /** Called by the login page after a successful POST /auth/login */
   setSession: (user: AuthUser, accessToken: string) => void;
-  /** Clears context and calls POST /auth/logout */
   logout: () => Promise<void>;
-  /** Imperatively refresh the access token — used by the API client */
   refreshToken: () => Promise<string | null>;
 }
 
@@ -38,7 +44,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 // ─── Constants ────────────────────────────────────────────────
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
-/** Refresh 5 minutes before the 60-min access token expires */
 const REFRESH_INTERVAL_MS = 55 * 60 * 1000;
 
 // ─── Provider ─────────────────────────────────────────────────
@@ -49,11 +54,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessToken: null,
     isLoading: true,
     isResolved: false,
+    isOffline: false,
   });
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  let refreshPromise: Promise<string | null> | null = null;
 
-  // ── Schedule proactive token refresh ──
   const scheduleRefresh = useCallback(() => {
     if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     refreshTimerRef.current = setTimeout(async () => {
@@ -61,108 +67,138 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, REFRESH_INTERVAL_MS);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Core refresh call ──
- let refreshPromise: Promise<string | null> | null = null;
+  const refreshToken = useCallback(async (): Promise<string | null> => {
+    if (localStorage.getItem("logged_out") === "true") return null;
+    if (refreshPromise) return refreshPromise;
 
-const refreshToken = useCallback(async (): Promise<string | null> => {
-  // Prevent refresh after explicit logout
-  if (localStorage.getItem("logged_out") === "true") {
-    return null;
-  }
-  
-  if (refreshPromise) {
-    return refreshPromise; // reuse ongoing refresh
-  }
+    refreshPromise = (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/auth/refresh`, {
+          method: "POST",
+          credentials: "include",
+        });
 
-  refreshPromise = (async () => {
-    try {
-      const res = await fetch(`${API_BASE}/auth/refresh`, {
-        method: "POST",
-        credentials: "include",
-      });
+        if (!res.ok) {
+          // Network reached but token is invalid — genuinely logged out.
+          // Clear the persisted session so we don't resurrect a dead session.
+          await clearPersistedSession();
+          setState({
+            user: null,
+            accessToken: null,
+            isLoading: false,
+            isResolved: true,
+            isOffline: false,
+          });
+          return null;
+        }
 
-      if (!res.ok) {
-        setState({
-          user: null,
-          accessToken: null,
+        const data = await res.json();
+
+        // Persist fresh session to IndexedDB for next offline load
+        await persistSession(data.user, data.access_token);
+
+        setState((prev) => ({
+          ...prev,
+          accessToken: data.access_token,
+          user: data.user,
           isLoading: false,
           isResolved: true,
-        });
+          isOffline: false,
+        }));
+
+        scheduleRefresh();
+        return data.access_token;
+      } catch {
+        // Network error (offline, timeout, etc.)
+        // Don't wipe the user — keep whatever is in state (may be from IndexedDB).
+        // Just mark as resolved + offline so the UI can adapt.
+        setState((prev) => ({
+          ...prev,
+          isLoading: false,
+          isResolved: true,
+          isOffline: true,
+        }));
         return null;
+      } finally {
+        refreshPromise = null;
       }
+    })();
 
-      const data = await res.json();
-
-      setState((prev) => ({
-        ...prev,
-        accessToken: data.access_token,
-        user: data.user,
-        isLoading: false,
-        isResolved: true,
-      }));
-
-      scheduleRefresh();
-      return data.access_token;
-    } catch {
-      setState({
-        user: null,
-        accessToken: null,
-        isLoading: false,
-        isResolved: true,
-      });
-      return null;
-    } finally {
-      refreshPromise = null; // release lock
-    }
-  })();
-
-  return refreshPromise;
-}, [scheduleRefresh]);
+    return refreshPromise;
+  }, [scheduleRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Silent refresh on mount ──
+  // Step 1: hydrate from IndexedDB immediately (no skeleton if cached)
+  // Step 2: attempt network refresh in background
   useEffect(() => {
-    refreshToken();
+    let cancelled = false;
+
+    async function init() {
+      // Step 1 — try IndexedDB first
+      const cached = await getPersistedSession();
+
+      if (cached && !cancelled) {
+        // Resolve immediately with cached session — no loading skeleton
+        setState({
+          user: cached.user,
+          accessToken: cached.accessToken,
+          isLoading: false,
+          isResolved: true,
+          isOffline: true, // assume offline until network confirms
+        });
+      }
+
+      // Step 2 — attempt network refresh regardless
+      // If it succeeds: updates state + clears isOffline
+      // If it fails + we have a cached session: user stays logged in (isOffline stays true)
+      // If it fails + no cached session: user goes to login
+      if (!cancelled) {
+        await refreshToken();
+      }
+    }
+
+    init();
+
     return () => {
+      cancelled = true;
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Set session after login ──
   const setSession = useCallback(
     (user: AuthUser, accessToken: string) => {
-      setState({ user, accessToken, isLoading: false, isResolved: true });
+      persistSession(user, accessToken); // fire-and-forget
       localStorage.removeItem("logged_out");
+      setState({ user, accessToken, isLoading: false, isResolved: true, isOffline: false });
       scheduleRefresh();
     },
     [scheduleRefresh]
   );
 
-  // ── Logout ──
   const logout = useCallback(async () => {
     localStorage.setItem("logged_out", "true");
+    await clearPersistedSession();
     try {
       await fetch(`${API_BASE}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
     } catch {
-      // Ignore network errors — clear session regardless
+      // ignore
     } finally {
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-      setState({ user: null, accessToken: null, isLoading: false, isResolved: true });
+      setState({ user: null, accessToken: null, isLoading: false, isResolved: true, isOffline: false });
     }
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ ...state, setSession, logout, refreshToken }}
-    >
+    <AuthContext.Provider value={{ ...state, setSession, logout, refreshToken }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// ─── Hook ─────────────────────────────────────────────────────
+// ─── Hooks ────────────────────────────────────────────────────
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
@@ -170,10 +206,6 @@ export function useAuth(): AuthContextValue {
   return ctx;
 }
 
-/**
- * Returns just the access token getter — useful in the API client
- * where you don't need the full auth state.
- */
 export function useAccessToken(): string | null {
   return useAuth().accessToken;
 }

@@ -86,18 +86,18 @@ export const studentApi = {
       return cached
     }
 
-  // 2. Fetch from backend
-  const fresh = await apiClient.get<CurriculumModule>(
-    `/modules/${moduleId}`,
-    token,
-    { onRefresh }
-  )
+    // 2. Fetch from backend
+    const fresh = await apiClient.get<CurriculumModule>(
+      `/modules/${moduleId}`,
+      token,
+      { onRefresh }
+    )
 
-  // 3. Cache
-  await cacheModules([fresh])
+    // 3. Cache
+    await cacheModules([fresh])
 
-  return fresh
-},
+    return fresh
+  },
   submitModule: (
     body: CreateSubmissionRequest,
     token: string,

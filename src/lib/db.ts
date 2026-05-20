@@ -5,9 +5,17 @@
 
 import Dexie, { type Table } from 'dexie'
 import { useAuth } from '@/lib/auth/auth-context'
+import { AuthUser } from '@/lib/utils/roles'
 import { CurriculumContentJson } from './api/api-types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
+
+export interface CachedSession {
+  id: 'current'                // singleton row
+  user: AuthUser
+  accessToken: string
+  cachedAt: string
+}
 
 export interface LocalSubmission {
   localId: string           // client-generated UUID — used for server dedup
@@ -68,6 +76,7 @@ class HammetLabsDB extends Dexie {
   portfolioEntries!: Table<LocalPortfolioEntry>
   modules!:          Table<CachedModule>
   fileQueue!:        Table<LocalFileQueue>
+  session!:          Table<CachedSession>
 
   constructor() {
     super('hammetlabs-db')
@@ -86,10 +95,62 @@ class HammetLabsDB extends Dexie {
       modules:          'id, term, level, [term+level]',
       fileQueue:        'id, studentId, moduleId, blockId, uploadStatus',
     })
+
+    // version 3: singleton session cache for offline auth
+    this.version(3).stores({
+      submissions:      'localId, studentId, moduleId, syncStatus',
+      portfolioEntries: 'localId, studentId, moduleId',
+      modules:          'id, term, level, [term+level]',
+      fileQueue:        'id, studentId, moduleId, blockId, uploadStatus',
+      session:          'id',                 
+    })
   }
 }
 
 export const db = new HammetLabsDB()
+
+// ── Session cache helpers ─────────────────────────────────────────────────────
+
+/**
+ * Persist the authenticated session to IndexedDB.
+ * Call this after every successful refresh or login so the student
+ * can be recognised offline without a network round-trip.
+ */
+export async function persistSession(user: AuthUser, accessToken: string): Promise<void> {
+  try {
+    await db.session.put({
+      id: 'current',
+      user,
+      accessToken,
+      cachedAt: new Date().toISOString(),
+    })
+  } catch {
+    // best-effort — never throw
+  }
+}
+
+/**
+ * Read the most recently persisted session.
+ * Returns null if nothing is cached or the DB read fails.
+ */
+export async function getPersistedSession(): Promise<CachedSession | null> {
+  try {
+    return (await db.session.get('current')) ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Wipe the session cache on explicit logout.
+ */
+export async function clearPersistedSession(): Promise<void> {
+  try {
+    await db.session.delete('current')
+  } catch {
+    // best-effort
+  }
+}
 
 // ── Submission helpers ────────────────────────────────────────────────────────
 export async function submitLesson({

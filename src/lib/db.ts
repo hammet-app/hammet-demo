@@ -151,7 +151,7 @@ class HammetLabsDB extends Dexie {
       moduleSummaries:  'id, term, level, [term+level]',
       fileQueue:        'id, studentId, moduleId, blockId, uploadStatus',
       session:          'id',
-      pendingProgress:  'moduleId',   // ← one row per module, upserted on every page turn
+      pendingProgress:  'studentId',   // ← one row per student, upserted on every page turn
     })
   }
 }
@@ -242,6 +242,24 @@ export async function saveSubmissionLocally(
     syncStatus: 'pending',
     syncAttempts: 0,
   })
+}
+
+/**
+ * Checks if there is an pending submission
+ */
+export async function hasPendingSubmission(
+  studentId: string,
+  moduleId: string
+): Promise<boolean> {
+  try {
+    const result = await db.submissions
+      .where('moduleId').equals(moduleId)
+      .and((s) => s.syncStatus === 'pending' && s.studentId === studentId)
+      .first()
+    return !!result
+  } catch {
+    return false
+  }
 }
 
 export async function getPendingSubmissions(studentId: string): Promise<LocalSubmission[]> {
@@ -431,23 +449,6 @@ export async function savePendingProgress(
   }
 }
 
-/**
- * Checks if there is an pending submission
- */
-export async function hasPendingSubmission(
-  studentId: string,
-  moduleId: string
-): Promise<boolean> {
-  try {
-    const result = await db.submissions
-      .where('moduleId').equals(moduleId)
-      .and((s) => s.syncStatus === 'pending' && s.studentId === studentId)
-      .first()
-    return !!result
-  } catch {
-    return false
-  }
-}
 
 /**
  * Read all progress rows that need syncing.
@@ -466,9 +467,9 @@ export async function getPendingProgress(studentId: string): Promise<PendingProg
  * Remove progress for a module — call after a successful PATCH
  * or when a submission for the module is confirmed synced.
  */
-export async function clearPendingProgress(moduleId: string): Promise<void> {
+export async function clearPendingProgress(studentId: string): Promise<void> {
   try {
-    await db.pendingProgress.delete(moduleId)
+    await db.pendingProgress.delete(studentId)
   } catch {
     // best-effort
   }

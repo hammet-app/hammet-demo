@@ -287,11 +287,8 @@ export default function LessonDetailPage() {
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
   // ── Stepper page navigation ───────────────────────────────────────────────
-  const sections = module?.contentJson?.sections?? []
-  console.log(sections)
-  console.log(module?.contentJson)
   const pages = module
-    ? buildPages(sections, module.title)
+    ? buildPages(module.contentJson.sections, module.title)
     : [];
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
@@ -308,6 +305,7 @@ export default function LessonDetailPage() {
 
   const saveSectionProgress = useCallback(async (pageIdx: number) => {
     const page = pages[pageIdx]
+    console.log(page)
     if (!page || !user) return
     if (page.kind !== "content" && page.kind !== "activity" && page.kind !== "reflection") return
     if (!page.sectionId) return

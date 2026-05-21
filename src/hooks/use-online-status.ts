@@ -47,7 +47,7 @@ export function useOnlineStatus(
             .map(async (p) => {
               try {
                 await studentApi.saveProgress({studentId: user.id, moduleId: p.moduleId, sectionId:p.sectionId}, token, refreshToken)
-                await clearPendingProgress(p.moduleId)
+                await clearPendingProgress(user.id)
               } catch {
                 // Will retry next reconnect
               }

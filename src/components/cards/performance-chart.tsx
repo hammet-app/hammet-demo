@@ -11,7 +11,7 @@ import {
   ReferenceArea,
   ResponsiveContainer,
 } from "recharts";
-import type { PerformancePoint } from "@/lib/api/api-types";
+import type { PerformancePoint } from "@/lib/api/types";
 
 const BAND_THRESHOLDS = { needsWork: 0.4, improving: 0.75 };
 

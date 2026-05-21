@@ -1,25 +1,39 @@
 import { apiClient } from "./api-client";
-import type {
-  DeleteResponse,
-  RegisterTeacherRequest,
-  RegisterTeacherResponse,
-  RegisterStudentRequest,
-  RegisterStudentResponse,
-  BulkRegisterResponse,
-  ParentLinkSendResponse,
-  PromotionPreviewResponse,
-  PromotionConfirmRequest,
-  PromotionConfirmResponse,
-  AdminModulesResponse,
-  CurriculumModule,
-  SchoolProfile,
-  AdminStudentsResponse,
-  BulkRegisterRequest,
-  ResendVerificationRequest,
-  ResendVerificationResponse,
-  UserUpdateRequest,
-  UserUpdateResponse
-} from "@/lib/api/api-types";
+import {
+  type DeleteResponse,
+  //type RegisterTeacherRequest,
+  //type RegisterTeacherResponse,
+  type RegisterStudentRequest,
+  type RegisterStudentResponse,
+  type BulkRegisterResponse,
+  type ParentLinkSendResponse,
+  //PromotionPreviewResponse,
+  //PromotionConfirmRequest,
+  //PromotionConfirmResponse,
+  type AdminModulesResponse,
+  type CurriculumModule,
+  type SchoolProfile,
+  type AdminStudentsResponse,
+  type BulkRegisterRequest,
+  type ResendVerificationRequest,
+  type ResendVerificationResponse,
+  type UserUpdateRequest,
+  type UserUpdateResponse,
+  type AdminStudentsResponseDto,
+  toAdminModulesResponse,
+  toAdminStudentResponse,
+  fromUpdateUserRequest,
+  fromRegisterStudentRequest,
+  toRegisterStudentResponse,
+  RegisterStudentResponseDto,
+  BulkRegisterResponseDto,
+  toBulkRegisterResponse,
+  ParentLinkSendResponseDto,
+  toParentLinkSendResponse,
+  AdminModulesResponseDto,
+  CurriculumModuleDto,
+  toCurriculumModule
+} from "@/lib/api/types";
 
 // ------------------------------------------------------------
 // SCHOOL
@@ -40,9 +54,11 @@ export async function getAdminStudents(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<AdminStudentsResponse> {
-  return apiClient.get<AdminStudentsResponse>("/admin/students", token, {
+  const response = await apiClient.get<AdminStudentsResponseDto>("/admin/students", token, {
     onRefresh,
   });
+
+  return toAdminStudentResponse(response)
 }
 
 export async function updateStudent(
@@ -51,7 +67,8 @@ export async function updateStudent(
   token: string,
   onRefresh: () => Promise<string | null> 
 ): Promise<UserUpdateResponse> {
-  return apiClient.patch<UserUpdateResponse>(`/admin/students/${studentId}`, body, token, { onRefresh })
+  const payload = fromUpdateUserRequest(body)
+  return await apiClient.patch<UserUpdateResponse>(`/admin/students/${studentId}`, payload, token, { onRefresh })
 }
 
 export async function deleteStudent(
@@ -71,12 +88,15 @@ export async function registerStudent(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<RegisterStudentResponse> {
-  return apiClient.post<RegisterStudentResponse>(
+  const payload = fromRegisterStudentRequest(body)
+  const response = await apiClient.post<RegisterStudentResponseDto>(
     "/auth/register/student",
-    body,
+    payload,
     token,
     { onRefresh }
   );
+
+  return toRegisterStudentResponse(response)
 }
 
 export async function bulkRegisterStudents(
@@ -84,12 +104,14 @@ export async function bulkRegisterStudents(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<BulkRegisterResponse> {
-  return apiClient.post<BulkRegisterResponse>(
+  const response = await apiClient.post<BulkRegisterResponseDto>(
     "/auth/register/students/bulk",
     csvText,
     token,
     { onRefresh }
   );
+
+  return toBulkRegisterResponse(response)
 }
 
 export async function resendCode(
@@ -108,7 +130,7 @@ export async function resendCode(
 // ------------------------------------------------------------
 // PROMOTION
 // ------------------------------------------------------------
-
+/**
 export async function previewPromotion(
   csvText: BulkRegisterRequest,
   token: string,
@@ -134,6 +156,7 @@ export async function confirmPromotion(
     { onRefresh }
   );
 }
+  */
 
 // ------------------------------------------------------------
 // PARENT LINKS
@@ -144,12 +167,14 @@ export async function sendParentLink(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<ParentLinkSendResponse> {
-  return apiClient.post<ParentLinkSendResponse>(
+  const response = await apiClient.post<ParentLinkSendResponseDto>(
     `/admin/parent-links/${studentId}/send`,
     {},
     token,
     { onRefresh }
   );
+
+  return toParentLinkSendResponse(response)
 }
 
 export async function revokeParentLink(
@@ -164,7 +189,7 @@ export async function revokeParentLink(
     { onRefresh }
   );
 }
-
+/**
 // ------------------------------------------------------------
 // TEACHERS
 // ------------------------------------------------------------
@@ -200,7 +225,7 @@ export async function registerTeacher(
     { onRefresh }
   );
 }
-
+*/
 // ------------------------------------------------------------
 // MODULES (read-only — published only, student-facing endpoint)
 // ------------------------------------------------------------
@@ -209,9 +234,11 @@ export async function getAdminModules(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<AdminModulesResponse> {
-  return apiClient.get<AdminModulesResponse>("/admin/modules", token, {
+  const response = await apiClient.get<AdminModulesResponseDto>("/admin/modules", token, {
     onRefresh,
   });
+
+  return toAdminModulesResponse(response)
 }
 
 
@@ -220,7 +247,9 @@ export async function getModuleDetail(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<CurriculumModule> {
-  return apiClient.get<CurriculumModule>(`/modules/${moduleId}`, token, {
+  const response = await apiClient.get<CurriculumModuleDto>(`/modules/${moduleId}`, token, {
     onRefresh,
   });
+
+  return toCurriculumModule(response)
 }

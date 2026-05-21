@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import { ChevronDown, ChevronUp, FileText, ExternalLink, Award } from "lucide-react";
-import type { PortfolioEntry } from "@/lib/api/api-types";
+import type { PortfolioEntry } from "@/lib/api/types";
 import { cn } from "@/lib/utils/utils";
 
 export default function PortfolioPage() {
@@ -60,7 +60,7 @@ export default function PortfolioPage() {
 function PortfolioEntryCard({ entry }: { entry: PortfolioEntry }) {
   const [expanded, setExpanded] = useState(false);
 
-  const approvedDate = new Date(entry.approved_at).toLocaleDateString("en-GB", {
+  const approvedDate = new Date(entry.approvedAt).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -79,12 +79,12 @@ function PortfolioEntryCard({ entry }: { entry: PortfolioEntry }) {
           style={{ fontFamily: "var(--font-head)" }}
         >
           <span className="text-[9px] font-medium opacity-70 uppercase tracking-wide">Wk</span>
-          <span className="text-[13px] font-bold">{entry.week_number}</span>
+          <span className="text-[13px] font-bold">{entry.weekNumber}</span>
         </div>
 
         <div className="flex-1 min-w-0">
           <p className="text-[13.5px] font-medium text-text-primary truncate">
-            {entry.module_title}
+            {entry.moduleTitle}
           </p>
           <p className="text-[11px] text-text-muted mt-0.5">
             Term {entry.term} · Approved {approvedDate}
@@ -109,20 +109,20 @@ function PortfolioEntryCard({ entry }: { entry: PortfolioEntry }) {
       {expanded && (
         <div className="border-t border-border px-4 py-4 flex flex-col gap-4">
           {/* Reflection text */}
-          {entry.reflection_text && (
+          {entry.reflectionText && (
             <div>
               <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2">
                 <FileText size={12} />
                 Your reflection
               </div>
               <p className="text-[13px] text-text-secondary leading-relaxed whitespace-pre-wrap">
-                {entry.reflection_text}
+                {entry.reflectionText}
               </p>
             </div>
           )}
 
           {/* File attachment */}
-          {entry.file_urls?.map((fileUrl, index) =>
+          {entry.fileUrls?.map((fileUrl, index) =>
             fileUrl ? (
               <div key={index}>
                 <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2">
@@ -146,7 +146,7 @@ function PortfolioEntryCard({ entry }: { entry: PortfolioEntry }) {
           {/* Meta */}
           <div className="flex items-center justify-between pt-2 border-t border-border">
             <p className="text-[11px] text-text-muted">
-              {entry.school_name} · {entry.student_name}
+              {entry.schoolName} · {entry.studentName}
             </p>
           </div>
         </div>

@@ -6,7 +6,6 @@ import type { UserRole } from "@/lib/utils/roles";
  */
 export const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
   student:       "/student/lessons",
-  teacher:       "/teacher/classes",
   school_admin:  "/admin",
   hammet_admin:  "/hammet",
 };
@@ -15,13 +14,11 @@ export function getDefaultRoute(roles: UserRole[]): string {
   // Priority order matches getPrimaryRole
   if (roles.includes("hammet_admin")) return ROLE_DEFAULT_ROUTES.hammet_admin;
   if (roles.includes("school_admin")) return ROLE_DEFAULT_ROUTES.school_admin;
-  if (roles.includes("teacher"))      return ROLE_DEFAULT_ROUTES.teacher;
   return ROLE_DEFAULT_ROUTES.student;
 }
 
 export function getDashboardRoute(role: UserRole): string {
   if (role === "hammet_admin") return ROLE_DEFAULT_ROUTES.hammet_admin;
   if (role === "school_admin") return ROLE_DEFAULT_ROUTES.school_admin;
-  if (role === "teacher")      return ROLE_DEFAULT_ROUTES.teacher;
   return ROLE_DEFAULT_ROUTES.student;
 }

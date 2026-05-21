@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { bulkRegisterStudents } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api/api-client";
 import { PageShell } from "@/components/layout/page-shell";
-import { BulkRegisterRequest, BulkRegisterResponse } from "@/lib/api/api-types";
+import { BulkRegisterRequest, BulkRegisterResponse } from "@/lib/api/types";
 
 const PLACEHOLDER = `Chisom Obi,chisom@school.edu.ng,SSS1,A,parent@email.com,+2348001234567,2011-01-09
 Motilola Lambo,moti@school.edu.ng,JS2,B,dad@email.com,+2347012345678,2014-04-10
@@ -70,7 +70,7 @@ export default function BulkImportPage() {
     if (!result?.codes.length) return;
 
     const rows = result.codes.map(
-      (s) => `${s.full_name},${s.email},${s.code}`
+      (s) => `${s.fullName},${s.email},${s.code}`
     );
 
     const content = `full_name,email,code\n${rows.join("\n")}`;
@@ -99,7 +99,7 @@ export default function BulkImportPage() {
               <p className="font-semibold">Codes will expire in 48 hours</p>
               {result.codes.map((s, i) => (
                 <div key={i} className="border rounded p-2">
-                  <p className="text-sm">{s.full_name}</p>
+                  <p className="text-sm">{s.fullName}</p>
                   <p className="text-xs opacity-70">{s.email}</p>
                   <p className="font-mono text-sm">{s.code}</p>
                 </div>

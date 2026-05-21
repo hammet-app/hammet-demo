@@ -6,7 +6,7 @@ import { ApiError } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import type { CurriculumModule } from "@/lib/api/api-types";
+import type { CurriculumModule } from "@/lib/api/types";
 
 const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SS1", "SS2", "SS3"];
 

@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import type { CurriculumModule } from "@/lib/api/api-types";
+import type { CurriculumModule } from "@/lib/api/types";
 
 
 export default function AdminModulesListPage() {
@@ -28,7 +28,7 @@ export default function AdminModulesListPage() {
           setModules(
             res.modules
               .filter((m) => m.level === level && m.term === term)
-              .sort((a, b) => a.week_number - b.week_number)
+              .sort((a, b) => a.weekNumber - b.weekNumber)
           );
         })
         .catch(() => setError("Failed to load modules."))
@@ -71,7 +71,7 @@ export default function AdminModulesListPage() {
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="w-10 h-10 rounded-xl bg-[var(--color-purple-light)] flex items-center justify-center shrink-0">
                     <span className="text-xs font-bold text-[var(--color-purple)]">
-                      W{mod.week_number}
+                      W{mod.weekNumber}
                     </span>
                   </div>
   
@@ -80,7 +80,7 @@ export default function AdminModulesListPage() {
   
                     <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
                       {mod.contentJson.sections.length} blocks · Last updated{" "}
-                      {new Date(mod.updated_at).toLocaleDateString("en-NG", {
+                      {new Date(mod.updatedAt).toLocaleDateString("en-NG", {
                         day: "numeric",
                         month: "short",
                         year: "numeric",

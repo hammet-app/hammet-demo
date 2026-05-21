@@ -50,15 +50,15 @@ export const navConfig: Record<UserRole, NavEntry[]> = {
     { type: "item",    label: "Sign Out",           action: "logout",           icon: LogOut, danger: true }
   ],
 
-  teacher: [
+  /**teacher: [
     { type: "item", label: "My Classes",      href: "/teacher/classes",     icon: Users },
     { type: "item", label: "Pending Reviews", href: "/teacher/reviews",     icon: ClipboardList },
     /** {type: "item", label: "All Submissions", href: "/teacher/submissions", icon: List} */
-    /**{ type: "item", label: "Student Profiles",href: "/teacher/students",    icon: User },*/
+    /**{ type: "item", label: "Student Profiles",href: "/teacher/students",    icon: User },
     { type: "item", label: "Lessons", href: "/teacher/lessons", icon: BookOpen},
     { type: "divider" },
     { type: "item",    label: "Sign Out",           action: "logout",           icon: LogOut, danger: true }
-  ],
+  ],*/
 
   school_admin: [
     { type: "item",    label: "Dashboard",      href: "/admin",                icon: Home },

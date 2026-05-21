@@ -14,26 +14,26 @@ interface TopbarProps {
 
 const roleBadgeStyles: Record<UserRole, string> = {
   student:       "bg-cyan/20 text-cyan",
-  teacher:       "bg-purple-mid/25 text-purple-light",
+  //teacher:       "bg-purple-mid/25 text-purple-light",
   school_admin:  "bg-success/20 text-emerald-300",
   hammet_admin:  "bg-warning/20 text-yellow-300",
 };
 
 const avatarStyles: Record<UserRole, string> = {
   student:       "bg-cyan text-purple-dark",
-  teacher:       "bg-purple-mid text-white",
+  //teacher:       "bg-purple-mid text-white",
   school_admin:  "bg-success text-white",
   hammet_admin:  "bg-warning text-text-primary",
 };
 
 export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps) {
-  const initials = getInitials(user.full_name);
+  const initials = getInitials(user.fullName);
   const primaryRole = activeRole;
   const roleLabel = getRoleLabel(primaryRole);
 
   const metaLine =
-    primaryRole === "student" && user.class_level
-      ? [user.class_level, user.class_arm].filter(Boolean).join("")
+    primaryRole === "student" && user.classLevel
+      ? [user.classLevel, user.classArm].filter(Boolean).join("")
       : roleLabel;
 
   return (
@@ -93,7 +93,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
         </div>
         {/* Name + meta — hidden on small screens */}
         <div className="hidden md:flex flex-col leading-none">
-          <span className="text-[13px] font-medium text-white">{user.full_name}</span>
+          <span className="text-[13px] font-medium text-white">{user.fullName}</span>
           <span className="text-[11px] text-white/40">{metaLine}</span>
         </div>
       </div>

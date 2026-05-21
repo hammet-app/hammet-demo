@@ -6,7 +6,7 @@ import { ParentShell } from "@/components/ui/parent-shell";
 import { PerformanceChart } from "@/components/cards/performance-chart";
 import type {
   ParentPortal,
-} from "@/lib/api/api-types";
+} from "@/lib/api/types";
 import { parentApi } from "@/lib/api/parent";
 // ---------------------------------------------------------------------------
 // Stage types
@@ -229,12 +229,12 @@ function PortalView({
 }) {
   const isSingleSelection =
     selectedTerms.length === 1 && selectedLevels.length === 1;
-  const tp = isSingleSelection ? (data?.term_progress ?? null) : null;
+  const tp = isSingleSelection ? (data?.termProgress ?? null) : null;
 
   const classLabel = data
-    ? data.class_arm
-      ? `${data.class_level} ${data.class_arm}`
-      : data.class_level
+    ? data.classArm
+      ? `${data.classLevel} ${data.classArm}`
+      : data.classLevel
     : null;
 
   return (
@@ -243,13 +243,13 @@ function PortalView({
       {data && (
         <div>
           <p className="text-[12px] font-medium text-cyan uppercase tracking-widest mb-1">
-            {data.school_name}
+            {data.schoolName}
           </p>
           <h1
             className="text-[24px] font-bold text-text-primary"
             style={{ fontFamily: "var(--font-head)" }}
           >
-            {data.student_name}
+            {data.studentName}
           </h1>
           {classLabel && (
             <p className="text-[13px] text-text-secondary mt-0.5">
@@ -281,19 +281,19 @@ function PortalView({
         <div className="flex gap-3 flex-wrap">
           <StatPill
             label="Completed"
-            value={tp.approved_modules}
-            total={tp.total_modules}
+            value={tp.approvedModules}
+            total={tp.totalModules}
             color="#10B981"
           />
           <StatPill
             label="Submitted"
-            value={tp.submitted_modules}
-            total={tp.total_modules}
+            value={tp.submittedModules}
+            total={tp.totalModules}
             color="#7C3AED"
           />
           <StatPill
             label="Progress"
-            value={`${Math.round(tp.completion_percentage * 100)}%`}
+            value={`${Math.round(tp.completionPercentage * 100)}%`}
             color="#06B6D4"
           />
         </div>
@@ -353,7 +353,7 @@ export default function ParentPortalPage() {
       .then((data) => {
         setStage({
           type: "challenge",
-          studentName: data.student_name,
+          studentName: data.studentName,
           question: data.question,
         });
       })
@@ -382,9 +382,9 @@ export default function ParentPortalPage() {
     try {
       const verified = await parentApi.postVerify(linkToken, { answer });
       const {
-        available_levels: availableLevels,
-        current_term: currentTerm,
-        current_level: currentLevel,
+        availableLevels: availableLevels,
+        currentTerm: currentTerm,
+        currentLevel: currentLevel,
       } = verified;
 
       const defaultTerms = [currentTerm];

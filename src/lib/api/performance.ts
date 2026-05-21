@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/api-client";
-import { PerformancePoint, PerformanceParams } from "./api-types";
+import { PerformancePoint, PerformanceParams } from "./types";
 
 export const performanceApi = {
   getPerformance: (

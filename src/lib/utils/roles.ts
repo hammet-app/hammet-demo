@@ -1,17 +1,16 @@
 export type UserRole =
   | "student"
-  | "teacher"
   | "school_admin"
   | "hammet_admin";
 
 export interface AuthUser {
   id: string;
-  full_name: string;
+  fullName: string;
   email: string;
   roles: UserRole[];
-  school_id: string;
-  class_level: string | null;
-  class_arm: string | null;
+  schoolId: string;
+  classLevel: string | null;
+  classArm: string | null;
   term: number | null;
 }
 
@@ -19,7 +18,6 @@ export interface AuthUser {
 export function getPrimaryRole(roles: UserRole[]): UserRole {
   if (roles.includes("hammet_admin")) return "hammet_admin";
   if (roles.includes("school_admin")) return "school_admin";
-  if (roles.includes("teacher")) return "teacher";
   return "student";
 }
 
@@ -27,7 +25,6 @@ export function getPrimaryRole(roles: UserRole[]): UserRole {
 export function getRoleLabel(role: UserRole): string {
   const map: Record<UserRole, string> = {
     student: "Student",
-    teacher: "Teacher",
     school_admin: "School Admin",
     hammet_admin: "Hammet Admin",
   };

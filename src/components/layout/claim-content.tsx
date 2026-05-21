@@ -17,10 +17,10 @@ import { getDefaultRoute } from "@/lib/auth/routes";
 import { cn } from "@/lib/utils/utils";
 import { validatePassword } from "@/utils/password";
 import type { UserRole } from "@/lib/utils/roles";
-import { ClaimAccountResponse } from "@/lib/api/api-types";
+import { ClaimAccountResponse } from "@/lib/api/types";
 
 interface InviteInfo {
-  full_name: string;
+  fullName: string;
   email: string;
   roles: UserRole[];
 }
@@ -48,7 +48,7 @@ export default function ClaimPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const isStaff =
-    invite?.roles?.includes("teacher") ||
+    //invite?.roles?.includes("teacher") ||
     invite?.roles?.includes("school_admin");
 
   // ── Token flow: fetch invite directly ──
@@ -86,7 +86,7 @@ export default function ClaimPage() {
         "/auth/claim/verify-code",
         {
           email,
-          claim_code: claimCode,
+          claimCode,
         }
       );
 
@@ -165,7 +165,7 @@ export default function ClaimPage() {
         payload
       );
       console.log(data)
-      setSession(data.user, data.access_token);
+      setSession(data.user, data.accessToken);
       setStep("success");
 
       setTimeout(() => {
@@ -215,7 +215,7 @@ export default function ClaimPage() {
           step === "identify"
             ? "Enter your email and claim code"
             : invite
-            ? `Welcome, ${invite.full_name}`
+            ? `Welcome, ${invite.fullName}`
             : ""
         }
       />
@@ -243,7 +243,7 @@ export default function ClaimPage() {
       {step === "set_password" && invite && (
         <form onSubmit={handleClaim} className="flex flex-col gap-4">
           <div className="bg-purple-light rounded px-3 py-2">
-            <p className="text-sm font-medium">{invite.full_name}</p>
+            <p className="text-sm font-medium">{invite.fullName}</p>
             <p className="text-xs opacity-70">{invite.email}</p>
           </div>
 

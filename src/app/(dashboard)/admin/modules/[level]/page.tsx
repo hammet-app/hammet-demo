@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import type { CurriculumModule } from "@/lib/api/api-types";
+import type { CurriculumModule } from "@/lib/api/types";
 
 export default function AdminModulesLevelsPage() {
   const { accessToken, refreshToken } = useAuth();

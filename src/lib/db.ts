@@ -6,7 +6,7 @@
 import Dexie, { type Table } from 'dexie'
 import { useAuth } from '@/lib/auth/auth-context'
 import { AuthUser } from '@/lib/utils/roles'
-import { CurriculumContentJson } from './api/api-types'
+import { CurriculumContentJson, ModuleSummary } from './api/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,7 +23,7 @@ export interface LocalSubmission {
   moduleId: string
   activityText?: string
   reflectionText?: string
-  file_urls: string[]       // uploaded Supabase Storage URLs (may be empty)
+  fileUrls: string[]       // uploaded Supabase Storage URLs (may be empty)
   submittedAt: string       // ISO timestamp
   syncStatus: 'pending' | 'synced' | 'failed'
   syncAttempts: number
@@ -40,19 +40,46 @@ export interface LocalPortfolioEntry {
   synced: boolean
 }
 
+/**
+ * Cached after getModules() — powers the lessons list page offline.
+ * Mirrors ModuleSummary + submission_status for lock/pill display.
+ */
+export interface CachedModuleSummary {
+  id: string
+  term: number
+  weekNumber: number
+  level: string
+  title: string
+  published: boolean
+  submissionStatus: "not_started" | "submitted" | "approved" | "flagged" | null
+  cachedAt: string
+}
+
+/**
+ * Cached after getModule() — powers the lesson detail page offline.
+ * Mirrors CurriculumModule
+
+ */
 export interface CachedModule {
   id: string
   term: number
-  week_number: number
+  weekNumber: number
   level: string
   title: string
-  learning_objective?: string
+  description?: string
   contentJson: CurriculumContentJson
-  aiTools?: string[]
-  version: number
-  updated_at: string
+  updatedAt: string
   published: boolean
-  progress: string | null
+  createdAt: string
+  stoppedAt: string | null   // mirrors backend — section_id or null
+  cachedAt: string
+}
+
+export interface PendingProgress {
+  moduleId: string        // primary key
+  studentId: string
+  sectionId: string       // last section_id the student reached
+  updatedAt: string       // ISO timestamp — for debugging, not logic
 }
 
 export interface LocalFileQueue {
@@ -75,8 +102,10 @@ class HammetLabsDB extends Dexie {
   submissions!:      Table<LocalSubmission>
   portfolioEntries!: Table<LocalPortfolioEntry>
   modules!:          Table<CachedModule>
+  moduleSummaries!:  Table<CachedModuleSummary>
   fileQueue!:        Table<LocalFileQueue>
   session!:          Table<CachedSession>
+  pendingProgress!:  Table<PendingProgress>
 
   constructor() {
     super('hammetlabs-db')
@@ -103,6 +132,26 @@ class HammetLabsDB extends Dexie {
       modules:          'id, term, level, [term+level]',
       fileQueue:        'id, studentId, moduleId, blockId, uploadStatus',
       session:          'id',                 
+    })
+
+    // version 4: separate summary cache with submission_status for list page
+    this.version(4).stores({
+      submissions:      'localId, studentId, moduleId, syncStatus',
+      portfolioEntries: 'localId, studentId, moduleId',
+      modules:          'id, term, level, [term+level]',
+      moduleSummaries:  'id, term, level, [term+level]',  // ← new
+      fileQueue:        'id, studentId, moduleId, blockId, uploadStatus',
+      session:          'id',
+    })
+
+    this.version(5).stores({
+      submissions:      'localId, studentId, moduleId, syncStatus',
+      portfolioEntries: 'localId, studentId, moduleId',
+      modules:          'id, term, level, [term+level]',
+      moduleSummaries:  'id, term, level, [term+level]',
+      fileQueue:        'id, studentId, moduleId, blockId, uploadStatus',
+      session:          'id',
+      pendingProgress:  'moduleId',   // ← one row per module, upserted on every page turn
     })
   }
 }
@@ -158,27 +207,27 @@ export async function submitLesson({
   moduleId,
   activityText,
   reflectionText,
-  file_urls,
+  fileUrls,
 }: {
   studentId:      string
   moduleId:       string
   moduleTitle:    string
   activityText?: string
   reflectionText?: string
-  file_urls:       string[]
+  fileUrls:       string[]
 }): Promise<{ success: boolean; synced: boolean }|undefined> {
   const localId     = crypto.randomUUID()
   const submittedAt = new Date().toISOString()
 
   // Always save locally first
-  await saveSubmissionLocally({ localId, studentId, moduleId, activityText, reflectionText, file_urls, submittedAt })
+  await saveSubmissionLocally({ localId, studentId, moduleId, activityText, reflectionText, fileUrls, submittedAt })
 
   // Try to sync immediately if online
   if (navigator.onLine) {
     const {accessToken, refreshToken} = useAuth()
     const token = accessToken ?? await refreshToken()
     if (!token) return 
-    const synced = await syncPendingSubmissions(process.env.NEXT_PUBLIC_API_URL!, token)
+    const synced = await syncPendingSubmissions(studentId,process.env.NEXT_PUBLIC_API_URL!, token)
   }
 
   // Offline — register background sync so SW flushes when back online
@@ -195,12 +244,19 @@ export async function saveSubmissionLocally(
   })
 }
 
-export async function getPendingSubmissions(): Promise<LocalSubmission[]> {
-  return db.submissions.where('syncStatus').equals('pending').toArray()
+export async function getPendingSubmissions(studentId: string): Promise<LocalSubmission[]> {
+  return db.submissions
+  .where('syncStatus').equals('pending')
+  .and((s) => s.studentId === studentId)
+  .toArray()
 }
 
 export async function markSubmissionSynced(localId: string): Promise<void> {
+  const submission = await db.submissions.get(localId)
   await db.submissions.update(localId, { syncStatus: 'synced' })
+  if (submission?.moduleId) {
+    await clearPendingProgress(submission.moduleId)
+  }
 }
 
 export async function markSubmissionFailed(localId: string): Promise<void> {
@@ -276,34 +332,146 @@ export async function clearUploadedFilesForModule(moduleId: string): Promise<voi
 // ── Module cache helpers ──────────────────────────────────────────────────────
 
 /**
+ * Call inside studentApi.getModules() after every successful fetch.
+ * Stores the lightweight list including submission_status for offline display.
+ */
+export async function cacheModuleSummaries(
+  summaries: ModuleSummary[]
+): Promise<void> {
+  try {
+    await db.moduleSummaries.bulkPut(
+      summaries.map((s) => ({ ...s, cachedAt: new Date().toISOString() }))
+    )
+  } catch {
+    // best-effort
+  }
+}
+
+/**
  * Persist modules to Dexie after a successful API fetch.
  * Call this inside studentApi.getModules — not from the SW, which only
  * caches HTTP responses. Dexie is the structured offline store.
  */
-export async function cacheModules(modules: CachedModule[]): Promise<void> {
-  const existing = await db.modules.bulkGet(modules.map((m) => m.id))
-  const toUpdate = modules.filter((incoming, i) => {
-    const cached = existing[i]
-    return !cached || incoming.version > cached.version
-  })
-  if (toUpdate.length > 0) {
-    await db.modules.bulkPut(
-      toUpdate.map((m) => ({ ...m, cachedAt: new Date().toISOString() }))
-    )
+
+export async function getCachedModuleSummaries(
+  term: number,
+  level: string
+): Promise<CachedModuleSummary[]> {
+  try {
+    return await db.moduleSummaries
+      .where('[term+level]')
+      .equals([term, level])
+      .toArray()
+  } catch {
+    return []
   }
 }
 
-export async function getModulesForTerm(
-  term: number,
-  level: string
-): Promise<CachedModule[]> {
-  return db.modules.where('[term+level]').equals([term, level]).toArray()
+/**
+ * After a student submits a module offline, update just the status
+ * in the summary cache so the list page reflects it immediately.
+ */
+export async function updateCachedSubmissionStatus(
+  moduleId: string,
+  status: CachedModuleSummary['submissionStatus']
+): Promise<void> {
+  try {
+    await db.moduleSummaries.update(moduleId, { submissionStatus: status })
+  } catch {
+    // best-effort
+  }
+}
+
+// ── Full module cache (lesson detail) ────────────────────────────────────────
+
+/**
+ * Call inside studentApi.getModule() after every successful fetch.
+ * Only updates if the incoming version is newer than what's cached,
+ * but always preserves stepper_progress (client-only field).
+ */
+export async function cacheModule(incoming: Omit<CachedModule, 'cachedAt'>): Promise<void> {
+  try {
+    const existing = await db.modules.get(incoming.id)
+    await db.modules.put({
+      ...incoming,
+      // Preserve where the student left off — never overwrite with 0 from a fresh fetch
+      cachedAt: new Date().toISOString(),
+    })
+  } catch {
+    // best-effort
+  }
 }
 
 export async function getCachedModule(
   moduleId: string
 ): Promise<CachedModule | undefined> {
   return db.modules.get(moduleId)
+}
+
+// ── Pending progress helpers ──────────────────────────────────────────────────
+
+/**
+ * Upsert progress for a module. Called on every page navigation.
+ * Replaces any existing row for the same moduleId.
+ */
+export async function savePendingProgress(
+  studentId: string,
+  moduleId: string,
+  sectionId: string
+): Promise<void> {
+  try {
+    await db.pendingProgress.put({
+      studentId,
+      moduleId,
+      sectionId,
+      updatedAt: new Date().toISOString(),
+    })
+  } catch {
+    // best-effort
+  }
+}
+
+/**
+ * Checks if there is an pending submission
+ */
+export async function hasPendingSubmission(
+  studentId: string,
+  moduleId: string
+): Promise<boolean> {
+  try {
+    const result = await db.submissions
+      .where('moduleId').equals(moduleId)
+      .and((s) => s.syncStatus === 'pending' && s.studentId === studentId)
+      .first()
+    return !!result
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Read all progress rows that need syncing.
+ */
+export async function getPendingProgress(studentId: string): Promise<PendingProgress[]> {
+  try {
+    return await db.pendingProgress
+    .where('studentId').equals(studentId)
+    .toArray()
+  } catch {
+    return []
+  }
+}
+
+/**
+ * Remove progress for a module — call after a successful PATCH
+ * or when a submission for the module is confirmed synced.
+ */
+export async function clearPendingProgress(moduleId: string): Promise<void> {
+  try {
+    await db.pendingProgress.delete(moduleId)
+  } catch {
+    // best-effort
+  }
 }
 // ── Sync function ─────────────────────────────────────────────────────────────
 // Call this:
@@ -312,10 +480,11 @@ export async function getCachedModule(
 // 3. After every successful page load
 
 export async function syncPendingSubmissions(
+  studentId: string,
   apiBaseUrl: string,
   accessToken: string,
 ): Promise<void> {
-  const pending = await getPendingSubmissions()
+  const pending = await getPendingSubmissions(studentId)
   if (pending.length === 0) return
 
   try {

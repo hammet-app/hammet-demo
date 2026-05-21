@@ -9,7 +9,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { ApiError } from "@/lib/api/api-client";
 
-import type { RegisterSchoolRequest } from "@/lib/api/api-types";
+import type { RegisterSchoolRequest } from "@/lib/api/types";
 import type { UserRole } from "@/lib/utils/roles";
 
 type FormErrors = Partial<Record<keyof RegisterSchoolRequest, string>> & {
@@ -29,20 +29,20 @@ function validate(form: RegisterSchoolRequest): FormErrors {
   const errors: FormErrors = {};
 
   if (!form.name.trim()) errors.name = "School name is required.";
-  if (!form.admin_full_name.trim())
-    errors.admin_full_name = "Admin full name is required.";
+  if (!form.adminFullName.trim())
+    errors.adminFullName = "Admin full name is required.";
 
-  if (!form.admin_email.trim())
-    errors.admin_email = "Admin email is required.";
+  if (!form.adminEmail.trim())
+    errors.adminEmail = "Admin email is required.";
 
-  if (!form.school_email.trim())
-    errors.school_email = "School email is required.";
+  if (!form.schoolEmail.trim())
+    errors.schoolEmail = "School email is required.";
 
-  if (!form.school_address.trim())
-    errors.school_address = "School address is required.";
+  if (!form.schoolAddress.trim())
+    errors.schoolAddress = "School address is required.";
 
-  if (!form.phone_number.trim())
-    errors.phone_number = "Phone number is required.";
+  if (!form.phoneNumber.trim())
+    errors.phoneNumber = "Phone number is required.";
 
   return errors;
 }
@@ -61,12 +61,12 @@ export default function NewSchoolPage() {
   const [form, setForm] = useState<RegisterSchoolRequest>({
     name: "",
     tier: "pilot",
-    school_email: "",
-    school_address: "",
-    school_website: "",
-    phone_number: "",
-    admin_full_name: "",
-    admin_email: "",
+    schoolEmail: "",
+    schoolAddress: "",
+    schoolWebsite: "",
+    phoneNumber: "",
+    adminFullName: "",
+    adminEmail: "",
     arms: undefined,
     roles: ["school_admin"],
   });
@@ -89,12 +89,12 @@ export default function NewSchoolPage() {
     const finalPhone = `${countryCode}${phone}`;
 
     const finalRoles: UserRole[] = isTeacher
-      ? ["school_admin", "teacher"]
+      ? ["school_admin"]
       : ["school_admin"];
 
     const payload: RegisterSchoolRequest = {
       ...form,
-      phone_number: finalPhone,
+      phoneNumber: finalPhone,
       roles: finalRoles,
       arms: parseArms(armsInput),
     };
@@ -160,24 +160,24 @@ export default function NewSchoolPage() {
           <AuthInput
             id="school-email"
             label="School email"
-            value={form.school_email}
-            onChange={(e) => set("school_email", e)}
-            error={errors.school_email}
+            value={form.schoolEmail}
+            onChange={(e) => set("schoolEmail", e)}
+            error={errors.schoolEmail}
           />
 
           <AuthInput
             id="school-address"
             label="Address"
-            value={form.school_address}
-            onChange={(e) => set("school_address", e)}
-            error={errors.school_address}
+            value={form.schoolAddress}
+            onChange={(e) => set("schoolAddress", e)}
+            error={errors.schoolAddress}
           />
 
           <AuthInput
             id="school-website"
             label="Website (optional)"
-            value={form.school_website || ""}
-            onChange={(e) => set("school_website", e)}
+            value={form.schoolWebsite || ""}
+            onChange={(e) => set("schoolWebsite", e)}
           />
         </div>
 
@@ -198,8 +198,8 @@ export default function NewSchoolPage() {
               className="flex-1 px-4 py-3 rounded-xl border"
             />
           </div>
-          {errors.phone_number && (
-            <p className="text-xs text-red-600">{errors.phone_number}</p>
+          {errors.phoneNumber && (
+            <p className="text-xs text-red-600">{errors.phoneNumber}</p>
           )}
         </div>
 
@@ -210,17 +210,17 @@ export default function NewSchoolPage() {
           <AuthInput
             id="admin-full-name"
             label="Full name"
-            value={form.admin_full_name}
-            onChange={(e) => set("admin_full_name", e)}
-            error={errors.admin_full_name}
+            value={form.adminFullName}
+            onChange={(e) => set("adminFullName", e)}
+            error={errors.adminFullName}
           />
 
           <AuthInput
             id="admin-email"
             label="Email"
-            value={form.admin_email}
-            onChange={(e) => set("admin_email", e)}
-            error={errors.admin_email}
+            value={form.adminEmail}
+            onChange={(e) => set("adminEmail", e)}
+            error={errors.adminEmail}
           />
         </div>
 

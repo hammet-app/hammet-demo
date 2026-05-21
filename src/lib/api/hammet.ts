@@ -1,16 +1,24 @@
-import { apiClient } from "./api-client";
-import type {
-  AdminModulesResponse,
-  CurriculumModule,
-  CreateModuleRequest,
-  UpdateModuleResponse,
-  RegisterSchoolRequest,
-  RegisterSchoolResponse,
-} from "./api-types";
-import type {
-  SchoolsListResponse,
-  DeactivateSchoolResponse,
-} from "@/lib/api/api-types";
+import { apiClient } from "@/lib/api/api-client";
+import {
+  type AdminModulesResponse,
+  type CurriculumModule,
+  type CreateModuleRequest,
+  type UpdateModuleResponse,
+  type RegisterSchoolRequest,
+  type RegisterSchoolResponse,
+  type SchoolsListResponseDto,
+  type RegisterSchoolResponseDto,
+  type DeactivateSchoolResponseDto,
+  type CurriculumModuleDto,
+  type AdminModulesResponseDto,
+  type SchoolsListResponse,
+  type DeactivateSchoolResponse,
+  toSchoolListResponse,
+  toRegisterSchoolResponse,
+  toDeactivateSchoolResponse,
+  toCurriculumModule,
+  toAdminModulesResponse,
+} from "@/lib/api/types";
 
 // ------------------------------------------------------------
 // SCHOOLS
@@ -20,9 +28,11 @@ export async function getSchools(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<SchoolsListResponse> {
-  return apiClient.get<SchoolsListResponse>("/admin/schools", token, {
+  const response = await apiClient.get<SchoolsListResponseDto>("/admin/schools", token, {
     onRefresh,
   });
+
+  return toSchoolListResponse(response)
 }
 
 export async function registerSchool(
@@ -30,12 +40,14 @@ export async function registerSchool(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<RegisterSchoolResponse> {
-  return apiClient.post<RegisterSchoolResponse>(
+  const response = await apiClient.post<RegisterSchoolResponseDto>(
     "/auth/register/school",
     body,
     token,
     { onRefresh }
   );
+
+  return toRegisterSchoolResponse(response)
 }
 
 export async function deactivateSchool(
@@ -43,12 +55,14 @@ export async function deactivateSchool(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<DeactivateSchoolResponse> {
-  return apiClient.post<DeactivateSchoolResponse>(
+  const response = await apiClient.post<DeactivateSchoolResponseDto>(
     `/admin/schools/${schoolId}/deactivate`,
     {},
     token,
     { onRefresh }
   );
+
+  return toDeactivateSchoolResponse(response)
 }
 
 
@@ -57,9 +71,11 @@ export async function createModule(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<CurriculumModule> {
-  return apiClient.post<CurriculumModule>("/admin/modules", body, token, {
+  const response = await apiClient.post<CurriculumModuleDto>("/admin/modules", body, token, {
     onRefresh,
   });
+
+  return toCurriculumModule(response)
 }
 
 export async function updateModule(
@@ -84,7 +100,9 @@ export async function getAdminModules(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<AdminModulesResponse> {
-  return apiClient.get<AdminModulesResponse>("/admin/modules", token, {
+  const response = await apiClient.get<AdminModulesResponseDto>("/admin/modules", token, {
     onRefresh,
   });
+
+  return toAdminModulesResponse(response)
 }

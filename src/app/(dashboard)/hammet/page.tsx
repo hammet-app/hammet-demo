@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSchools, deactivateSchool } from "@/lib/api/hammet";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import type { SchoolListItem } from "@/lib/api/api-types";
+import type { SchoolListItem } from "@/lib/api/types";
 
 function tierLabel(tier: SchoolListItem["tier"]) {
   switch (tier) {
@@ -48,7 +48,7 @@ function SchoolCard({
           </p>
           <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
             Term {school.term} · Since{" "}
-            {new Date(school.created_at).getFullYear()}
+            {new Date(school.createdAt).getFullYear()}
           </p>
         </div>
 
@@ -61,10 +61,9 @@ function SchoolCard({
 
       <div className="grid grid-cols-2 gap-3">
         {[
-          { label: "Students", value: school.stats.total_students },
-          { label: "Active", value: school.stats.active_students },
-          { label: "Pending", value: school.stats.pending_students },
-          { label: "Teachers", value: school.stats.total_teachers },
+          { label: "Students", value: school.stats.totalStudents },
+          { label: "Active", value: school.stats.activeStudents },
+          { label: "Pending", value: school.stats.pendingStudents },
         ].map(({ label, value }) => (
           <div
             key={label}

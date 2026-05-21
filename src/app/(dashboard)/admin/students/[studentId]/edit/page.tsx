@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { PageShell } from "@/components/layout/page-shell";
 import { useAuth } from "@/lib/auth/auth-context";
-import { UserUpdateRequest, UserUpdateResponse } from "@/lib/api/api-types";
+import { UserUpdateRequest, UserUpdateResponse } from "@/lib/api/types";
 import { updateStudent } from "@/lib/api/admin";
 
 export default function UpdateStudentPage() {
@@ -19,7 +19,7 @@ export default function UpdateStudentPage() {
   const [classArm, setClassArm] = useState("");
   const [parentPhone, setParentPhone] = useState("");
   const [parentEmail, setParentEmail] = useState("");
-  const [date_of_birth, setDOB] = useState("")
+  const [dateOfBirth, setDOB] = useState("")
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,11 +34,11 @@ export default function UpdateStudentPage() {
         await updateStudent(studentId, 
             {
               email: email.trim() || undefined,
-              date_of_birth: date_of_birth.trim() || undefined,
-              parent_phone: parentPhone.trim() || undefined,
-              class_level: classLevel.trim() || undefined,
-              class_arm: classArm.trim() || undefined,
-              parent_email: parentEmail.trim() || undefined,
+              dateOfBirth: dateOfBirth.trim() || undefined,
+              parentPhone: parentPhone.trim() || undefined,
+              classLevel: classLevel.trim() || undefined,
+              classArm: classArm.trim() || undefined,
+              parentEmail: parentEmail.trim() || undefined,
             } satisfies UserUpdateRequest,
             accessToken,
             refreshToken
@@ -91,7 +91,7 @@ export default function UpdateStudentPage() {
 
             <input
               type="date"
-              value={date_of_birth}
+              value={dateOfBirth}
               onChange={(e) => setDOB(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border"
             />

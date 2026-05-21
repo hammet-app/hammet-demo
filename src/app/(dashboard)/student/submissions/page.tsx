@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import { SubmissionCard } from "@/components/cards/submission-card";
-import type { Submission } from "@/lib/api/api-types";
+import type { Submission } from "@/lib/api/types";
 
 type FilterStatus = "all" | "approved" | "submitted" | "flagged";
 
@@ -91,15 +91,15 @@ export default function SubmissionsPage() {
           {filtered.map((s) => (
             <SubmissionCard
               key={s.id}
-              moduleTitle={s.module_title}
-              weekNumber={s.week_number}
+              moduleTitle={s.moduleTitle}
+              weekNumber={s.weekNumber}
               term={s.term}
-              submittedAt={s.submitted_at}
+              submittedAt={s.submittedAt}
               status={s.status}
-              teacherNote={s.teacher_note}
+              teacherNote={s.teacherNote}
               onAction={
                 s.status === "flagged"
-                  ? () => router.push(`/student/lessons/${s.module_id}`)
+                  ? () => router.push(`/student/lessons/${s.moduleId}`)
                   : s.status === "approved"
                   ? () => router.push(`/student/portfolio`)
                   : undefined

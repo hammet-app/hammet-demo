@@ -19,7 +19,14 @@ import {
   uploadFilesForModule,
   removeQueuedFile,
 } from "@/lib/file-pipeline";
-import { clearUploadedFilesForModule, submitLesson, saveSubmissionLocally } from "@/lib/db";
+import { 
+  clearUploadedFilesForModule, 
+  submitLesson, 
+  saveSubmissionLocally,
+  savePendingProgress,
+  clearPendingProgress,
+  hasPendingSubmission
+} from "@/lib/db";
 import { PageShell } from "@/components/layout/page-shell";
 import { StatusPill } from "@/components/ui/status-pill";
 import {
@@ -33,7 +40,7 @@ import type {
   CurriculumModule,
   ModulesResponse,
   Submission,
-} from "@/lib/api/api-types";
+} from "@/lib/api/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Font constants (match lesson-stepper.tsx)
@@ -49,7 +56,7 @@ async function saveOffline(
   studentId: string,
   moduleId: string,
   moduleTitle: string,
-  file_urls: string[],
+  fileUrls: string[],
   activityText?: string,
   reflectionText?: string
 ): Promise<void> {
@@ -58,7 +65,7 @@ async function saveOffline(
       studentId,
       moduleId,
       moduleTitle,
-      file_urls,
+      fileUrls,
       activityText,
       reflectionText,
     });
@@ -102,14 +109,14 @@ export default function LessonDetailPage() {
 
   // ── Load module + list + submission history in parallel ──────────────────
   useEffect(() => {
-    if (!accessToken || !user?.class_level || !user?.term) return;
+    if (!accessToken || !user?.classLevel || !user?.term) return;
 
     async function load() {
       try {
         const [mod, list, history] = await Promise.all([
           studentApi.getModule(moduleId, accessToken!, refreshToken),
           // getModules calls cacheModules internally — Dexie is populated here
-          studentApi.getModules(user!.term!, user!.class_level!, accessToken!, refreshToken),
+          studentApi.getModules(user!.term!, user!.classLevel!, accessToken!, refreshToken),
           studentApi.getSubmissions(accessToken!, refreshToken).catch(() => ({submissions: []})),
         ]);
 
@@ -117,13 +124,13 @@ export default function LessonDetailPage() {
         setAllModules(list.modules);
 
         const existing =
-          history.submissions.find((s) => s.module_id === moduleId) ?? null;
+          history.submissions.find((s) => s.moduleId === moduleId) ?? null;
         setExistingSubmission(existing);
 
         // Pre-fill if flagged so student can revise
         if (existing?.status === "flagged") {
-          if (existing.reflection_text) setReflectionText(existing.reflection_text);
-          if (existing.activity_text)   setActivityText(existing.activity_text);
+          if (existing.reflectionText) setReflectionText(existing.reflectionText);
+          if (existing.activityText)   setActivityText(existing.activityText);
         }
 
         setLoadState("ready");
@@ -133,7 +140,20 @@ export default function LessonDetailPage() {
     }
 
     load();
-  }, [accessToken, moduleId, user?.class_level]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accessToken, moduleId, user?.classLevel]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Fetch the last page opened ────────────────────────────────────
+  // After pages are built and module is set:
+  useEffect(() => {
+    if (!module || pages.length === 0) return
+    if (!module.stoppedAt) return   // not started — begin at 0
+
+    const resumeIdx = pages.findIndex(
+      (p) => (p.kind === "content" || p.kind === "activity" || p.kind === "reflection")
+        && p.sectionId === module.stoppedAt
+    )
+    if (resumeIdx !== -1) setCurrentPage(resumeIdx)
+  }, [module]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-save text to Dexie on change ────────────────────────────────────
   useEffect(() => {
@@ -257,7 +277,7 @@ export default function LessonDetailPage() {
 
   // ── Navigation helpers ────────────────────────────────────────────────────
   const sortedModules = [...allModules].sort(
-    (a, b) => a.week_number - b.week_number
+    (a, b) => a.weekNumber - b.weekNumber
   );
   const currentIdx = sortedModules.findIndex((m) => m.id === moduleId);
   const nextMod =
@@ -283,19 +303,49 @@ export default function LessonDetailPage() {
       )
     : false;
 
+  const saveSectionProgress = useCallback(async (pageIdx: number) => {
+    const page = pages[pageIdx]
+    if (!page || !user) return
+    if (page.kind !== "content" && page.kind !== "activity" && page.kind !== "reflection") return
+    if (!page.sectionId) return
+
+    const sectionId = page.sectionId
+
+    // Always write to Dexie first — this is the source of truth when offline
+    await savePendingProgress(user?.id, moduleId, sectionId)
+
+    // If online and no pending submission for this module, sync immediately
+    const isPending = await hasPendingSubmission(user?.id, moduleId)
+
+      if (!isPending) {
+        try {
+          await studentApi.saveProgress({studentId: user?.id, moduleId, sectionId}, accessToken!, refreshToken)
+          await clearPendingProgress(moduleId)
+        } catch {
+          // Network failed mid-lesson — Dexie has it, sync will pick it up
+        }
+      }
+      // If there IS a pending submission, don't PATCH — submission sync will
+      // clear progress on the backend when it fires
+  }, [pages, moduleId, accessToken, refreshToken])
+
   const goNext = useCallback(() => {
     if (blocked) return;
     if (isLastPage) { handleSubmit(); return; }
-    setCurrentPage((p) => Math.min(total - 1, p + 1));
-  }, [blocked, isLastPage, total]); // eslint-disable-line react-hooks/exhaustive-deps
+    const next = Math.min(total - 1, currentPage + 1)
+    setCurrentPage(next);
+    saveSectionProgress(next)
+  }, [blocked, isLastPage, total, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goBack = useCallback(() => {
     if (currentPage === 0) {
       if (prevMod) router.push(`/student/lessons/${prevMod.id}`);
       return;
     }
-    setCurrentPage((p) => Math.max(0, p - 1));
-  }, [currentPage, prevMod, router]);
+    const prev = Math.max(0, currentPage - 1)
+    setCurrentPage(prev);
+    saveSectionProgress(prev)
+  }, [currentPage, prevMod, router, saveSectionProgress]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
   async function handleSubmit() {
@@ -316,11 +366,11 @@ export default function LessonDetailPage() {
   }
 
   const payload = {
-    module_id: moduleId,
-    activity_text: activityText,
-    reflection_text: reflectionText || null,
-    file_urls: allPaths.length > 0 ? allPaths : null,
-    local_id: crypto.randomUUID(),
+    moduleId: moduleId,
+    activityText: activityText,
+    reflectionText: reflectionText || null,
+    fileUrls: allPaths.length > 0 ? allPaths : null,
+    localId: crypto.randomUUID(),
   };
 
   // Try backend first
@@ -331,18 +381,18 @@ export default function LessonDetailPage() {
 
       setExistingSubmission({
         id: crypto.randomUUID(),
-        module_title: module.title,
+        moduleTitle: module.title,
         term: module.term,
-        week_number: module.week_number,
-        module_id: moduleId,
-        activity_text: activityText,
-        reflection_text: reflectionText || null,
-        file_urls: allPaths.length > 0 ? allPaths : null,
-        synced_at: null,
-        local_id: payload.local_id,
-        submitted_at: new Date().toISOString(),
+        weekNumber: module.weekNumber,
+        moduleId: moduleId,
+        activityText: activityText,
+        reflectionText: reflectionText || null,
+        fileUrls: allPaths.length > 0 ? allPaths : null,
+        syncedAt: null,
+        localId: payload.localId,
+        submittedAt: new Date().toISOString(),
         status: "submitted",
-        teacher_note: null,
+        teacherNote: null,
       });
 
       setIsSubmitting(false);
@@ -355,12 +405,12 @@ export default function LessonDetailPage() {
   // Backend failed or no token — save to Dexie for later sync
   try {
     await saveSubmissionLocally({
-      localId: payload.local_id,
+      localId: payload.localId,
       studentId: user.id,
       moduleId,
       activityText: activityText || undefined,
       reflectionText: reflectionText || undefined,
-      file_urls: allPaths,
+      fileUrls: allPaths,
       submittedAt: new Date().toISOString(),
     });
     setSavedOffline(true);
@@ -397,8 +447,8 @@ export default function LessonDetailPage() {
 
   const toolNames = module.contentJson.sections
     .flatMap((s) => s.blocks)
-    .filter((b) => b.type === "tool_link")
-    .map((b) => b.tool_name || b.content)
+    .filter((b) => b.type === "toolLink")
+    .map((b) => b.toolName || b.content)
     .filter(Boolean) as string[];
 
   const showStepper = status === null || status === "flagged";
@@ -418,7 +468,7 @@ export default function LessonDetailPage() {
           {(status === "submitted" || status === "approved") && (
             <SubmittedNotice
               status={status}
-              submittedAt={existingSubmission!.submitted_at}
+              submittedAt={existingSubmission!.submittedAt}
               onNext={
                 nextMod
                   ? () => router.push(`/student/lessons/${nextMod.id}`)
@@ -428,13 +478,13 @@ export default function LessonDetailPage() {
             />
           )}
 
-          {status === "flagged" && existingSubmission?.teacher_note && (
+          {status === "flagged" && existingSubmission?.teacherNote && (
             <div className="border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
               <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
                 Teacher feedback — revision required
               </p>
               <p className="text-[13px] text-warning-dark leading-[1.6]">
-                {existingSubmission.teacher_note}
+                {existingSubmission.teacherNote}
               </p>
             </div>
           )}
@@ -443,7 +493,7 @@ export default function LessonDetailPage() {
             <LessonStepper
               title={module.title}
               description={module.description}
-              weekNumber={module.week_number}
+              weekNumber={module.weekNumber}
               term={module.term}
               toolNames={toolNames}
               sections={module.contentJson.sections}

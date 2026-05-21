@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { performanceApi } from "@/lib/api/performance";
-import type { PerformancePoint } from "@/lib/api/api-types";
+import type { PerformancePoint } from "@/lib/api/types";
 import { PerformanceChart } from "@/components/cards/performance-chart";
 import { PageShell, CardSkeleton } from "@/components/layout/page-shell";
 import { TrendingUp } from "lucide-react";

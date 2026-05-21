@@ -1,23 +1,34 @@
 import { 
-    ParentVerifyChallenge, 
-    ParentVerifyRequest, 
-    ParentVerifyResponse, 
-    ParentPortalRequest,
-    ParentPortal 
-} from "@/lib/api/api-types";
+    type ParentVerifyChallenge, 
+    type ParentVerifyRequest, 
+    type ParentVerifyResponse, 
+    type ParentPortalRequest,
+    type ParentPortal, 
+    type ParentVerifyChallengeDto,
+    type ParentPortalDto,    
+    ParentVerifyResponseDto,
+    toParentVerifyResponse,
+    toParentVerifyChallenge,
+    toParentPortal
+} from "@/lib/api/types";
 import { apiClient } from "@/lib/api/api-client";
 
 
 export const parentApi = {
-  getChallenge: (linkToken: string) =>
-    apiClient.get<ParentVerifyChallenge>(`/parent/${encodeURIComponent(linkToken)}/verify`),
+  getChallenge: async (linkToken: string): Promise<ParentVerifyChallenge> =>{
+    const response = await apiClient.get<ParentVerifyChallengeDto>(`/parent/${encodeURIComponent(linkToken)}/verify`)
+    return toParentVerifyChallenge(response)
+  },
 
-  postVerify: (linkToken: string, body: ParentVerifyRequest) =>
-    apiClient.post<ParentVerifyResponse>(`/parent/${encodeURIComponent(linkToken)}/verify`, body),
-
-  getPortal: (
+  postVerify: async (linkToken: string, body: ParentVerifyRequest): Promise<ParentVerifyResponse> =>{
+    const response = await apiClient.post<ParentVerifyResponseDto>(`/parent/${encodeURIComponent(linkToken)}/verify`, body)
+    return toParentVerifyResponse(response)
+  },
+  getPortal: async(
     linkToken: string,
     filters: ParentPortalRequest
-  ) =>
-    apiClient.post<ParentPortal>(`/parent/${encodeURIComponent(linkToken)}/portal`, filters)
+  ): Promise<ParentPortal> =>{
+    const response = await apiClient.post<ParentPortalDto>(`/parent/${encodeURIComponent(linkToken)}/portal`, filters)
+    return toParentPortal(response)
+  }
 };

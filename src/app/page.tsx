@@ -647,8 +647,8 @@ function Features() {
 // ─── Section 6 — Callback Form ────────────────────────────────────────────────
 
 type FormData = {
-  school_name: string;
-  full_name: string;
+  schoolName: string;
+  fullName: string;
   email: string,
   role: string;
   phone: string;
@@ -657,8 +657,8 @@ type FormData = {
 
 function CallbackForm() {
   const [form, setForm] = useState<FormData>({
-    school_name: "",
-    full_name: "",
+    schoolName: "",
+    fullName: "",
     email: "",
     role: "",
     phone: "",
@@ -757,16 +757,16 @@ function CallbackForm() {
                   type="text"
                   required
                   placeholder="School Name"
-                  value={form.school_name}
-                  onChange={(e) => set("school_name", e.target.value)}
+                  value={form.schoolName}
+                  onChange={(e) => set("schoolName", e.target.value)}
                   className={inputClass}
                 />
                 <input
                   type="text"
                   required
                   placeholder="Your Full Name"
-                  value={form.full_name}
-                  onChange={(e) => set("full_name", e.target.value)}
+                  value={form.fullName}
+                  onChange={(e) => set("fullName", e.target.value)}
                   className={inputClass}
                 />
                 <input

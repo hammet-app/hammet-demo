@@ -8,7 +8,7 @@ import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import { ModuleCard } from "@/components/cards/module-card";
 import { StatCard } from "@/components/cards/stat-card";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";
-import type { ModuleSummary, StudentProgress } from "@/lib/api/api-types";
+import type { ModuleSummary, StudentProgress } from "@/lib/api/types";
 import { ApiError } from "@/lib/api/api-client";
 import type { SubmissionStatus } from "@/components/ui/status-pill";
 
@@ -22,14 +22,14 @@ export default function LessonsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!accessToken || !user?.class_level || !user?.term) return;
+    if (!accessToken || !user?.classLevel || !user?.term) return;
 
     async function load() {
       try {
         const [modulesData, progressData] = await Promise.all([
           studentApi.getModules(
             user!.term!, // current term — expand later when multi-term is needed
-            user!.class_level!,
+            user!.classLevel!,
             accessToken!,
             refreshToken
           ),
@@ -63,31 +63,31 @@ export default function LessonsPage() {
     }
 
     load();
-  }, [accessToken, user?.class_level]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accessToken, user?.classLevel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build a map of moduleId → submission status from progress data
   const statusMap = new Map<string, SubmissionStatus>(
   (progress?.modules ?? []).map((m) => [
-    m.module_id,
-    m.submission_status as SubmissionStatus,
+    m.moduleId,
+    m.submissionStatus as SubmissionStatus,
   ])
 );
 
   // Group modules by week
   const byWeek = modules.reduce<Record<number, ModuleSummary[]>>((acc, m) => {
-    if (!acc[m.week_number]) acc[m.week_number] = [];
-    acc[m.week_number].push(m);
+    if (!acc[m.weekNumber]) acc[m.weekNumber] = [];
+    acc[m.weekNumber].push(m);
     return acc;
   }, {});
 
-  const tp = progress?.term_progress;
+  const tp = progress?.termProgress;
 
   return (
     <PageShell
       title="My Lessons"
       description={
-        user?.class_level
-          ? `Term ${progress?.current_term ?? "—"} · ${user.class_level}${user.class_arm ?? ""}`
+        user?.classLevel
+          ? `Term ${progress?.currentTerm ?? "—"} · ${user.classLevel}${user.classArm ?? ""}`
           : undefined
       }
     >
@@ -112,29 +112,29 @@ export default function LessonsPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
               <StatCard
                 label="Total modules"
-                value={tp.total_modules}
+                value={tp.totalModules}
                 icon={BookOpen}
                 iconVariant="purple"
               />
               <StatCard
                 label="Submitted"
-                value={tp.submitted_modules}
-                sub={`${Math.round((tp.submitted_modules / tp.total_modules) * 100)}% done`}
+                value={tp.submittedModules}
+                sub={`${Math.round((tp.submittedModules / tp.totalModules) * 100)}% done`}
                 icon={Clock}
                 iconVariant="cyan"
               />
               <StatCard
                 label="Approved"
-                value={tp.approved_modules}
+                value={tp.approvedModules}
                 icon={CheckCircle2}
                 iconVariant="green"
               />
               <StatCard
                 label="Flagged"
-                value={tp.flagged_modules}
-                sub={tp.flagged_modules > 0 ? "Needs revision" : undefined}
+                value={tp.flaggedModules}
+                sub={tp.flaggedModules > 0 ? "Needs revision" : undefined}
                 icon={Flag}
-                iconVariant={tp.flagged_modules > 0 ? "amber" : "purple"}
+                iconVariant={tp.flaggedModules > 0 ? "amber" : "purple"}
               />
             </div>
           )}
@@ -145,24 +145,24 @@ export default function LessonsPage() {
               <div className="flex-1">
                 <div className="flex justify-between text-[12px] mb-1.5">
                   <span className="text-text-secondary font-medium">
-                    Term {progress?.current_term} progress
+                    Term {progress?.currentTerm} progress
                   </span>
                   <span className="text-cyan font-semibold">
-                    {Math.round((tp.approved_modules / tp.total_modules) * 100)}%
+                    {Math.round((tp.approvedModules / tp.totalModules) * 100)}%
                   </span>
                 </div>
                 <div className="h-2 bg-border rounded-full overflow-hidden">
                   <div
                     className="h-full bg-cyan rounded-full transition-all duration-500"
                     style={{
-                      width: `${Math.round((tp.approved_modules / tp.total_modules) * 100)}%`,
+                      width: `${Math.round((tp.approvedModules / tp.totalModules) * 100)}%`,
                     }}
                   />
                 </div>
               </div>
               <div className="text-right shrink-0">
                 <p className="text-[13px] font-semibold text-text-primary">
-                  {tp.approved_modules} / {tp.total_modules}
+                  {tp.approvedModules} / {tp.totalModules}
                 </p>
                 <p className="text-[11px] text-text-muted">modules approved</p>
               </div>
@@ -196,7 +196,7 @@ export default function LessonsPage() {
                   <ModuleCard
                     key={module.id}
                     title={module.title}
-                    weekNumber={module.week_number}
+                    weekNumber={module.weekNumber}
                     term={module.term}
                     status={statusMap.get(module.id) ?? "not_started"}
                     locked={!unlocked}

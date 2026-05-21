@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/hammet";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import type { CurriculumModule } from "@/lib/api/api-types";
+import type { CurriculumModule } from "@/lib/api/types";
 
 const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SSS1", "SSS2", "SSS3"];
 

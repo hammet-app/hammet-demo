@@ -1,5 +1,5 @@
-import { apiClient } from "./api-client";
-import { CallbackForm } from "./api-types";
+import { apiClient } from "@/lib/api/api-client";
+import { CallbackForm } from "@/lib/api/types/support/types";
 
 export async function sendCallback(
     body: CallbackForm

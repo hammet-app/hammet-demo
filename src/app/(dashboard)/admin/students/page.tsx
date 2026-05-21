@@ -12,7 +12,7 @@ import {
 import { ApiError } from "@/lib/api/api-client";
 import { resendCode } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import type { AdminStudent } from "@/lib/api/api-types";
+import type { AdminStudent } from "@/lib/api/types";
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -43,7 +43,7 @@ function StudentRow({
   inFlight: InFlight | null;
   onAction: (action: RowAction) => void;
   created?: {
-    full_name: string;
+    fullName: string;
     email: string;
     code: string;
   };
@@ -52,13 +52,13 @@ function StudentRow({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
 
-  const busy = inFlight?.studentId === student.student_id;
+  const busy = inFlight?.studentId === student.studentId;
   const busyAction = busy ? inFlight!.action : null;
 
-  const hasLink = student.parent_link_sent_at !== null;
-  const classLabel = student.class_arm
-    ? `${student.class_level} ${student.class_arm}`
-    : student.class_level;
+  const hasLink = student.parentLinkSentAt !== null;
+  const classLabel = student.classArm
+    ? `${student.classLevel} ${student.classArm}`
+    : student.classLevel;
 
   return (
     <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-4 flex flex-col gap-3">
@@ -67,7 +67,7 @@ function StudentRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="font-semibold truncate">
-              {student.full_name}
+              {student.fullName}
             </p>
             <span className="text-xs px-2 py-0.5 rounded-full">
               {student.status}
@@ -83,14 +83,14 @@ function StudentRow({
           {hasLink ? (
             <>
               <span className="text-xs">
-                {student.parent_link_sent_at
-                  ? `Link sent ${timeAgo(student.parent_link_sent_at)}`
+                {student.parentLinkSentAt
+                  ? `Link sent ${timeAgo(student.parentLinkSentAt)}`
                   : "Link sent 0d ago"}
               </span>
 
               <button
                 onClick={() =>
-                  onAction({ type: "send-link", studentId: student.student_id })
+                  onAction({ type: "send-link", studentId: student.studentId })
                 }
                 disabled={busy}
                 className="text-xs hover:underline"
@@ -100,7 +100,7 @@ function StudentRow({
 
               <button
                 onClick={() =>
-                  router.push(`/admin/students/${student.student_id}/edit`)
+                  router.push(`/admin/students/${student.studentId}/edit`)
                 }
                 className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-purple)]"
               >
@@ -116,7 +116,7 @@ function StudentRow({
                     onClick={() => {
                       onAction({
                         type: "revoke-link",
-                        studentId: student.student_id,
+                        studentId: student.studentId,
                       });
                       setConfirmRevoke(false);
                     }}
@@ -140,7 +140,7 @@ function StudentRow({
           ) : (
             <button
               onClick={() =>
-                onAction({ type: "send-link", studentId: student.student_id })
+                onAction({ type: "send-link", studentId: student.studentId })
               }
               disabled={busy}
               className="text-xs hover:underline"
@@ -158,7 +158,7 @@ function StudentRow({
             onClick={() =>
               onAction({
                 type: "resend-code",
-                studentId: student.student_id,
+                studentId: student.studentId,
               })
             }
             disabled={busy}
@@ -177,7 +177,7 @@ function StudentRow({
               onClick={() => {
                 onAction({
                   type: "delete",
-                  studentId: student.student_id,
+                  studentId: student.studentId,
                 });
                 setConfirmDelete(false);
               }}
@@ -209,13 +209,13 @@ function StudentRow({
     <div className="flex gap-2 mt-2">
       <button
         onClick={() => {
-          const content = `Name: ${created.full_name}\nEmail: ${created.email}\nCode: ${created.code}`;
+          const content = `Name: ${created.fullName}\nEmail: ${created.email}\nCode: ${created.code}`;
           const blob = new Blob([content], { type: "text/plain" });
           const url = URL.createObjectURL(blob);
 
           const a = document.createElement("a");
           a.href = url;
-          a.download = `${created.full_name}.txt`;
+          a.download = `${created.fullName}.txt`;
           a.click();
         }}
         className="text-xs underline"
@@ -225,7 +225,7 @@ function StudentRow({
 
       <button
         onClick={() => {
-          const content = `full_name,email,code\n${created.full_name},${created.email},${created.code}`;
+          const content = `full_name,email,code\n${created.fullName},${created.email},${created.code}`;
           const blob = new Blob([content], { type: "text/csv" });
           const url = URL.createObjectURL(blob);
 
@@ -257,7 +257,7 @@ export default function AdminStudentsPage() {
   const [actionError, setActionError] = useState<string | null>(null);
 
   const [createdMap, setCreatedMap] = useState<
-    Record<string, { full_name: string; email: string; code: string }>
+    Record<string, { fullName: string; email: string; code: string }>
   >({});
 
   useEffect(() => {
@@ -286,8 +286,8 @@ export default function AdminStudentsPage() {
 
           setStudents((prev) =>
             prev.map((s) =>
-              s.student_id === action.studentId
-                ? { ...s, parent_link_sent_at: res.expires_at }
+              s.studentId === action.studentId
+                ? { ...s, parentLinkSentAt: res.expiresAt }
                 : s
             )
           );
@@ -312,8 +312,8 @@ export default function AdminStudentsPage() {
 
         setStudents((prev) =>
           prev.map((s) =>
-            s.student_id === action.studentId
-              ? { ...s, parent_link_sent_at: null }
+            s.studentId === action.studentId
+              ? { ...s, parentLinkSentAt: null }
               : s
           )
         );
@@ -325,11 +325,11 @@ export default function AdminStudentsPage() {
         );
 
         setStudents((prev) =>
-          prev.filter((s) => s.student_id !== action.studentId)
+          prev.filter((s) => s.studentId !== action.studentId)
         );
       } else if (action.type === "resend-code") {
         const student = students.find(
-          (s) => s.student_id === action.studentId
+          (s) => s.studentId === action.studentId
         );
 
         if (!student) return;
@@ -346,7 +346,7 @@ export default function AdminStudentsPage() {
           setCreatedMap((prev) => ({
             ...prev,
             [action.studentId]: {
-              full_name: student.full_name,
+              fullName: student.fullName,
               email: student.email,
               code: code,
             },
@@ -370,11 +370,11 @@ export default function AdminStudentsPage() {
         <div className="flex flex-col gap-3">
           {students.map((student) => (
             <StudentRow
-            key={student.student_id}
+            key={student.studentId}
             student={student}
             inFlight={inFlight}
             onAction={handleAction}
-            created={createdMap[student.student_id]}
+            created={createdMap[student.studentId]}
             router={router}
           />
           ))}

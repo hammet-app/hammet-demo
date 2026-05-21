@@ -8,7 +8,7 @@ import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import { getDefaultRoute } from "@/lib/auth/routes";
-import type { LoginRequest, LoginResponse } from "@/lib/api/api-types";
+import type { LoginRequest, LoginResponse } from "@/lib/api/types";
 import type { UserRole } from "@/lib/utils/roles";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { cn } from "@/lib/utils/utils";
@@ -59,7 +59,7 @@ export default function LoginPage() {
         { email, password, deviceId } satisfies LoginRequest
       );
 
-      setSession(data.user, data.access_token);
+      setSession(data.user, data.accessToken);
 
     } catch (err) {
       if (err instanceof ApiError) {

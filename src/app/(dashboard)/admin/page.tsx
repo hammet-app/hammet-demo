@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSchoolProfile } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import type { SchoolProfile } from "@/lib/api/api-types";
+import type { SchoolProfile } from "@/lib/api/types";
 
 const TIER_STYLE: Record<string, { bg: string; text: string }> = {
   pilot:     { bg: "bg-cyan-50",     text: "text-cyan-700" },
@@ -171,8 +171,8 @@ export default function AdminDashboardPage() {
 
             <p className="text-sm text-[var(--color-text-secondary)]">
               Term {profile.term}
-              {profile.available_arms && profile.available_arms.length > 0 &&
-                ` · Arms: ${profile.available_arms.join(", ")}`}
+              {profile.availableArms && profile.availableArms.length > 0 &&
+                ` · Arms: ${profile.availableArms.join(", ")}`}
             </p>
           </div>
 
@@ -183,10 +183,9 @@ export default function AdminDashboardPage() {
             </p>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <StatCard label="Total students" value={profile.stats.total_students} />
-              <StatCard label="Active students" value={profile.stats.active_students} />
-              <StatCard label="Pending students" value={profile.stats.pending_students} />
-              <StatCard label="Teachers" value={profile.stats.total_teachers} />
+              <StatCard label="Total students" value={profile.stats.totalStudents} />
+              <StatCard label="Active students" value={profile.stats.activeStudents} />
+              <StatCard label="Pending students" value={profile.stats.pendingStudents} />
             </div>
           </div>
 

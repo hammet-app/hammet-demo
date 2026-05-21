@@ -7,33 +7,33 @@ import { getSchoolProfile, registerStudent } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { FieldError } from "@/components/ui/auth-shell";
-import { RegisterStudentResponse } from "@/lib/api/api-types";
+import { RegisterStudentResponse } from "@/lib/api/types";
 
 const LEVELS = ["JSS1", "JSS2", "JSS3", "SSS1", "SSS2", "SSS3"];
 
 type FormState = {
-  full_name: string;
+  fullName: string;
   email: string;
-  class_level: string;
-  class_arm: string;
-  parent_email: string;
-  parent_phone: string;
-  date_of_birth: string;
+  classLevel: string;
+  classArm: string;
+  parentEmail: string;
+  parentPhone: string;
+  dateOfBirth: string;
 };
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
 function validate(form: FormState, availableArms: string[]): FormErrors {
   const errs: FormErrors = {};
-  if (!form.full_name.trim()) errs.full_name = "Full name is required";
+  if (!form.fullName.trim()) errs.fullName = "Full name is required";
   if (!form.email.trim()) {
     errs.email = "Email is required";
   }
-  if (!form.class_level) errs.class_level = "Select level";
-  if (availableArms.length > 0 && !form.class_arm) errs.class_arm = "Select arm";
-  if (!form.parent_email.trim()) errs.parent_email = "Parent email is required";
-  if (!form.parent_phone.trim()) errs.parent_phone = "Phone is required";
-  if (!form.date_of_birth.trim()) errs.date_of_birth = "Date of Birth";
+  if (!form.classLevel) errs.classLevel = "Select level";
+  if (availableArms.length > 0 && !form.classArm) errs.classArm = "Select arm";
+  if (!form.parentEmail.trim()) errs.parentEmail = "Parent email is required";
+  if (!form.parentPhone.trim()) errs.parentPhone = "Phone is required";
+  if (!form.dateOfBirth.trim()) errs.dateOfBirth = "Date of Birth";
   return errs;
 }
 
@@ -46,13 +46,13 @@ export default function NewStudentPage() {
   const [countryCode, setCountryCode] = useState("+234");
 
   const [form, setForm] = useState<FormState>({
-    full_name: "",
+    fullName: "",
     email: "",
-    class_level: "",
-    class_arm: "",
-    parent_email: "",
-    parent_phone: "",
-    date_of_birth: "",
+    classLevel: "",
+    classArm: "",
+    parentEmail: "",
+    parentPhone: "",
+    dateOfBirth: "",
   });
 
   const [created, setCreated] = useState<RegisterStudentResponse | null>(null);
@@ -64,7 +64,7 @@ export default function NewStudentPage() {
     if (!accessToken) return;
 
     getSchoolProfile(accessToken, refreshToken)
-      .then((p) => setAvailableArms(p.available_arms ?? []))
+      .then((p) => setAvailableArms(p.availableArms ?? []))
       .catch(() => setAvailableArms([]))
       .finally(() => setIsLoading(false));
   }, [accessToken, refreshToken]);
@@ -87,14 +87,14 @@ export default function NewStudentPage() {
     setSubmitting(true);
     setError(null);
 
-    const clean = form.parent_phone.replace(/^0/, "");
+    const clean = form.parentPhone.replace(/^0/, "");
     const finalPhone = `${countryCode}${clean}`;
 
     try {
       const res = await registerStudent(
         {
           ...form,
-          parent_phone: finalPhone,
+          parentPhone: finalPhone,
         },
         accessToken,
         refreshToken
@@ -103,13 +103,13 @@ export default function NewStudentPage() {
       setCreated(res);
 
       setForm({
-        full_name: "",
+        fullName: "",
         email: "",
-        class_level: "",
-        class_arm: "",
-        parent_email: "",
-        parent_phone: "",
-        date_of_birth: "",
+        classLevel: "",
+        classArm: "",
+        parentEmail: "",
+        parentPhone: "",
+        dateOfBirth: "",
       });
     } catch (err) {
       if (err instanceof ApiError) {
@@ -139,21 +139,21 @@ export default function NewStudentPage() {
   function downloadTXT() {
     if (!created) return;
 
-    const content = `Name: ${created.full_name}\nEmail: ${created.email}\nCode: ${created.code}`;
+    const content = `Name: ${created.fullName}\nEmail: ${created.email}\nCode: ${created.code}`;
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
 
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${created.full_name}.txt`;
+    a.download = `${created.fullName}.txt`;
     a.click();
   }
 
   function downloadCSV() {
     if (!created) return;
 
-    const content = `full_name,email,code\n${created.full_name},${created.email},${created.code}`;
+    const content = `fullName,email,code\n${created.fullName},${created.email},${created.code}`;
 
     const blob = new Blob([content], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -177,10 +177,10 @@ export default function NewStudentPage() {
               <AuthInput
                 id="full-name"
                 label="Full name"
-                value={form.full_name}
-                onChange={(e) => set("full_name", e)}
+                value={form.fullName}
+                onChange={(e) => set("fullName", e)}
               />
-              <FieldError message={errors.full_name} />
+              <FieldError message={errors.fullName} />
             </div>
 
             <div>
@@ -195,29 +195,29 @@ export default function NewStudentPage() {
 
             <div>
               <select
-                value={form.class_level}
-                onChange={(e) => set("class_level", e.target.value)}
+                value={form.classLevel}
+                onChange={(e) => set("classLevel", e.target.value)}
               >
                 <option value="">Select level</option>
                 {LEVELS.map((l) => (
                   <option key={l}>{l}</option>
                 ))}
               </select>
-              <FieldError message={errors.class_level} />
+              <FieldError message={errors.classLevel} />
             </div>
 
             {availableArms.length > 0 && (
               <div>
                 <select
-                  value={form.class_arm}
-                  onChange={(e) => set("class_arm", e.target.value)}
+                  value={form.classArm}
+                  onChange={(e) => set("classArm", e.target.value)}
                 >
                   <option value="">Select arm</option>
                   {availableArms.map((a) => (
                     <option key={a}>{a}</option>
                   ))}
                 </select>
-                <FieldError message={errors.class_arm} />
+                <FieldError message={errors.classArm} />
               </div>
             )}
 
@@ -225,10 +225,10 @@ export default function NewStudentPage() {
               <AuthInput
                 id="parent-email"
                 label="Parent email"
-                value={form.parent_email}
-                onChange={(e) => set("parent_email", e)}
+                value={form.parentEmail}
+                onChange={(e) => set("parentEmail", e)}
               />
-              <FieldError message={errors.parent_email} />
+              <FieldError message={errors.parentEmail} />
             </div>
 
             <div>
@@ -241,12 +241,12 @@ export default function NewStudentPage() {
 
                 <input
                   placeholder="Phone number"
-                  value={form.parent_phone}
-                  onChange={(e) => set("parent_phone", e.target.value)}
+                  value={form.parentPhone}
+                  onChange={(e) => set("parentPhone", e.target.value)}
                   className="flex-1 px-4 py-3 rounded-xl border"
                 />
               </div>
-              <FieldError message={errors.parent_phone} />
+              <FieldError message={errors.parentPhone} />
             </div>
 
             <div>
@@ -256,12 +256,12 @@ export default function NewStudentPage() {
 
               <input
                 type="date"
-                value={form.date_of_birth}
-                onChange={(e) => set("date_of_birth", e.target.value)}
+                value={form.dateOfBirth}
+                onChange={(e) => set("dateOfBirth", e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border"
               />
 
-              <FieldError message={errors.date_of_birth} />
+              <FieldError message={errors.dateOfBirth} />
             </div>
 
             <button
@@ -279,7 +279,7 @@ export default function NewStudentPage() {
             <div className="border rounded-2xl p-6 flex flex-col gap-3">
               <p className="font-semibold">Student Created</p>
               <p className="font-semibold">This code will expire in 48 hours</p>
-              <p>Name: {created.full_name}</p>
+              <p>Name: {created.fullName}</p>
               <p>Email: {created.email}</p>
               <p className="font-mono">Code: {created.code}</p>
 

@@ -1,5 +1,5 @@
-import { LoginResponse } from "@/types/auth";
-import { apiRequest } from "./api";
+import { LoginResponse } from "@/lib/api/types/auth";
+import { apiRequest } from "@/services/api";
 
 export const loginUser = async (
     email: string,

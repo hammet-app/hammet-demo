@@ -17,7 +17,7 @@ import {
   X,
   Bot,
 } from "lucide-react";
-import type { CurriculumModuleBlock, CurriculumSection } from "@/lib/api/api-types";
+import type { CurriculumModuleBlock, CurriculumSection } from "@/lib/api/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Typography
@@ -103,12 +103,13 @@ export const EMPTY_AI_FORM: AiFormState = {
 // Pages in order:
 //   • Per section: one content page + ejected activity/reflection pages
 //   • One task page (if any task blocks exist)
-//   • One AI form page (if any tool_link blocks exist) — before submit
+//   • One AI form page (if any toolLink blocks exist) — before submit
 //   • Submit page
 // ─────────────────────────────────────────────────────────────────────────────
 
 type ContentPage = {
   kind: "content";
+  sectionId: string | null;
   heading?: string | null;
   blocks: CurriculumModuleBlock[];
   isFirst: boolean;
@@ -117,6 +118,7 @@ type ContentPage = {
 
 type EjectedPage = {
   kind: "activity" | "reflection";
+  sectionId: string|null;
   block: CurriculumModuleBlock;
   moduleTitle: string;
   isTeacher?: boolean;
@@ -130,7 +132,7 @@ type TaskPage = {
 
 type AiFormPage = {
   kind: "ai_form";
-  toolNames: string[]; // from tool_link blocks
+  toolNames: string[]; // from toolLink blocks
   isTeacher?: boolean;
 };
 
@@ -151,9 +153,10 @@ export function buildPages(
 
   const allBlocks = sections.flatMap((s) => s.blocks);
   const taskBlocks = allBlocks.filter((b) => b.type === "task");
-  const toolLinkBlocks = allBlocks.filter((b) => b.type === "tool_link");
+  const toolLinkBlocks = allBlocks.filter((b) => b.type === "toolLink");
 
   sections.forEach((section, sectionIdx) => {
+    const sectionId = section.id ?? null
     // Content page — exclude task, activity, reflection blocks
     const contentBlocks = section.blocks.filter(
       (b) =>
@@ -167,6 +170,7 @@ export function buildPages(
 
     pages.push({
       kind: "content",
+      sectionId,
       heading: section.heading,
       blocks: contentBlocks,
       isFirst: sectionIdx === 0,
@@ -175,6 +179,7 @@ export function buildPages(
     for (const block of ejected) {
       pages.push({
         kind: block.type as "activity" | "reflection",
+        sectionId,
         block,
         moduleTitle,
       });
@@ -191,7 +196,7 @@ export function buildPages(
     pages.push({
       kind: "ai_form",
       toolNames: toolLinkBlocks
-        .map((b) => b.tool_name ?? b.content ?? "")
+        .map((b) => b.toolName ?? b.content ?? "")
         .filter(Boolean),
     });
   }
@@ -386,7 +391,7 @@ function BodyBlock({ block }: { block: CurriculumModuleBlock }) {
 }
 
 function ImageBlock({ block }: { block: CurriculumModuleBlock }) {
-  const invalid = block.is_valid === false || !block.url;
+  const invalid = block.isValid === false || !block.url;
   if (invalid) {
     return (
       <div className="flex items-center gap-3 border border-dashed border-warning/60 bg-warning/5 rounded-[10px] px-4 py-3.5">
@@ -510,7 +515,7 @@ function ToolLinkBlock({ block }: { block: CurriculumModuleBlock }) {
           className="text-[14px] font-bold text-[#06B6D4] truncate"
           style={{ fontFamily: FONT_BODY }}
         >
-          {block.tool_name || block.content}
+          {block.toolName || block.content}
         </p>
         <p className="text-[11px] text-text-muted truncate" style={{ fontFamily: FONT_BODY }}>
           {block.url}
@@ -1218,9 +1223,9 @@ function ContentBlock({ block }: { block: CurriculumModuleBlock }) {
     case "subheading":  return <SubheadingBlock block={block} />;
     case "body":        return <BodyBlock block={block} />;
     case "image":       return <ImageBlock block={block} />;
-    case "ai_prompt":   return <AiPromptBlock block={block} />;
-    case "video_embed": return <VideoEmbedBlock block={block} />;
-    case "tool_link":   return <ToolLinkBlock block={block} />;
+    case "aiPrompt":   return <AiPromptBlock block={block} />;
+    case "videoEmbed": return <VideoEmbedBlock block={block} />;
+    case "toolLink":   return <ToolLinkBlock block={block} />;
     default:            return null;
   }
 }
@@ -1547,15 +1552,15 @@ export function LessonStepper({
   const hasActivity = allBlocks.some((b) => b.type === "activity");
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
   const hasTask = !isTeacher && allBlocks.some((b) => b.type === "task");
-  const hasAiForm = !isTeacher && allBlocks.some((b) => b.type === "tool_link");
+  const hasAiForm = !isTeacher && allBlocks.some((b) => b.type === "toolLink");
 
   const introProps = { title, description, weekNumber, term, toolNames };
   const page = pages[currentPage];
 
-  // Collect tool names from tool_link blocks for AI form
+  // Collect tool names from toolLink blocks for AI form
   const lessonToolNames = allBlocks
-    .filter((b) => b.type === "tool_link")
-    .map((b) => b.tool_name ?? b.content ?? "")
+    .filter((b) => b.type === "toolLink")
+    .map((b) => b.toolName ?? b.content ?? "")
     .filter(Boolean);
 
   function handleTouchStart(e: React.TouchEvent) {

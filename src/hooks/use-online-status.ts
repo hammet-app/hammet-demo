@@ -1,27 +1,77 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { UserRole } from "@/types/api";
+import { useState, useEffect, useRef } from "react";
+import { getPendingSubmissions, getPendingProgress, clearPendingProgress, db } from "@/lib/db"
+import { syncPendingSubmissions } from "@/lib/db"
+import { studentApi } from "@/lib/api/student"
+import { AuthUser, UserRole } from "@/lib/utils/roles";
 
-export function useOnlineStatus(): boolean {
+export function useOnlineStatus(
+  user: AuthUser,
+  accessToken: string | null,
+  refreshToken: () => Promise<string | null>
+): boolean {
   const [isOnline, setIsOnline] = useState(
     typeof navigator !== "undefined" ? navigator.onLine : true
-  );
+  )
+  const isSyncing = useRef(false)
 
   useEffect(() => {
-    function handleOnline() { setIsOnline(true); }
-    function handleOffline() { setIsOnline(false); }
+    async function handleOnline() {
+      setIsOnline(true)
 
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+      // Debounce — don't double-fire if the event fires twice
+      if (isSyncing.current) return
+      isSyncing.current = true
+
+      try {
+        const token = accessToken ?? await refreshToken()
+        if (!token) return
+
+        // 1. Sync pending submissions first
+        await syncPendingSubmissions(user.id, process.env.NEXT_PUBLIC_API_URL!, token)
+
+        // 2. Sync pending progress — but only for modules with no pending submission
+        // (if submission was just synced, markSubmissionSynced already cleared progress)
+        const pendingProgress = await getPendingProgress(user.id)
+        if (pendingProgress.length === 0) return
+
+        const pendingSubmissions = await getPendingSubmissions(user.id)
+        const modulesWithPendingSubmission = new Set(
+          pendingSubmissions.map((s) => s.moduleId)
+        )
+
+        await Promise.allSettled(
+          pendingProgress
+            .filter((p) => !modulesWithPendingSubmission.has(p.moduleId))
+            .map(async (p) => {
+              try {
+                await studentApi.saveProgress({studentId: user.id, moduleId: p.moduleId, sectionId:p.sectionId}, token, refreshToken)
+                await clearPendingProgress(p.moduleId)
+              } catch {
+                // Will retry next reconnect
+              }
+            })
+        )
+      } finally {
+        isSyncing.current = false
+      }
+    }
+
+    function handleOffline() {
+      setIsOnline(false)
+    }
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("offline", handleOffline)
 
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("offline", handleOffline)
+    }
+  }, [accessToken, refreshToken])
 
-  return isOnline;
+  return isOnline
 }
 
 

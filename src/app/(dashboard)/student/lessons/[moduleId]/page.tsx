@@ -287,8 +287,11 @@ export default function LessonDetailPage() {
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
   // ── Stepper page navigation ───────────────────────────────────────────────
+  const sections = module?.contentJson?.sections?? []
+  console.log(sections)
+  console.log(module?.contentJson)
   const pages = module
-    ? buildPages(module.contentJson.sections, module.title)
+    ? buildPages(sections, module.title)
     : [];
   const total = pages.length;
   const isLastPage = currentPage === total - 1;

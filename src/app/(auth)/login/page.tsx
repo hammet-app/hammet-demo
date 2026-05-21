@@ -8,7 +8,13 @@ import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import { getDefaultRoute } from "@/lib/auth/routes";
-import type { LoginRequest, LoginResponse } from "@/lib/api/types";
+import { 
+  type LoginRequest, 
+  type LoginRequestDto, 
+  type LoginResponseDto, 
+  type LoginResponse,
+  toLoginResponse
+} from "@/lib/api/types";
 import type { UserRole } from "@/lib/utils/roles";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { cn } from "@/lib/utils/utils";
@@ -54,11 +60,11 @@ export default function LoginPage() {
     setErrors({});
 
     try {
-      const data = await apiClient.post<LoginResponse>(
+      const response = await apiClient.post<LoginResponseDto>(
         "/auth/login",
         { email, password, deviceId } satisfies LoginRequest
       );
-      console.log(data)
+      const data = toLoginResponse(response)
       setSession(data.user, data.accessToken);
 
     } catch (err) {

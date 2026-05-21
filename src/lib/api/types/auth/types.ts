@@ -43,7 +43,17 @@ export type ResendVerificationResponse = {
 
 // POST /auth/refresh — no request body, uses httpOnly refresh token cookie
 export type RefreshResponse = {
-  accessToken: string;
+  accessToken: string;         // JWT, 60 min expiry — store in memory only, never localStorage
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    roles: UserRole[];
+    schoolId: string;
+    classLevel: string | null; // null for non-students
+    classArm: string | null;
+    term: number | null;
+  };
 };
 
 // POST /auth/logout — no request body, clears httpOnly cookie server-side

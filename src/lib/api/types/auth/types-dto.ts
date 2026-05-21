@@ -38,7 +38,17 @@ export type ClaimAccountResponseDto = {
 
 // POST /auth/refresh — no request body, uses httpOnly refresh token cookie
 export type RefreshResponseDto = {
-  access_token: string;
+  access_token: string;         // JWT, 60 min expiry — store in memory only, never localStorage
+  user: {
+    id: string;
+    full_name: string;
+    email: string;
+    roles: UserRole[];
+    school_id: string;
+    class_level: string | null; // null for non-students
+    class_arm: string | null;
+    term: number | null;
+  };
 };
 
 

@@ -15,6 +15,7 @@ import {
   getPersistedSession,
   clearPersistedSession,
 } from "@/lib/db";
+import { toRefreshResponse } from "../api/types";
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -92,14 +93,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return null;
         }
 
-        const data = await res.json();
+        const response = await res.json();
+
+        const data = toRefreshResponse(response)
 
         // Persist fresh session to IndexedDB for next offline load
-        await persistSession(data.user, data.access_token);
+        await persistSession(data.user, data.accessToken);
 
         setState((prev) => ({
           ...prev,
-          accessToken: data.access_token,
+          accessToken: data.accessToken,
           user: data.user,
           isLoading: false,
           isResolved: true,
@@ -107,7 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }));
 
         scheduleRefresh();
-        return data.access_token;
+        return data.accessToken;
       } catch {
         // Network error (offline, timeout, etc.)
         // Don't wipe the user — keep whatever is in state (may be from IndexedDB).

@@ -1548,7 +1548,9 @@ export function LessonStepper({
   const total = pages.length;
   const touchStartX = useRef<number | null>(null);
 
-  const allBlocks = sections.flatMap((s) => s.blocks);
+  const allBlocks = sections.flatMap((s) =>
+    Array.isArray(s.blocks) ? s.blocks : []
+  );
   const hasActivity = allBlocks.some((b) => b.type === "activity");
   const hasReflection = allBlocks.some((b) => b.type === "reflection");
   const hasTask = !isTeacher && allBlocks.some((b) => b.type === "task");

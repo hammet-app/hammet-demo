@@ -4,7 +4,7 @@ type SubmissionStatus = "submitted" | "approved" | "flagged";
 export type CreateSubmissionRequestDto = {
   module_id: string;
   activity_text: string;
-  reflection_text: string | null;
+  reflection_text: string;
   file_urls: string[] | null;
   local_id: string;             // client UUID for offline dedup
 };

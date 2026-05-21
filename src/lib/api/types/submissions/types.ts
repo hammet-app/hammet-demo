@@ -4,7 +4,7 @@ export type SubmissionStatus = "submitted" | "approved" | "flagged";
 export type CreateSubmissionRequest = {
   moduleId: string;
   activityText: string;
-  reflectionText: string | null;
+  reflectionText: string;
   fileUrls: string[] | null;
   localId: string;             // client UUID for offline dedup
 };
@@ -25,7 +25,7 @@ export type CreateSubmissionResponse = {
 // If JWT expired, refresh token silently renews it before sync fires
 export type SyncSubmissionItem = {
   moduleId: string;
-  reflectionText: string | null;
+  reflectionText: string;
   fileUrls: string[] | null;
   localId: string;
 };

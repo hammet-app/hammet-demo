@@ -58,7 +58,7 @@ export default function LoginPage() {
         "/auth/login",
         { email, password, deviceId } satisfies LoginRequest
       );
-
+      console.log(data)
       setSession(data.user, data.accessToken);
 
     } catch (err) {

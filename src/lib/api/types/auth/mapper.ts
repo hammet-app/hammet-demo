@@ -49,7 +49,6 @@ function toUser(dto: UserDto): User {
     }
 }
 
-
 export function toLoginResponse(dto: LoginResponseDto): LoginResponse {
     return {
         accessToken: dto.access_token,

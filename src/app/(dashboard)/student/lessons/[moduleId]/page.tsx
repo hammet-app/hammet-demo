@@ -369,7 +369,7 @@ export default function LessonDetailPage() {
   const payload = {
     moduleId: moduleId,
     activityText: activityText,
-    reflectionText: reflectionText || null,
+    reflectionText: reflectionText,
     fileUrls: allPaths.length > 0 ? allPaths : null,
     localId: crypto.randomUUID(),
   };

@@ -82,7 +82,8 @@ export function toClaimAccountResponse(dto: ClaimAccountResponseDto): ClaimAccou
 
 export function toRefreshResponse(dto: RefreshResponseDto): RefreshResponse {
     return {
-        accessToken: dto.access_token
+        accessToken: dto.access_token,
+        user: toUser(dto.user)
     }
 }
 

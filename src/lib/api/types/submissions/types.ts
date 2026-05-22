@@ -48,7 +48,6 @@ export type AiFormState = {
 
 // POST /submissions — online submission
 export type CreateSubmissionRequest = {
-  id: string
   moduleId: string;
   activityText: string | null;
   reflectionText: string | null;

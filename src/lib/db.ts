@@ -145,7 +145,7 @@ class HammetLabsDB extends Dexie {
     })
 
     this.version(5).stores({
-      submissions:      'localId, studentId, moduleId, syncStatus',
+      submissions:      'localId, studentId, moduleId, syncStatus, [studentId+moduleId]',
       portfolioEntries: 'localId, studentId, moduleId',
       modules:          'id, term, level, [term+level]',
       moduleSummaries:  'id, term, level, [term+level]',
@@ -202,46 +202,129 @@ export async function clearPersistedSession(): Promise<void> {
 }
 
 // ── Submission helpers ────────────────────────────────────────────────────────
+// submitLesson
+//
+// accessToken is passed in by the caller (lesson-detail-page) which already
+// holds it from useAuth. Never call useAuth here — this is not a component.
+// ─────────────────────────────────────────────────────────────────────────────
+ 
 export async function submitLesson({
   studentId,
   moduleId,
   activityText,
   reflectionText,
   fileUrls,
+  accessToken,
 }: {
   studentId:      string
   moduleId:       string
-  moduleTitle:    string
-  activityText?: string
+  activityText?:  string
   reflectionText?: string
   fileUrls:       string[]
-}): Promise<{ success: boolean; synced: boolean }|undefined> {
+  // Optional — if provided and online, we attempt immediate sync.
+  // Not provided for auto-saves (we don't want to sync on every keystroke).
+  accessToken?:   string
+}): Promise<{ success: boolean; synced: boolean }> {
   const localId     = crypto.randomUUID()
   const submittedAt = new Date().toISOString()
-
-  // Always save locally first
-  await saveSubmissionLocally({ localId, studentId, moduleId, activityText, reflectionText, fileUrls, submittedAt })
-
-  // Try to sync immediately if online
-  if (navigator.onLine) {
-    const {accessToken, refreshToken} = useAuth()
-    const token = accessToken ?? await refreshToken()
-    if (!token) return 
-    const synced = await syncPendingSubmissions(studentId,process.env.NEXT_PUBLIC_API_URL!, token)
+ 
+  // Always write to Dexie first.
+  // saveSubmissionLocally deletes any existing row for this moduleId before
+  // inserting — so there is always exactly one pending row per module.
+  await saveSubmissionLocally({
+    localId,
+    studentId,
+    moduleId,
+    activityText,
+    reflectionText,
+    fileUrls: fileUrls,
+    submittedAt,
+  })
+ 
+  // Only attempt immediate sync on final submit (accessToken provided) + online
+  if (accessToken && navigator.onLine) {
+    try {
+      await syncPendingSubmissions(
+        studentId,
+        process.env.NEXT_PUBLIC_API_URL!,
+        accessToken
+      )
+      return { success: true, synced: true }
+    } catch {
+      // Sync failed — row stays pending in Dexie, SW will retry
+    }
   }
-
-  // Offline — register background sync so SW flushes when back online
+ 
+  // Register SW background sync so the queue flushes automatically on reconnect.
+  // Falls back silently if the browser doesn't support Background Sync API.
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready
+      if ('sync' in reg) {
+        await (reg as any).sync.register('submissions-queue')
+      }
+    } catch {
+      // Background sync not supported or SW not active — Dexie row will be
+      // picked up by the useOnlineStatus hook instead
+    }
+  }
+ 
   return { success: true, synced: false }
 }
 
+/**
+ * Upsert a submission draft for a module.
+ * There is exactly ONE row per (studentId, moduleId) at any time.
+ * If a row already exists for this module, it is replaced entirely —
+ * this prevents duplicate pending rows accumulating across auto-saves.
+ */
 export async function saveSubmissionLocally(
   submission: Omit<LocalSubmission, 'syncStatus' | 'syncAttempts'>
 ): Promise<void> {
+  // Delete any existing rows for this module before inserting the new one.
+  // This is the dedup guarantee — one pending row per module, always.
+  await db.submissions
+    .where('[studentId+moduleId]')
+    .equals([submission.studentId, submission.moduleId])
+    .delete()
+ 
   await db.submissions.put({
     ...submission,
     syncStatus: 'pending',
     syncAttempts: 0,
   })
+}
+ 
+/**
+ * Get the current draft/pending submission for a module, if any.
+ * Use this on lesson load to restore progress when offline.
+ */
+export async function getDraftForModule(
+  studentId: string,
+  moduleId: string
+): Promise<LocalSubmission | undefined> {
+  return db.submissions
+    .where('[studentId+moduleId]')
+    .equals([studentId, moduleId])
+    .first()
+}
+ 
+/**
+ * Get only the latest pending submission per module.
+ * Since saveSubmissionLocally now guarantees one row per module,
+ * this is just getPendingSubmissions — but kept explicit for clarity.
+ */
+export async function getDedupedPendingSubmissions(): Promise<LocalSubmission[]> {
+  const all = await db.submissions.where('syncStatus').equals('pending').toArray()
+  const byModule = new Map<string, LocalSubmission>()
+  for (const s of all) {
+    const key = `${s.studentId}:${s.moduleId}`
+    const existing = byModule.get(key)
+    if (!existing || s.submittedAt > existing.submittedAt) {
+      byModule.set(key, s)
+    }
+  }
+  return Array.from(byModule.values())
 }
 
 /**
@@ -253,8 +336,8 @@ export async function hasPendingSubmission(
 ): Promise<boolean> {
   try {
     const result = await db.submissions
-      .where('moduleId').equals(moduleId)
-      .and((s) => s.syncStatus === 'pending' && s.studentId === studentId)
+      .where('[studentId+moduleId]').equals([studentId,moduleId])
+      .and((s) => s.syncStatus === 'pending')
       .first()
     return !!result
   } catch {

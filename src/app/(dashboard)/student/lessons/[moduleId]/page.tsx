@@ -55,19 +55,19 @@ const FONT_BODY = "var(--font-body)";
 async function saveOffline(
   studentId: string,
   moduleId: string,
-  moduleTitle: string,
   fileUrls: string[],
   activityText?: string,
-  reflectionText?: string
+  reflectionText?: string,
+  accessToken?:string,
 ): Promise<void> {
   try {
     await submitLesson({
       studentId,
       moduleId,
-      moduleTitle,
       fileUrls,
       activityText,
       reflectionText,
+      accessToken
     });
   } catch {
     // best-effort — never throw
@@ -164,10 +164,10 @@ export default function LessonDetailPage() {
       await saveOffline(
         user.id,
         moduleId,
-        module.title,
         [],
         activityText || undefined,
-        reflectionText || undefined
+        reflectionText || undefined,
+        accessToken || undefined
       );
       setSavedOffline(true);
     }, 800);

@@ -1224,8 +1224,8 @@ function ContentBlock({ block }: { block: CurriculumModuleBlock }) {
     case "body":        return <BodyBlock block={block} />;
     case "image":       return <ImageBlock block={block} />;
     case "aiPrompt":   return <AiPromptBlock block={block} />;
-    case "videoEmbed": return <VideoEmbedBlock block={block} />;
     case "toolLink":   return <ToolLinkBlock block={block} />;
+    case "videoEmbed": return <VideoEmbedBlock block={block} />;
     default:            return null;
   }
 }

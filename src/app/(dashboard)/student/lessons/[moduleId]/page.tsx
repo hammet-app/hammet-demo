@@ -10,9 +10,7 @@ import {
   buildPages,
   isPageBlocked,
   EMPTY_AI_FORM,
-  type TaskFilesState,
-  type TaskFileEntry,
-  type AiFormState,
+  
 } from "@/components/cards/lesson-stepper";
 import {
   compressAndEnqueue,
@@ -40,6 +38,9 @@ import type {
   CurriculumModule,
   ModulesResponse,
   Submission,
+  TaskFilesState,
+  TaskFileEntry,
+  AiFormState,
 } from "@/lib/api/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -56,6 +57,7 @@ async function saveOffline(
   studentId: string,
   moduleId: string,
   fileUrls: string[],
+  aiForm: AiFormState|null,
   activityText?: string,
   reflectionText?: string,
   accessToken?:string,
@@ -67,6 +69,7 @@ async function saveOffline(
       fileUrls,
       activityText,
       reflectionText,
+      aiForm,
       accessToken
     });
   } catch {
@@ -165,6 +168,7 @@ export default function LessonDetailPage() {
         user.id,
         moduleId,
         [],
+        aiForm,
         activityText || undefined,
         reflectionText || undefined,
         accessToken || undefined
@@ -371,6 +375,7 @@ export default function LessonDetailPage() {
     activityText: activityText,
     reflectionText: reflectionText,
     fileUrls: allPaths.length > 0 ? allPaths : null,
+    aiForm: aiForm.used != null ? aiForm : null,
     localId: crypto.randomUUID(),
   };
 
@@ -411,6 +416,7 @@ export default function LessonDetailPage() {
       moduleId,
       activityText: activityText || undefined,
       reflectionText: reflectionText || undefined,
+      aiForm,
       fileUrls: allPaths,
       submittedAt: new Date().toISOString(),
     });

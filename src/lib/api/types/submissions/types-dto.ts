@@ -1,5 +1,29 @@
 type SubmissionStatus = "submitted" | "approved" | "flagged";
 
+export type AiFormNoReason =
+  | "forgot"
+  | "didnt_need"
+  | "no_access"
+  | "not_comfortable"
+  | "other";
+
+export type AiFormPromptChoice = "same" | "edited";
+
+export type AiFormStateDto = {
+  used: boolean | null;
+  // if used === false
+  no_reason: AiFormNoReason | null;
+  no_reason_other: string; // max 20 words — for "other"
+  // if used === true
+  tool_used: string; // tool_name from lesson or "other"
+  tool_other: string; // max 10 words
+  task_desc: string; // free-text: what did you use it for
+  prompt_choice: AiFormPromptChoice | null;
+  edited_prompt: string; // if promptChoice === "edited"
+  rating: number | null; // 1–5
+  rating_comment: string; // optional
+};
+
 // POST /submissions — online submission
 export type CreateSubmissionRequestDto = {
   module_id: string;
@@ -10,12 +34,19 @@ export type CreateSubmissionRequestDto = {
 };
 
 export type CreateSubmissionResponseDto = {
-  id: string;
-  module_id: string;
-  status: SubmissionStatus;
-  submitted_at: string;
-  synced_at: string;
-  local_id: string;             // echoed back so client can reconcile with Dexie
+  id: string
+  student_id: string
+  module_id: string
+  activity_text: string | null
+  reflection_text: string
+  file_urls: string[]| null
+  status: string
+  teacher_note: string | null
+  approved_by: string
+  submitted_at: string
+  approved_at: string | null
+  synced_at: string
+  local_id: string           // echoed back so client can reconcile with Dexie
 };
 
 

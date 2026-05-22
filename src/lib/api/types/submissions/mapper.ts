@@ -4,7 +4,8 @@ import {
     SyncSubmissionItemDto,
     SyncSubmissionResultDto,
     SyncSubmissionsRequestDto,
-    SyncSubmissionsResponseDto
+    SyncSubmissionsResponseDto,
+    AiFormStateDto
 } from "@/lib/api/types/submissions/types-dto";
 import { 
     CreateSubmissionRequest, 
@@ -12,7 +13,8 @@ import {
     SyncSubmissionItem,
     SyncSubmissionResult,
     SyncSubmissionsRequest,
-    SyncSubmissionsResponse
+    SyncSubmissionsResponse,
+    AiFormState
 } from "@/lib/api/types/submissions/types";
 
 /**
@@ -26,6 +28,21 @@ import {
  * Converts backend DTOs into frontend/domain models
  * (snake_case -> camelCase, API shape -> app shape)
  */
+
+export function fromAiFormState(model: AiFormState): AiFormStateDto {
+    return {
+        used: model.used,
+        no_reason: model.noReason,
+        no_reason_other: model.noReasonOther,
+        tool_used: model.toolOther,
+        tool_other: model.toolOther,
+        task_desc: model.taskDesc,
+        prompt_choice: model.promptChoice,
+        edited_prompt: model.editedPrompt,
+        rating: model.rating,
+        rating_comment: model.ratingComment
+    }
+}
 
 
 export function fromCreateSubmissionRequest(model: CreateSubmissionRequest): CreateSubmissionRequestDto {

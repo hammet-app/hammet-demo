@@ -17,7 +17,15 @@ import {
   X,
   Bot,
 } from "lucide-react";
-import type { CurriculumModuleBlock, CurriculumSection } from "@/lib/api/types";
+import type { 
+  CurriculumModuleBlock, 
+  CurriculumSection,
+  AiFormNoReason,
+  AiFormPromptChoice,
+  AiFormState,
+  TaskFilesState,
+  TaskFileEntry,
+} from "@/lib/api/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Typography
@@ -38,51 +46,7 @@ function wordCount(text: string): number {
   return s === "" ? 0 : s.split(/\s+/).length;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Task file state — keyed by block ID
-// ─────────────────────────────────────────────────────────────────────────────
 
-export type TaskFileEntry = {
-  /** Uploaded URL (online path) or null if pending */
-  url: string | null;
-  /** Local File object — present until uploaded or queued */
-  file?: File;
-  /** Dexie offline queue ID — set when queued offline */
-  dexieId?: string;
-  /** Upload state */
-  status: "uploading" | "done" | "queued" | "error";
-  errorMsg?: string; // set when status === "error"
-};
-
-export type TaskFilesState = Record<string, TaskFileEntry[]>; // blockId → entries
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AI Form state
-// ─────────────────────────────────────────────────────────────────────────────
-
-export type AiFormNoReason =
-  | "forgot"
-  | "didnt_need"
-  | "no_access"
-  | "not_comfortable"
-  | "other";
-
-export type AiFormPromptChoice = "same" | "edited";
-
-export type AiFormState = {
-  used: boolean | null;
-  // if used === false
-  noReason: AiFormNoReason | null;
-  noReasonOther: string; // max 20 words — for "other"
-  // if used === true
-  toolUsed: string; // tool_name from lesson or "other"
-  toolOther: string; // max 10 words
-  taskDesc: string; // free-text: what did you use it for
-  promptChoice: AiFormPromptChoice | null;
-  editedPrompt: string; // if promptChoice === "edited"
-  rating: number | null; // 1–5
-  ratingComment: string; // optional
-};
 
 export const EMPTY_AI_FORM: AiFormState = {
   used: null,

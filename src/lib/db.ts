@@ -4,9 +4,18 @@
 // Everything here is available offline, 100% of the time.
 
 import Dexie, { type Table } from 'dexie'
-import { useAuth } from '@/lib/auth/auth-context'
+import { apiClient } from '@/lib/api/api-client'
 import { AuthUser } from '@/lib/utils/roles'
-import { CurriculumContentJson, ModuleSummary } from './api/types'
+import { 
+  type CurriculumContentJson, 
+  type ModuleSummary, 
+  type AiFormState,
+  type AiFormStateDto,
+  fromAiFormState,
+  CreateSubmissionResponse,
+  toCreateSubmissionResponse,
+  CreateSubmissionResponseDto
+} from './api/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -24,6 +33,7 @@ export interface LocalSubmission {
   activityText?: string
   reflectionText?: string
   fileUrls: string[]       // uploaded Supabase Storage URLs (may be empty)
+  aiForm: AiFormState |null;
   submittedAt: string       // ISO timestamp
   syncStatus: 'pending' | 'synced' | 'failed'
   syncAttempts: number
@@ -213,6 +223,7 @@ export async function submitLesson({
   moduleId,
   activityText,
   reflectionText,
+  aiForm,
   fileUrls,
   accessToken,
 }: {
@@ -220,6 +231,7 @@ export async function submitLesson({
   moduleId:       string
   activityText?:  string
   reflectionText?: string
+  aiForm: AiFormState | null
   fileUrls:       string[]
   // Optional — if provided and online, we attempt immediate sync.
   // Not provided for auto-saves (we don't want to sync on every keystroke).
@@ -238,6 +250,7 @@ export async function submitLesson({
     activityText,
     reflectionText,
     fileUrls: fileUrls,
+    aiForm,
     submittedAt,
   })
  
@@ -567,29 +580,10 @@ export async function syncPendingSubmissions(
   studentId: string,
   apiBaseUrl: string,
   accessToken: string,
-): Promise<void> {
+): Promise<CreateSubmissionResponse | undefined> {
   const pending = await getPendingSubmissions(studentId)
   if (pending.length === 0) return
 
-  try {
-    const res = await fetch(`${apiBaseUrl}/api/v1/sync/submissions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({ submissions: pending }),
-    })
-
-    if (res.ok) {
-      await Promise.all(pending.map((s) => markSubmissionSynced(s.localId)))
-      // Prune synced records so the DB doesn't grow indefinitely
-      await clearSyncedSubmissions()
-    } else {
-      await Promise.all(pending.map((s) => markSubmissionFailed(s.localId)))
-    }
-  } catch {
-    // Network error — mark failed, will retry on next sync cycle
-    await Promise.all(pending.map((s) => markSubmissionFailed(s.localId)))
-  }
+  const response = await apiClient.post<CreateSubmissionResponseDto>("/sync", pending, accessToken)
+  toCreateSubmissionResponse(response)
 }

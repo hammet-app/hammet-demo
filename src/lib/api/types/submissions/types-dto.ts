@@ -28,7 +28,7 @@ export type AiFormStateDto = {
 export type CreateSubmissionRequestDto = {
   module_id: string;
   activity_text: string;
-  reflection_text: string;
+  reflection_text: string | null;
   file_urls: string[] | null;
   local_id: string;             // client UUID for offline dedup
 };
@@ -40,7 +40,7 @@ export type CreateSubmissionResponseDto = {
   activity_text: string | null
   reflection_text: string
   file_urls: string[]| null
-  status: string
+  status: SubmissionStatus
   teacher_note: string | null
   approved_by: string
   submitted_at: string

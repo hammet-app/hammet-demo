@@ -49,8 +49,8 @@ export type AiFormState = {
 // POST /submissions — online submission
 export type CreateSubmissionRequest = {
   moduleId: string;
-  activityText: string | null;
-  reflectionText: string | null;
+  activityText: string;
+  reflectionText: string| null;
   fileUrls: string[] | null;
   aiForm: AiFormState | null;
   localId: string;             // client UUID for offline dedup

@@ -58,8 +58,15 @@ export function fromCreateSubmissionRequest(model: CreateSubmissionRequest): Cre
 export function toCreateSubmissionResponse(dto: CreateSubmissionResponseDto): CreateSubmissionResponse {
     return {
         id: dto.id,
+        studentId: dto.student_id,
         moduleId: dto.module_id,
         status: dto.status,
+        activityText: dto.activity_text,
+        reflectionText: dto.reflection_text,
+        fileUrls: dto.file_urls,
+        teacherNote: dto.teacher_note,
+        approvedAt: dto.approved_at,
+        approvedBy: dto.approved_by,
         submittedAt: dto.submitted_at,
         syncedAt: dto.synced_at,
         localId: dto.local_id

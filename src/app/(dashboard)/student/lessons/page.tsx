@@ -35,6 +35,8 @@ export default function LessonsPage() {
           ),
           studentApi.getProgress(accessToken!, refreshToken).catch(() => null),
         ]);
+        console.log(modulesData)
+        console.log(progressData)
         setModules(modulesData.modules);
         if (progressData) setProgress(progressData);
       } catch (err) {

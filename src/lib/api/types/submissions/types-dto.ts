@@ -1,13 +1,13 @@
 type SubmissionStatus = "submitted" | "approved" | "flagged";
 
-export type AiFormNoReason =
+type AiFormNoReason =
   | "forgot"
   | "didnt_need"
   | "no_access"
   | "not_comfortable"
   | "other";
 
-export type AiFormPromptChoice = "same" | "edited";
+type AiFormPromptChoice = "same" | "edited";
 
 export type AiFormStateDto = {
   used: boolean | null;

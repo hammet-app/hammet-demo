@@ -128,7 +128,7 @@ export const studentApi = {
   ): Promise<boolean> => {
     const payload = fromSectionProgress(body)
     return apiClient.patch<boolean>(
-      `/me/progress/${payload.module_id}/${payload.section_id}`, 
+      `students/me/progress/${payload.module_id}/${payload.section_id}`, 
       undefined,
       token, 
       { onRefresh })

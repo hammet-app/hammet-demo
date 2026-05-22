@@ -127,7 +127,11 @@ export const studentApi = {
     onRefresh: () => Promise<string | null>
   ): Promise<boolean> => {
     const payload = fromSectionProgress(body)
-    return apiClient.patch<boolean>(`/me/progress/{module_id}/{section_id}`, payload, token, { onRefresh })
+    return apiClient.patch<boolean>(
+      `/me/progress/${payload.module_id}/${payload.section_id}`, 
+      undefined,
+      token, 
+      { onRefresh })
   },
 
   submitModule: async(

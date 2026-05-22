@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
@@ -110,6 +110,11 @@ export default function LessonDetailPage() {
   // Stepper page state lives here so the fixed footer can access it
   const [currentPage, setCurrentPage] = useState(0);
 
+  const pages = useMemo(() => {
+    if (!module) return [];
+    return buildPages(module.contentJson.sections, module.title);
+  }, [module]);
+
   // ── Load module + list + submission history in parallel ──────────────────
   useEffect(() => {
     if (!accessToken || !user?.classLevel || !user?.term) return;
@@ -156,7 +161,7 @@ export default function LessonDetailPage() {
         && p.sectionId === module.stoppedAt
     )
     if (resumeIdx !== -1) setCurrentPage(resumeIdx)
-  }, [module]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [module, pages]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-save text to Dexie on change ────────────────────────────────────
   useEffect(() => {
@@ -291,9 +296,6 @@ export default function LessonDetailPage() {
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
   // ── Stepper page navigation ───────────────────────────────────────────────
-  const pages = module
-    ? buildPages(module.contentJson.sections, module.title)
-    : [];
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
   const blocked = module

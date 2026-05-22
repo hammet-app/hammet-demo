@@ -309,7 +309,6 @@ export default function LessonDetailPage() {
 
   const saveSectionProgress = useCallback(async (pageIdx: number) => {
     const page = pages[pageIdx]
-    console.log(page)
     if (!page || !user) return
     if (page.kind !== "content" && page.kind !== "activity" && page.kind !== "reflection") return
     if (!page.sectionId) return

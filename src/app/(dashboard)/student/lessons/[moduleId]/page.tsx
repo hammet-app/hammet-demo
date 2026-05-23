@@ -19,7 +19,8 @@ import {
 } from "@/lib/file-pipeline";
 import { 
   clearUploadedFilesForModule, 
-  submitLesson, 
+  submitLesson,
+  getDraftForModule,
   saveSubmissionLocally,
   savePendingProgress,
   clearPendingProgress,
@@ -117,10 +118,12 @@ export default function LessonDetailPage() {
 
   // ── Load module + list + submission history in parallel ──────────────────
   useEffect(() => {
+    if (!user) return
     if (!accessToken || !user?.classLevel || !user?.term) return;
 
     async function load() {
       try {
+        if (!user) return
         const [mod, list, history] = await Promise.all([
           studentApi.getModule(moduleId, accessToken!, refreshToken),
           // getModules calls cacheModules internally — Dexie is populated here
@@ -134,6 +137,26 @@ export default function LessonDetailPage() {
         const existing =
           history.submissions.find((s) => s.moduleId === moduleId) ?? null;
         setExistingSubmission(existing);
+
+        const localDraft = await getDraftForModule(user?.id, moduleId);
+
+        const source =
+          existing ??
+          localDraft ??
+          null;
+
+        if (source) {
+            if (source.reflectionText) {
+              setReflectionText(source.reflectionText);
+            }
+
+            if (source.activityText) {
+              setActivityText(source.activityText);
+            }
+
+            if (source.aiForm) {
+              setAiForm(source.aiForm);
+            }}
 
         // Pre-fill if flagged so student can revise
         if (existing?.status === "flagged") {
@@ -391,6 +414,7 @@ export default function LessonDetailPage() {
         moduleTitle: module.title,
         term: module.term,
         weekNumber: module.weekNumber,
+        aiForm: aiForm,
         moduleId: moduleId,
         activityText: activityText,
         reflectionText: reflectionText || null,

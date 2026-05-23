@@ -1,3 +1,5 @@
+import { AiFormState } from "@/lib/api/types/submissions";
+
 // ============================================================
 // GET /students/me
 // ============================================================
@@ -61,6 +63,7 @@ export type SubmissionDto = {
   module_title: string;
   term: number;
   week_number: number;
+  ai_form: AiFormState | null
   activity_text: string;
   reflection_text: string | null;
   file_urls: string[] | null;

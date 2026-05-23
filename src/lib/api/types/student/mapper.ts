@@ -89,6 +89,7 @@ export function toSubmission(dto: SubmissionDto): Submission {
         moduleTitle: dto.module_title,
         term: dto.term,
         weekNumber: dto.week_number,
+        aiForm: dto.ai_form,
         activityText: dto.activity_text,
         reflectionText: dto.reflection_text,
         fileUrls: dto.file_urls,

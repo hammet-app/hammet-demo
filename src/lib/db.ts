@@ -617,6 +617,6 @@ export async function syncPendingSubmissions(
   const payload = pending.map(fromLocalSubmission)
   console.log(payload)
 
-  const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", payload, accessToken)
+  const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", {"submissions": payload}, accessToken)
   toCreateSubmissionResponse(response)
 }

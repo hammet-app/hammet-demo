@@ -138,30 +138,36 @@ export default function LessonDetailPage() {
           history.submissions.find((s) => s.moduleId === moduleId) ?? null;
         setExistingSubmission(existing);
 
-        const localDraft = await getDraftForModule(user?.id, moduleId);
+        const localDraft = await getDraftForModule(user.id, moduleId);
 
-        const source =
-          existing ??
-          localDraft ??
-          null;
-
-        if (source) {
-            if (source.reflectionText) {
-              setReflectionText(source.reflectionText);
-            }
-
-            if (source.activityText) {
-              setActivityText(source.activityText);
-            }
-
-            if (source.aiForm) {
-              setAiForm(source.aiForm);
-            }}
-
-        // Pre-fill if flagged so student can revise
         if (existing?.status === "flagged") {
-          if (existing.reflectionText) setReflectionText(existing.reflectionText);
-          if (existing.activityText)   setActivityText(existing.activityText);
+          // Start from teacher-reviewed submission
+          setReflectionText(
+            localDraft?.reflectionText ??
+            existing.reflectionText ??
+            ""
+          );
+
+          setActivityText(
+            localDraft?.activityText ??
+            existing.activityText ??
+            ""
+          );
+
+          setAiForm(
+            localDraft?.aiForm ??
+            existing.aiForm ??
+            EMPTY_AI_FORM
+          );
+        } else {
+          // Normal precedence
+          const source = existing ?? localDraft;
+
+          if (source) {
+            setReflectionText(source.reflectionText ?? "");
+            setActivityText(source.activityText ?? "");
+            setAiForm(source.aiForm ?? EMPTY_AI_FORM);
+          }
         }
 
         setLoadState("ready");

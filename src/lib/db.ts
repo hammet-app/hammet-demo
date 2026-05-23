@@ -331,6 +331,7 @@ export async function getDraftForModule(
   return db.submissions
     .where('[studentId+moduleId]')
     .equals([studentId, moduleId])
+    .and((s) => s.syncStatus === 'draft')
     .first()
 }
  
@@ -611,11 +612,12 @@ export async function syncPendingSubmissions(
   studentId: string,
   accessToken: string,
 ): Promise<CreateSubmissionResponse | undefined> {
-  const pending = await getPendingSubmissions(studentId)
+  const pending = (
+    await getPendingSubmissions(studentId)
+  ).filter(s => s.syncStatus === "pending")
   if (pending.length === 0) return
 
   const payload = pending.map(fromLocalSubmission)
-  console.log(payload)
 
   const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", {"submissions": payload}, accessToken)
   return toCreateSubmissionResponse(response)

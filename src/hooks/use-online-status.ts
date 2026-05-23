@@ -29,7 +29,7 @@ export function useOnlineStatus(
         if (!token) return
 
         // 1. Sync pending submissions first
-        await syncPendingSubmissions(user.id, process.env.NEXT_PUBLIC_API_URL!, token)
+        await syncPendingSubmissions(user.id, token)
 
         // 2. Sync pending progress — but only for modules with no pending submission
         // (if submission was just synced, markSubmissionSynced already cleared progress)

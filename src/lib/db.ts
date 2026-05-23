@@ -270,7 +270,6 @@ export async function submitLesson({
     try {
       await syncPendingSubmissions(
         studentId,
-        process.env.NEXT_PUBLIC_API_URL!,
         accessToken
       )
       return { success: true, synced: true }
@@ -608,7 +607,6 @@ function fromLocalSubmission(model: LocalSubmission): LocalSubmissionDto {
 
 export async function syncPendingSubmissions(
   studentId: string,
-  apiBaseUrl: string,
   accessToken: string,
 ): Promise<CreateSubmissionResponse | undefined> {
   const pending = await getPendingSubmissions(studentId)
@@ -618,5 +616,5 @@ export async function syncPendingSubmissions(
   console.log(payload)
 
   const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", {"submissions": payload}, accessToken)
-  toCreateSubmissionResponse(response)
+  return toCreateSubmissionResponse(response)
 }

@@ -59,6 +59,7 @@ async function saveOffline(
   moduleId: string,
   fileUrls: string[],
   aiForm: AiFormState|null,
+  syncStatus: 'pending' | 'synced' | 'failed' | 'draft',
   activityText?: string,
   reflectionText?: string,
   accessToken?:string,
@@ -71,6 +72,7 @@ async function saveOffline(
       activityText,
       reflectionText,
       aiForm,
+      syncStatus,
       accessToken
     });
   } catch {
@@ -203,6 +205,7 @@ export default function LessonDetailPage() {
         moduleId,
         [],
         aiForm,
+        'draft',
         activityText || undefined,
         reflectionText || undefined,
         accessToken || undefined
@@ -384,56 +387,56 @@ export default function LessonDetailPage() {
 
   // ── Submit ────────────────────────────────────────────────────────────────
   async function handleSubmit() {
-  if (!module || !user) return;
-  setIsSubmitting(true);
-  setSubmitError("");
+    if (!module || !user) return;
+    setIsSubmitting(true);
+    setSubmitError("");
 
-  // Retry any queued file uploads first
-  const freshUploads = await uploadFilesForModule(moduleId);
+    // Retry any queued file uploads first
+    const freshUploads = await uploadFilesForModule(moduleId);
 
-  const allPaths = Object.values(taskFiles)
-    .flat()
-    .filter((e) => e.status === "done" && e.url)
-    .map((e) => e.url!);
+    const allPaths = Object.values(taskFiles)
+      .flat()
+      .filter((e) => e.status === "done" && e.url)
+      .map((e) => e.url!);
 
-  for (const u of freshUploads) {
-    if (!allPaths.includes(u.path)) allPaths.push(u.path);
-  }
+    for (const u of freshUploads) {
+      if (!allPaths.includes(u.path)) allPaths.push(u.path);
+    }
 
-  const payload = {
-    moduleId: moduleId,
-    activityText: activityText,
-    reflectionText: reflectionText,
-    fileUrls: allPaths.length > 0 ? allPaths : null,
-    aiForm: aiForm.used != null ? aiForm : null,
-    localId: crypto.randomUUID(),
-  };
+    const payload = {
+      moduleId: moduleId,
+      activityText: activityText,
+      reflectionText: reflectionText,
+      fileUrls: allPaths.length > 0 ? allPaths : null,
+      aiForm: aiForm.used != null ? aiForm : null,
+      localId: crypto.randomUUID(),
+    };
 
-  // Try backend first
-  if (accessToken) {
-    try {
-      await studentApi.submitModule(payload, accessToken, refreshToken);
-      await clearUploadedFilesForModule(moduleId);
+    // Try backend first
+    if (accessToken) {
+      try {
+        await studentApi.submitModule(payload, accessToken, refreshToken);
+        await clearUploadedFilesForModule(moduleId);
 
-      setExistingSubmission({
-        id: crypto.randomUUID(),
-        moduleTitle: module.title,
-        term: module.term,
-        weekNumber: module.weekNumber,
-        aiForm: aiForm,
-        moduleId: moduleId,
-        activityText: activityText,
-        reflectionText: reflectionText || null,
-        fileUrls: allPaths.length > 0 ? allPaths : null,
-        syncedAt: null,
-        localId: payload.localId,
-        submittedAt: new Date().toISOString(),
-        status: "submitted",
-        teacherNote: null,
-      });
+        setExistingSubmission({
+          id: crypto.randomUUID(),
+          moduleTitle: module.title,
+          term: module.term,
+          weekNumber: module.weekNumber,
+          aiForm: aiForm,
+          moduleId: moduleId,
+          activityText: activityText,
+          reflectionText: reflectionText || null,
+          fileUrls: allPaths.length > 0 ? allPaths : null,
+          syncedAt: null,
+          localId: payload.localId,
+          submittedAt: new Date().toISOString(),
+          status: "submitted",
+          teacherNote: null,
+        });
 
-      setIsSubmitting(false);
-      return;
+        setIsSubmitting(false);
+        return;
     } catch {
       // Fall through to Dexie
     }
@@ -450,6 +453,7 @@ export default function LessonDetailPage() {
       aiForm,
       fileUrls: allPaths,
       submittedAt: new Date().toISOString(),
+      syncStatus: 'draft'
     });
     setSavedOffline(true);
     setSubmitError(

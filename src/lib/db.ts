@@ -35,7 +35,7 @@ export interface LocalSubmission {
   fileUrls: string[]       // uploaded Supabase Storage URLs (may be empty)
   aiForm: AiFormState |null;
   submittedAt: string       // ISO timestamp
-  syncStatus: 'pending' | 'synced' | 'failed'
+  syncStatus: 'pending' | 'synced' | 'failed' | 'draft'
   syncAttempts: number
 }
 
@@ -236,6 +236,7 @@ export async function submitLesson({
   reflectionText,
   aiForm,
   fileUrls,
+  syncStatus,
   accessToken,
 }: {
   studentId:      string
@@ -244,6 +245,7 @@ export async function submitLesson({
   reflectionText?: string
   aiForm: AiFormState | null
   fileUrls:       string[]
+  syncStatus: 'pending' | 'synced' | 'failed' | 'draft'
   // Optional — if provided and online, we attempt immediate sync.
   // Not provided for auto-saves (we don't want to sync on every keystroke).
   accessToken?:   string
@@ -263,6 +265,7 @@ export async function submitLesson({
     fileUrls: fileUrls,
     aiForm,
     submittedAt,
+    syncStatus
   })
  
   // Only attempt immediate sync on final submit (accessToken provided) + online
@@ -302,7 +305,7 @@ export async function submitLesson({
  * this prevents duplicate pending rows accumulating across auto-saves.
  */
 export async function saveSubmissionLocally(
-  submission: Omit<LocalSubmission, 'syncStatus' | 'syncAttempts'>
+  submission: Omit<LocalSubmission, 'syncAttempts'>
 ): Promise<void> {
   // Delete any existing rows for this module before inserting the new one.
   // This is the dedup guarantee — one pending row per module, always.
@@ -313,7 +316,6 @@ export async function saveSubmissionLocally(
  
   await db.submissions.put({
     ...submission,
-    syncStatus: 'pending',
     syncAttempts: 0,
   })
 }

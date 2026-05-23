@@ -584,6 +584,6 @@ export async function syncPendingSubmissions(
   const pending = await getPendingSubmissions(studentId)
   if (pending.length === 0) return
 
-  const response = await apiClient.post<CreateSubmissionResponseDto>("/sync", pending, accessToken)
+  const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", pending, accessToken)
   toCreateSubmissionResponse(response)
 }

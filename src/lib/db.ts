@@ -39,6 +39,17 @@ export interface LocalSubmission {
   syncAttempts: number
 }
 
+type LocalSubmissionDto = {
+  local_id: string
+  student_id: string
+  module_id: string
+  activity_text: string | null
+  reflection_text: string
+  file_urls: string[]
+  ai_form: AiFormStateDto | null,
+  submitted_at: string
+}
+
 export interface LocalPortfolioEntry {
   localId: string
   studentId: string
@@ -570,6 +581,25 @@ export async function clearPendingProgress(studentId: string): Promise<void> {
     // best-effort
   }
 }
+
+/**
+ * Mapper for converting LocalSubmission to LocalSubmissionDto
+ * to be used for syncing submissions to backend
+ */
+function fromLocalSubmission(model: LocalSubmission): LocalSubmissionDto {
+  return {
+    local_id: model.localId,
+    student_id: model.studentId,
+    module_id: model.moduleId,
+    activity_text: model.activityText ?? null,
+    reflection_text: model.reflectionText!,
+    file_urls: model.fileUrls,
+    ai_form: model.aiForm
+                ? fromAiFormState(model.aiForm)
+                : null,
+    submitted_at: model.submittedAt
+  }
+}
 // ── Sync function ─────────────────────────────────────────────────────────────
 // Call this:
 // 1. When the app comes back online (useOnlineStatus hook)
@@ -584,6 +614,8 @@ export async function syncPendingSubmissions(
   const pending = await getPendingSubmissions(studentId)
   if (pending.length === 0) return
 
-  const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", pending, accessToken)
+  const payload = pending.map(fromLocalSubmission)
+
+  const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", payload, accessToken)
   toCreateSubmissionResponse(response)
 }

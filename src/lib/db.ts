@@ -639,7 +639,7 @@ export async function syncPendingSubmissions(
   if (resubmits.length > 0) {
     const payload = resubmits.map(fromLocalSubmission)
 
-    const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", {"submissions": payload}, accessToken)
+    const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/resync", {"submissions": payload}, accessToken)
     return toCreateSubmissionResponse(response)
   }  
 }

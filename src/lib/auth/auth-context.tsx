@@ -136,27 +136,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let cancelled = false;
 
+    // Step 1 — try IndexedDB first
+    const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+
     async function init() {
-      // Step 1 — try IndexedDB first
-      const cached = await getPersistedSession();
+      const cached = await getPersistedSession()
 
-      if (cached && !cancelled) {
-        // Resolve immediately with cached session — no loading skeleton
-        setState({
-          user: cached.user,
-          accessToken: cached.accessToken,
-          isLoading: false,
-          isResolved: true,
-          isOffline: true, // assume offline until network confirms
-        });
+      if (cached) {
+        const age = Date.now() - new Date(cached.cachedAt).getTime()
+
+        if (age > SESSION_MAX_AGE_MS) {
+          // Session too old — clear it and fall through to network refresh
+          // If that fails too, user goes to login
+          await clearPersistedSession()
+        } else {
+          // Fresh enough — hydrate immediately
+          setState({
+            user: cached.user,
+            accessToken: cached.accessToken,
+            isLoading: false,
+            isResolved: true,
+            isOffline: true,
+          })
+        }
       }
-
       // Step 2 — attempt network refresh regardless
       // If it succeeds: updates state + clears isOffline
       // If it fails + we have a cached session: user stays logged in (isOffline stays true)
       // If it fails + no cached session: user goes to login
       if (!cancelled) {
-        await refreshToken();
+        await refreshToken()
       }
     }
 

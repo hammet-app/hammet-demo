@@ -73,6 +73,19 @@ export type CreateSubmissionResponse = {
   approvedAt: string | null
 };
 
+export type CreateSubmissionResponses = {
+  submissions: CreateSubmissionResponse[]
+}
+
+export type Resubmission = {
+  id: string;
+  activityText: string;
+  reflectionText: string | null;
+  fileUrls: string[] | null;
+  aiForm: AiFormState | null;
+  localId: string;
+}
+
 
 // POST /sync/submissions — batch offline sync
 // Fires on reconnect via useOnlineStatus hook

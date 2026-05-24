@@ -55,6 +55,7 @@ const FONT_BODY = "var(--font-body)";
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function saveOffline(
+  id: string | null,
   studentId: string,
   moduleId: string,
   fileUrls: string[],
@@ -67,6 +68,7 @@ async function saveOffline(
 ): Promise<void> {
   try {
     await submitLesson({
+      id,
       studentId,
       moduleId,
       fileUrls,
@@ -75,7 +77,7 @@ async function saveOffline(
       aiForm,
       syncStatus,
       submissionType,
-      accessToken
+      accessToken,
     });
   } catch {
     // best-effort — never throw
@@ -204,6 +206,7 @@ export default function LessonDetailPage() {
 
     const t = setTimeout(async () => {
       await saveOffline(
+        existingSubmission?.id?? null,
         user.id,
         moduleId,
         [],
@@ -420,7 +423,15 @@ export default function LessonDetailPage() {
     if (accessToken) {
       try {
         if (existingSubmission?.status === "flagged") {
-          await studentApi.resubmitModule(existingSubmission, accessToken, refreshToken)
+          const resubmission = {
+            id: existingSubmission.id,
+            activityText: existingSubmission.activityText,
+            reflectionText: existingSubmission.reflectionText,
+            fileUrls: existingSubmission.fileUrls,
+            aiForm: existingSubmission.aiForm,
+            localId: existingSubmission.localId
+          }
+          await studentApi.resubmitModule(resubmission, accessToken, refreshToken)
         } else {
           await studentApi.submitModule(payload, accessToken, refreshToken);
         }
@@ -453,6 +464,7 @@ export default function LessonDetailPage() {
   // Backend failed or no token — save to Dexie for later sync
   try {
     await saveSubmissionLocally({
+      id: existingSubmission?.id ?? null,
       localId: payload.localId,
       studentId: user.id,
       moduleId,

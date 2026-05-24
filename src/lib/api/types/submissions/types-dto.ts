@@ -50,6 +50,19 @@ export type CreateSubmissionResponseDto = {
   local_id: string           // echoed back so client can reconcile with Dexie
 };
 
+export type ResubmissionDto = {
+  id: string;
+  activity_text: string;
+  reflection_text: string | null;
+  file_urls: string[] | null;
+  ai_form: AiFormStateDto | null;
+  local_id: string;
+}
+
+export type CreateSubmissionResponsesDto = {
+  submissions: CreateSubmissionResponseDto[]
+}
+
 
 // POST /sync/submissions — batch offline sync
 // Fires on reconnect via useOnlineStatus hook

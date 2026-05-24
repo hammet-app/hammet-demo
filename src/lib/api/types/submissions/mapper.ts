@@ -5,7 +5,9 @@ import {
     SyncSubmissionResultDto,
     SyncSubmissionsRequestDto,
     SyncSubmissionsResponseDto,
-    AiFormStateDto
+    AiFormStateDto,
+    ResubmissionDto,
+    CreateSubmissionResponsesDto
 } from "@/lib/api/types/submissions/types-dto";
 import { 
     CreateSubmissionRequest, 
@@ -15,6 +17,8 @@ import {
     SyncSubmissionsRequest,
     SyncSubmissionsResponse,
     AiFormState,
+    Resubmission,
+    CreateSubmissionResponses
 } from "@/lib/api/types/submissions/types";
 
 /**
@@ -88,6 +92,23 @@ export function toCreateSubmissionResponse(dto: CreateSubmissionResponseDto): Cr
         submittedAt: dto.submitted_at,
         syncedAt: dto.synced_at,
         localId: dto.local_id
+    }
+}
+
+export function fromResubmission(model: Resubmission): ResubmissionDto {
+    return {
+        id: model.id,
+        activity_text: model.activityText,
+        reflection_text: model.reflectionText,
+        file_urls: model.fileUrls,
+        ai_form: model.aiForm ? fromAiFormState(model.aiForm) : null,
+        local_id: model.localId
+    }
+}
+
+export function toCreateSubmissionResponses(dto: CreateSubmissionResponsesDto): CreateSubmissionResponses {
+    return {
+        submissions: dto.submissions.map(toCreateSubmissionResponse)
     }
 }
 

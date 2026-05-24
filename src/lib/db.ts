@@ -11,11 +11,14 @@ import {
   type ModuleSummary, 
   type AiFormState,
   type AiFormStateDto,
+  type CreateSubmissionResponse,
+  type CreateSubmissionResponseDto,
+  type CreateSubmissionResponsesDto,
+  type CreateSubmissionResponses,
   fromAiFormState,
-  CreateSubmissionResponse,
   toCreateSubmissionResponse,
-  CreateSubmissionResponseDto
-} from './api/types'
+  toCreateSubmissionResponses,
+} from '@/lib/api/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -27,6 +30,7 @@ export interface CachedSession {
 }
 
 export interface LocalSubmission {
+  id: string | null
   localId: string           // client-generated UUID — used for server dedup
   studentId: string
   moduleId: string
@@ -231,6 +235,7 @@ export async function clearPersistedSession(): Promise<void> {
 // ─────────────────────────────────────────────────────────────────────────────
  
 export async function submitLesson({
+  id,
   studentId,
   moduleId,
   activityText,
@@ -241,6 +246,7 @@ export async function submitLesson({
   submissionType,
   accessToken,
 }: {
+  id:             string | null
   studentId:      string
   moduleId:       string
   activityText?:  string
@@ -260,6 +266,7 @@ export async function submitLesson({
   // saveSubmissionLocally deletes any existing row for this moduleId before
   // inserting — so there is always exactly one pending row per module.
   await saveSubmissionLocally({
+    id,
     localId,
     studentId,
     moduleId,
@@ -615,31 +622,40 @@ function fromLocalSubmission(model: LocalSubmission): LocalSubmissionDto {
 export async function syncPendingSubmissions(
   studentId: string,
   accessToken: string,
-): Promise<CreateSubmissionResponse | undefined> {
+): Promise<CreateSubmissionResponses | undefined> {
   const pending = (
     await getPendingSubmissions(studentId)
-  ).filter(s => s.syncStatus === "pending")
+  ).filter(s => s.syncStatus === "pending" && s.submissionType === "submit")
   if (pending.length === 0) return
 
-  const submits = pending.filter(
-    s => s.submissionType === "submit"
-  )
+  
+  const payload = pending.map(fromLocalSubmission)
 
-  const resubmits = pending.filter(
-    s => s.submissionType === "resubmit"
-  )
+  const response = await apiClient.post<CreateSubmissionResponsesDto>("/submissions/sync", {"submissions": payload}, accessToken)
+  return toCreateSubmissionResponses(response)
+}
 
-  if (submits.length > 0) {
-    const payload = submits.map(fromLocalSubmission)
 
-    const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", {"submissions": payload}, accessToken)
-    return toCreateSubmissionResponse(response)
-  }
+export async function syncPendingRevisions(
+  studentId: string,
+  accessToken: string,
+): Promise<CreateSubmissionResponse|undefined> {
+  const pending = (
+    await getPendingSubmissions(studentId)
+  ).filter(s => s.syncStatus === "pending" && s.submissionType === 'resubmit')
+  if (pending.length === 0) return
 
-  if (resubmits.length > 0) {
-    const payload = resubmits.map(fromLocalSubmission)
+  pending.map(async (s) => {
+    if (!s.id) {
+      await markSubmissionFailed(s.localId)
+      return
+    }
+  })
 
-    const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/resync", {"submissions": payload}, accessToken)
-    return toCreateSubmissionResponse(response)
-  }  
+
+  const payload = pending.map(fromLocalSubmission)
+
+  const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/resync", {"submissions": payload}, accessToken)
+  toCreateSubmissionResponse(response)
+  await markSubmissionSynced
 }

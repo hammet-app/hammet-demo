@@ -146,21 +146,20 @@ export default function LessonDetailPage() {
         if (existing?.status === "flagged") {
           // Start from teacher-reviewed submission
           setReflectionText(
-            existing.reflectionText ??
             localDraft?.reflectionText ??
+            existing.reflectionText ??
             ""
           );
 
           setActivityText(
-            existing.activityText ??
             localDraft?.activityText ??
-            
+            existing.activityText ??
             ""
           );
 
           setAiForm(
-            existing.aiForm ??
             localDraft?.aiForm ??
+            existing.aiForm ??
             EMPTY_AI_FORM
           );
         } else {
@@ -417,7 +416,11 @@ export default function LessonDetailPage() {
     // Try backend first
     if (accessToken) {
       try {
-        await studentApi.submitModule(payload, accessToken, refreshToken);
+        if (existingSubmission?.status === "flagged") {
+          await studentApi.resubmitModule(existingSubmission, accessToken, refreshToken)
+        } else {
+          await studentApi.submitModule(payload, accessToken, refreshToken);
+        }
         await clearUploadedFilesForModule(moduleId);
 
         setExistingSubmission({
@@ -455,7 +458,7 @@ export default function LessonDetailPage() {
       aiForm,
       fileUrls: allPaths,
       submittedAt: new Date().toISOString(),
-      syncStatus: 'draft'
+      syncStatus: 'pending'
     });
     setSavedOffline(true);
     setSubmitError(

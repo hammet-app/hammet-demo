@@ -82,6 +82,25 @@ export function toStudentProgress(dto: StudentProgressDto): StudentProgress {
     }
 }
 
+export function fromSubmission(model: Submission): SubmissionDto {
+    return {
+        id: model.id,
+        module_id: model.moduleId,
+        module_title: model.moduleTitle,
+        term: model.term,
+        week_number: model.weekNumber,
+        ai_form: model.aiForm,
+        activity_text: model.activityText,
+        reflection_text: model.reflectionText,
+        file_urls: model.fileUrls,
+        status: model.status,
+        teacher_note: model.teacherNote,
+        submitted_at: model.submittedAt,
+        synced_at: model.syncedAt,
+        local_id: model.localId
+    }
+}
+
 export function toSubmission(dto: SubmissionDto): Submission {
     return {
         id: dto.id,

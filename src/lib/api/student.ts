@@ -1,6 +1,7 @@
 import { apiClient } from "@/lib/api/api-client";
 import { getCachedModuleSummaries, getCachedModule, cacheModuleSummaries, cacheModule} from "@/lib/db";
 import {
+  type Submission,
   type StudentProgress,
   type SubmissionHistory,
   type StudentPortfolio,
@@ -23,6 +24,7 @@ import {
   fromSectionProgress,
   fromCreateSubmissionRequest,
   toCreateSubmissionResponse,
+  fromSubmission
 } from "@/lib/api/types";
 
 export const studentApi = {
@@ -141,6 +143,16 @@ export const studentApi = {
   ): Promise<CreateSubmissionResponse> =>{
     const payload = fromCreateSubmissionRequest(body)
     const response= await apiClient.post<CreateSubmissionResponseDto>("/submissions", payload, token, { onRefresh })
+    return toCreateSubmissionResponse(response)
+  },
+
+  resubmitModule: async(
+    body: Submission,
+    token: string,
+    onRefresh: () => Promise<string | null>
+  ): Promise<CreateSubmissionResponse> => {
+    const payload = fromSubmission(body)
+    const response = await apiClient.patch<CreateSubmissionResponseDto>(`/submissions/resubmit/${body.id}`, payload, token, { onRefresh })
     return toCreateSubmissionResponse(response)
   }
 };

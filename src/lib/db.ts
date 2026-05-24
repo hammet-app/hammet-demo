@@ -655,7 +655,7 @@ export async function syncPendingRevisions(
 
   const payload = pending.map(fromLocalSubmission)
 
-  const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/resync", {"submissions": payload}, accessToken)
+  const response = await apiClient.patch<CreateSubmissionResponseDto>("/submissions/resync", {"submissions": payload}, accessToken)
   toCreateSubmissionResponse(response)
   await markSubmissionSynced
 }

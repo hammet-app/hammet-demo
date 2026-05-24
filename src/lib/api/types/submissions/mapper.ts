@@ -14,7 +14,7 @@ import {
     SyncSubmissionResult,
     SyncSubmissionsRequest,
     SyncSubmissionsResponse,
-    AiFormState
+    AiFormState,
 } from "@/lib/api/types/submissions/types";
 
 /**
@@ -44,6 +44,21 @@ export function fromAiFormState(model: AiFormState): AiFormStateDto {
     }
 }
 
+export function toAiFormStateDto(dto: AiFormStateDto): AiFormState {
+    return {
+        used: dto.used,
+        noReason: dto.no_reason,
+        noReasonOther: dto.no_reason_other,
+        toolUsed: dto.tool_used,
+        toolOther: dto.tool_other,
+        taskDesc: dto.task_desc,
+        promptChoice: dto.prompt_choice,
+        editedPrompt: dto.edited_prompt,
+        rating: dto.rating,
+        ratingComment: dto.rating_comment
+    }
+}
+
 
 export function fromCreateSubmissionRequest(model: CreateSubmissionRequest): CreateSubmissionRequestDto {
     return {
@@ -63,6 +78,9 @@ export function toCreateSubmissionResponse(dto: CreateSubmissionResponseDto): Cr
         status: dto.status,
         activityText: dto.activity_text,
         reflectionText: dto.reflection_text,
+        aiForm: dto.ai_form
+                ? toAiFormStateDto(dto.ai_form)
+                : null,
         fileUrls: dto.file_urls,
         teacherNote: dto.teacher_note,
         approvedAt: dto.approved_at,

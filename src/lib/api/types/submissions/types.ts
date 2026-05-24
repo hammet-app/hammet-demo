@@ -63,6 +63,7 @@ export type CreateSubmissionResponse = {
   status: SubmissionStatus;
   activityText: string | null;
   reflectionText: string | null;
+  aiForm: AiFormState | null;
   fileUrls: string[] | null;
   submittedAt: string;
   syncedAt: string;

@@ -40,6 +40,7 @@ export type CreateSubmissionResponseDto = {
   activity_text: string | null
   reflection_text: string
   file_urls: string[]| null
+  ai_form: AiFormStateDto|null
   status: SubmissionStatus
   teacher_note: string | null
   approved_by: string

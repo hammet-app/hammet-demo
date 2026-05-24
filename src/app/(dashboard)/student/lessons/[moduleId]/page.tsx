@@ -60,6 +60,7 @@ async function saveOffline(
   fileUrls: string[],
   aiForm: AiFormState|null,
   syncStatus: 'pending' | 'synced' | 'failed' | 'draft',
+  submissionType: 'submit' | 'resubmit',
   activityText?: string,
   reflectionText?: string,
   accessToken?:string,
@@ -73,6 +74,7 @@ async function saveOffline(
       reflectionText,
       aiForm,
       syncStatus,
+      submissionType,
       accessToken
     });
   } catch {
@@ -207,6 +209,7 @@ export default function LessonDetailPage() {
         [],
         aiForm,
         'draft',
+        existingSubmission?.status === "flagged" ? "resubmit" :"submit" ,
         activityText || undefined,
         reflectionText || undefined,
         accessToken || undefined
@@ -458,7 +461,8 @@ export default function LessonDetailPage() {
       aiForm,
       fileUrls: allPaths,
       submittedAt: new Date().toISOString(),
-      syncStatus: 'pending'
+      syncStatus: 'pending',
+      submissionType: existingSubmission?.status === "flagged" ? "resubmit" :"submit"
     });
     setSavedOffline(true);
     setSubmitError(

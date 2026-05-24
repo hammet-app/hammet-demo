@@ -37,6 +37,7 @@ export interface LocalSubmission {
   submittedAt: string       // ISO timestamp
   syncStatus: 'pending' | 'synced' | 'failed' | 'draft'
   syncAttempts: number
+  submissionType: 'submit' | 'resubmit'
 }
 
 type LocalSubmissionDto = {
@@ -237,6 +238,7 @@ export async function submitLesson({
   aiForm,
   fileUrls,
   syncStatus,
+  submissionType,
   accessToken,
 }: {
   studentId:      string
@@ -246,6 +248,7 @@ export async function submitLesson({
   aiForm: AiFormState | null
   fileUrls:       string[]
   syncStatus: 'pending' | 'synced' | 'failed' | 'draft'
+  submissionType: 'submit'  | 'resubmit'
   // Optional — if provided and online, we attempt immediate sync.
   // Not provided for auto-saves (we don't want to sync on every keystroke).
   accessToken?:   string
@@ -265,7 +268,8 @@ export async function submitLesson({
     fileUrls: fileUrls,
     aiForm,
     submittedAt,
-    syncStatus
+    syncStatus,
+    submissionType
   })
  
   // Only attempt immediate sync on final submit (accessToken provided) + online
@@ -617,8 +621,25 @@ export async function syncPendingSubmissions(
   ).filter(s => s.syncStatus === "pending")
   if (pending.length === 0) return
 
-  const payload = pending.map(fromLocalSubmission)
+  const submits = pending.filter(
+    s => s.submissionType === "submit"
+  )
 
-  const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", {"submissions": payload}, accessToken)
-  return toCreateSubmissionResponse(response)
+  const resubmits = pending.filter(
+    s => s.submissionType === "resubmit"
+  )
+
+  if (submits.length > 0) {
+    const payload = submits.map(fromLocalSubmission)
+
+    const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", {"submissions": payload}, accessToken)
+    return toCreateSubmissionResponse(response)
+  }
+
+  if (resubmits.length > 0) {
+    const payload = resubmits.map(fromLocalSubmission)
+
+    const response = await apiClient.post<CreateSubmissionResponseDto>("/submissions/sync", {"submissions": payload}, accessToken)
+    return toCreateSubmissionResponse(response)
+  }  
 }

@@ -141,24 +141,26 @@ export default function LessonDetailPage() {
         setExistingSubmission(existing);
 
         const localDraft = await getDraftForModule(user.id, moduleId);
+        console.log(existing)
 
         if (existing?.status === "flagged") {
           // Start from teacher-reviewed submission
           setReflectionText(
-            localDraft?.reflectionText ??
             existing.reflectionText ??
+            localDraft?.reflectionText ??
             ""
           );
 
           setActivityText(
-            localDraft?.activityText ??
             existing.activityText ??
+            localDraft?.activityText ??
+            
             ""
           );
 
           setAiForm(
-            localDraft?.aiForm ??
             existing.aiForm ??
+            localDraft?.aiForm ??
             EMPTY_AI_FORM
           );
         } else {

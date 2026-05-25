@@ -631,15 +631,25 @@ export async function syncPendingSubmissions(
   
   const payload = pending.map(fromLocalSubmission)
 
-  const response = await apiClient.post<CreateSubmissionResponsesDto>("/submissions/sync", {"submissions": payload}, accessToken)
-  return toCreateSubmissionResponses(response)
+  const responseDto = await apiClient.post<CreateSubmissionResponsesDto>("/submissions/sync", {"submissions": payload}, accessToken)
+  const response = toCreateSubmissionResponses(responseDto)
+
+  for (const r of response.submissions) {
+    if (r.status === "approved") {
+      await markSubmissionSynced(r.localId)
+    } else {
+      await markSubmissionFailed(r.localId)
+    }
+  }
+
+  await clearSyncedSubmissions()
 }
 
 
 export async function syncPendingRevisions(
   studentId: string,
   accessToken: string,
-): Promise<CreateSubmissionResponse|undefined> {
+): Promise<CreateSubmissionResponses|undefined> {
   const pending = (
     await getPendingSubmissions(studentId)
   ).filter(s => s.syncStatus === "pending" && s.submissionType === 'resubmit')
@@ -655,7 +665,15 @@ export async function syncPendingRevisions(
 
   const payload = pending.map(fromLocalSubmission)
 
-  const response = await apiClient.patch<CreateSubmissionResponseDto>("/submissions/resync", {"submissions": payload}, accessToken)
-  toCreateSubmissionResponse(response)
-  await markSubmissionSynced
+  const responseDto = await apiClient.patch<CreateSubmissionResponsesDto>("/submissions/resync", {"submissions": payload}, accessToken)
+  const response = toCreateSubmissionResponses(responseDto)
+
+  for (const r of response.submissions) {
+    if (r.status === "approved") {
+      await markSubmissionSynced(r.localId)
+    } else {
+      await markSubmissionFailed(r.localId)
+    }
+  }
+  await clearSyncedSubmissions()
 }

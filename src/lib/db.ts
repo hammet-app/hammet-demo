@@ -259,7 +259,8 @@ export async function submitLesson({
   // Not provided for auto-saves (we don't want to sync on every keystroke).
   accessToken?:   string
 }): Promise<{ success: boolean; synced: boolean }> {
-  const localId     = crypto.randomUUID()
+  const existing = await getDraftForModule(studentId, moduleId)
+  const localId     = existing?.localId ??   crypto.randomUUID()
   const submittedAt = new Date().toISOString()
  
   // Always write to Dexie first.

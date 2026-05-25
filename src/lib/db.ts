@@ -260,7 +260,10 @@ export async function submitLesson({
   accessToken?:   string
 }): Promise<{ success: boolean; synced: boolean }> {
   const existing = await getDraftForModule(studentId, moduleId)
-  const localId     = existing?.localId ??   crypto.randomUUID()
+  const localId     = existing?.localId ?? crypto.randomUUID()
+
+  console.log(localId)
+  console.log(existing?.localId)
   const submittedAt = new Date().toISOString()
  
   // Always write to Dexie first.

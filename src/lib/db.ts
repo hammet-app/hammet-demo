@@ -642,6 +642,7 @@ export async function syncPendingSubmissions(
     }
   }
 
+  await clearPendingProgress(studentId)
   await clearSyncedSubmissions()
 }
 
@@ -666,8 +667,6 @@ export async function syncPendingRevisions(
       return
     }
   })
-
-
   const payload = pending.map(fromLocalSubmission)
 
   const responseDto = await apiClient.patch<CreateSubmissionResponsesDto>("/submissions/resync", {"submissions": payload}, accessToken)
@@ -681,4 +680,5 @@ export async function syncPendingRevisions(
     }
   }
   await clearSyncedSubmissions()
+  await clearPendingProgress(studentId)
 }

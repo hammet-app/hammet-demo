@@ -431,9 +431,9 @@ export default function LessonDetailPage() {
             aiForm: existingSubmission.aiForm,
             localId: existingSubmission.localId
           }
-          await studentApi.resubmitModule(resubmission, accessToken, refreshToken)
+          await studentApi.resubmitModule(user.id, resubmission, accessToken, refreshToken)
         } else {
-          await studentApi.submitModule(payload, accessToken, refreshToken);
+          await studentApi.submitModule(user.id, payload, accessToken, refreshToken);
         }
         await clearUploadedFilesForModule(moduleId);
 

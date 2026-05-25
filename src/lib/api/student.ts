@@ -1,5 +1,12 @@
 import { apiClient } from "@/lib/api/api-client";
-import { getCachedModuleSummaries, getCachedModule, cacheModuleSummaries, cacheModule, markSubmissionSynced } from "@/lib/db";
+import { 
+  getCachedModuleSummaries, 
+  getCachedModule, 
+  cacheModuleSummaries, 
+  cacheModule, 
+  markSubmissionSynced,
+  clearPendingProgress
+} from "@/lib/db";
 import {
   type Resubmission,
   type StudentProgress,
@@ -137,6 +144,7 @@ export const studentApi = {
   },
 
   submitModule: async(
+    studentId: string,
     body: CreateSubmissionRequest,
     token: string,
     onRefresh: () => Promise<string | null>
@@ -146,11 +154,13 @@ export const studentApi = {
     const response = toCreateSubmissionResponse(res)
 
     await markSubmissionSynced(response.localId)
+    await clearPendingProgress(studentId)
 
     return response
   },
 
   resubmitModule: async(
+    studentId: string,
     body: Resubmission,
     token: string,
     onRefresh: () => Promise<string | null>
@@ -160,6 +170,7 @@ export const studentApi = {
     const response = toCreateSubmissionResponse(res)
 
     await markSubmissionSynced(response.localId)
+    await clearPendingProgress(studentId)
 
     return response
   }

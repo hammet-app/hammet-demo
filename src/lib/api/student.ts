@@ -1,5 +1,5 @@
 import { apiClient } from "@/lib/api/api-client";
-import { getCachedModuleSummaries, getCachedModule, cacheModuleSummaries, cacheModule} from "@/lib/db";
+import { getCachedModuleSummaries, getCachedModule, cacheModuleSummaries, cacheModule, markSubmissionSynced } from "@/lib/db";
 import {
   type Resubmission,
   type StudentProgress,
@@ -142,8 +142,12 @@ export const studentApi = {
     onRefresh: () => Promise<string | null>
   ): Promise<CreateSubmissionResponse> =>{
     const payload = fromCreateSubmissionRequest(body)
-    const response= await apiClient.post<CreateSubmissionResponseDto>("/submissions", payload, token, { onRefresh })
-    return toCreateSubmissionResponse(response)
+    const res= await apiClient.post<CreateSubmissionResponseDto>("/submissions", payload, token, { onRefresh })
+    const response = toCreateSubmissionResponse(res)
+
+    await markSubmissionSynced(response.localId)
+
+    return response
   },
 
   resubmitModule: async(
@@ -152,7 +156,11 @@ export const studentApi = {
     onRefresh: () => Promise<string | null>
   ): Promise<CreateSubmissionResponse> => {
     const payload = fromResubmission(body)
-    const response = await apiClient.patch<CreateSubmissionResponseDto>(`/submissions/resubmit/${body.id}`, payload, token, { onRefresh })
-    return toCreateSubmissionResponse(response)
+    const res = await apiClient.patch<CreateSubmissionResponseDto>(`/submissions/resubmit/${body.id}`, payload, token, { onRefresh })
+    const response = toCreateSubmissionResponse(res)
+
+    await markSubmissionSynced(response.localId)
+
+    return response
   }
 };

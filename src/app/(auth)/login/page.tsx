@@ -9,10 +9,8 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import { getDefaultRoute } from "@/lib/auth/routes";
 import { 
-  type LoginRequest, 
-  type LoginRequestDto, 
+  type LoginRequest,  
   type LoginResponseDto, 
-  type LoginResponse,
   toLoginResponse
 } from "@/lib/api/types";
 import type { UserRole } from "@/lib/utils/roles";

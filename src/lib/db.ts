@@ -645,6 +645,11 @@ export async function syncPendingSubmissions(
   await clearSyncedSubmissions()
 }
 
+// ── Sync function ─────────────────────────────────────────────────────────────
+// Call this:
+// 1. When the app comes back online (useOnlineStatus hook)
+// 2. On app startup
+// 3. After every successful page load
 
 export async function syncPendingRevisions(
   studentId: string,

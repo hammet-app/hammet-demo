@@ -5,7 +5,8 @@ import {
   cacheModuleSummaries, 
   cacheModule, 
   markSubmissionSynced,
-  clearPendingProgress
+  clearPendingProgress,
+  clearSyncedSubmissions
 } from "@/lib/db";
 import {
   type Resubmission,
@@ -156,6 +157,7 @@ export const studentApi = {
     await markSubmissionSynced(response.localId)
     console.log(response.localId)
     await clearPendingProgress(studentId)
+    await clearSyncedSubmissions()
 
     return response
   },
@@ -173,6 +175,7 @@ export const studentApi = {
     await markSubmissionSynced(response.localId)
     console.log(response.localId)
     await clearPendingProgress(studentId)
+    await clearSyncedSubmissions()
 
     return response
   }

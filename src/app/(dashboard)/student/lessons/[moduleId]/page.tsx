@@ -409,6 +409,7 @@ export default function LessonDetailPage() {
     for (const u of freshUploads) {
       if (!allPaths.includes(u.path)) allPaths.push(u.path);
     }
+    const existing = await getDraftForModule(user.id, moduleId)
 
     const payload = {
       moduleId: moduleId,
@@ -416,7 +417,7 @@ export default function LessonDetailPage() {
       reflectionText: reflectionText,
       fileUrls: allPaths.length > 0 ? allPaths : null,
       aiForm: aiForm.used != null ? aiForm : null,
-      localId: crypto.randomUUID(),
+      localId: existing?.localId ?? crypto.randomUUID(),
     };
 
     // Try backend first

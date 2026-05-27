@@ -7,12 +7,17 @@ import {
   type RegisterStudentResponse,
   type BulkRegisterResponse,
   type ParentLinkSendResponse,
+  type SchoolProfileDto,
   //PromotionPreviewResponse,
   //PromotionConfirmRequest,
   //PromotionConfirmResponse,
   type AdminModulesResponse,
   type CurriculumModule,
   type SchoolProfile,
+  type AdminModulesResponseDto,
+  type CurriculumModuleDto,
+  type RegisterStudentResponseDto,
+  type BulkRegisterResponseDto,
   type AdminStudentsResponse,
   type BulkRegisterRequest,
   type ResendVerificationRequest,
@@ -25,14 +30,11 @@ import {
   fromUpdateUserRequest,
   fromRegisterStudentRequest,
   toRegisterStudentResponse,
-  RegisterStudentResponseDto,
-  BulkRegisterResponseDto,
   toBulkRegisterResponse,
   ParentLinkSendResponseDto,
   toParentLinkSendResponse,
-  AdminModulesResponseDto,
-  CurriculumModuleDto,
-  toCurriculumModule
+  toCurriculumModule,
+  toSchoolProfile
 } from "@/lib/api/types";
 
 // ------------------------------------------------------------
@@ -43,7 +45,8 @@ export async function getSchoolProfile(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<SchoolProfile> {
-  return apiClient.get<SchoolProfile>("/admin/school", token, { onRefresh });
+  const response = await apiClient.get<SchoolProfileDto>("/admin/school", token, { onRefresh });
+  return toSchoolProfile(response)
 }
 
 // ------------------------------------------------------------

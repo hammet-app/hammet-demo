@@ -1,16 +1,20 @@
 // lib/file-pipeline.ts
 //
-// Full file pipeline for task uploads:
+// File upload pipeline for task submissions.
+//
+// Flow:
 //   1. Compress  — images → max 2 MB, videos → max 20 MB (pass-through), docs → pass-through
 //   2. Enqueue   — store compressed blob in Dexie so it survives offline
-//   3. Upload    — push blob to Supabase Storage with the service key
-//   4. Dequeue   — remove from Dexie once confirmed uploaded
+//   3. Sign      — batch-request signed upload URLs from backend (POST /upload/sign)
+//   4. Upload    — PUT each blob directly to Supabase Storage via its signed URL
+//   5. Return    — storage paths to include in the submission's file_urls
 //
-// The service key is used for uploads only. Viewing files goes through
-// backend-generated signed URLs — the service key is never used for reads.
+// The frontend never needs the Supabase service key. All auth for uploads
+// goes through the backend signing endpoint.
 
 import imageCompression from 'browser-image-compression'
 import {
+  db,
   enqueueFile,
   markFileUploading,
   markFileUploaded,
@@ -20,12 +24,11 @@ import {
   getFilesForModule,
   type LocalFileQueue,
 } from '@/lib/db'
-
-// ── Env ───────────────────────────────────────────────────────────────────────
-
-const SUPABASE_URL        = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SUPABASE_SERVICE_KEY = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY!
-const BUCKET              = 'task-files'
+import { apiClient } from '@/lib/api/api-client'
+import {
+  type UploadRequests, 
+  type UploadResponses, 
+  fromUploadRequest } from '@/lib/api/types'
 
 // ── Limits ───────────────────────────────────────────────────────────────────
 
@@ -57,7 +60,7 @@ export type CompressResult =
  *
  * - Images:    compressed to max 2 MB via browser-image-compression
  * - Videos:    passed through as-is; rejected if over 20 MB
- * - Documents: passed through as-is (PDFs, Word docs don't compress well)
+ * - Documents: passed through as-is
  */
 export async function compressFile(file: File): Promise<CompressResult> {
   if (isImage(file)) {
@@ -84,47 +87,48 @@ export async function compressFile(file: File): Promise<CompressResult> {
     return { ok: true, blob: file, mimeType: file.type }
   }
 
-  // Documents and everything else — pass through
   return { ok: true, blob: file, mimeType: file.type }
 }
 
-// ── Storage path ──────────────────────────────────────────────────────────────
-
-function buildPath(studentId: string, file: File): string {
-  const safe = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-  return `uploads/${studentId}/${Date.now()}_${safe}`
-}
-
-// ── Supabase Storage upload ───────────────────────────────────────────────────
+// ── Signed URL request ────────────────────────────────────────────────────────
 
 /**
- * Upload a blob directly to Supabase Storage using the service key.
- * Returns the storage path — not a public URL.
- * Views go through backend-generated signed URLs, never through this path.
+ * Batch-request signed upload URLs from the backend.
+ * One network call for all files — backend generates the path and signed URL
+ * for each, scoped to the student's folder via the JWT on the request.
  */
-async function uploadToStorage(
-  blob: Blob,
-  path: string,
-  mimeType: string
-): Promise<string> {
-  const url = `${SUPABASE_URL}/storage/v1/object/${BUCKET}/${path}`
+async function buildPath(
+  entries: LocalFileQueue[],
+  accessToken: string | null,
+): Promise<UploadResponses> {
+  const body: UploadRequests = {
+    files: entries.map((e) => ({
+      name:     e.fileName,
+      type:     e.mimeType,
+      moduleId: e.moduleId,
+    })),
+  }
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-      'Content-Type': mimeType,
-      'x-upsert': 'false',
-    },
+  const payload = { files: body.files.map(fromUploadRequest) }
+  return await apiClient.post<UploadResponses>('/submissions/upload', payload, accessToken)
+}
+
+// ── Single file upload ────────────────────────────────────────────────────────
+
+async function uploadBlob(
+  blob: Blob,
+  mimeType: string,
+  signedUrl: string
+): Promise<void> {
+  const res = await fetch(signedUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': mimeType },
     body: blob,
   })
 
   if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText)
-    throw new Error(`Supabase Storage upload failed (${res.status}): ${text}`)
+    throw new Error(`Upload failed (${res.status})`)
   }
-
-  return path
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -135,10 +139,8 @@ export type EnqueueResult =
 
 /**
  * Compress a file and save the blob to Dexie.
- * Does NOT upload — call uploadFilesForModule() before submission.
- *
- * Returns the Dexie entry ID so the caller (lesson-detail-page) can
- * track or remove the entry via removeQueuedFile().
+ * Does NOT upload — call uploadFilesForModule() when ready to submit.
+ * Path is left empty here; the backend assigns the real path at sign time.
  */
 export async function compressAndEnqueue(
   file: File,
@@ -149,17 +151,15 @@ export async function compressAndEnqueue(
   const result = await compressFile(file)
   if (!result.ok) return result
 
-  const path = buildPath(studentId, file)
-
   const dexieId = await enqueueFile({
-    id: crypto.randomUUID(),
+    id:           crypto.randomUUID(),
     studentId,
     moduleId,
     blockId,
-    path,
-    blob: result.blob,
-    fileName: file.name,
-    mimeType: result.mimeType,
+    path:         '', // assigned by backend at sign time
+    blob:         result.blob,
+    fileName:     file.name,
+    mimeType:     result.mimeType,
   })
 
   return { ok: true, dexieId }
@@ -168,67 +168,115 @@ export async function compressAndEnqueue(
 export type UploadedFile = {
   dexieId: string
   blockId: string
-  path: string   // Supabase Storage path — stored in submission file_urls
+  moduleId: string
+  path: string   // Supabase Storage path returned by backend — stored in file_urls
 }
 
 /**
- * Attempt to upload a single queued Dexie entry to Supabase Storage.
- * Updates Dexie status throughout. Returns null on failure (already marked failed in Dexie).
- */
-export async function uploadFile(entry: LocalFileQueue): Promise<UploadedFile | null> {
-  try {
-    await markFileUploading(entry.id)
-    const path = await uploadToStorage(entry.blob, entry.path, entry.mimeType)
-    await markFileUploaded(entry.id)
-    return { dexieId: entry.id, blockId: entry.blockId, path }
-  } catch {
-    await markFileFailed(entry.id)
-    return null
-  }
-}
-
-/**
- * Upload all pending/failed files for a specific module.
- * Call this just before submission when online.
+ * Upload all pending/failed files for a module.
+ *
+ * 1. Fetch all queued entries for the module from Dexie
+ * 2. Batch-request signed URLs from backend (one API call)
+ * 3. PUT each blob to its signed URL in parallel
+ * 4. Update Dexie status for each entry
+ *
  * Returns successfully uploaded entries — use their paths to build file_urls.
+ * Entries that fail are marked 'failed' in Dexie and excluded from the result.
  */
 export async function uploadFilesForModule(
-  moduleId: string
+  moduleId: string,
+  accessToken: string | null,
 ): Promise<UploadedFile[]> {
   const entries = await getFilesForModule(moduleId)
   const toUpload = entries.filter(
     (e) => e.uploadStatus === 'pending' || e.uploadStatus === 'failed'
   )
 
-  const results = await Promise.allSettled(toUpload.map(uploadFile))
+  if (toUpload.length === 0) return []
 
-  return results
-    .filter(
-      (r): r is PromiseFulfilledResult<UploadedFile> =>
-        r.status === 'fulfilled' && r.value !== null
-    )
-    .map((r) => r.value)
+  // Mark all as uploading immediately
+  await Promise.all(toUpload.map((e) => markFileUploading(e.id)))
+
+  // Batch sign
+  let signResponse: UploadResponses
+  try {
+    signResponse = await buildPath(toUpload, accessToken)
+  } catch {
+    // Can't reach backend — mark all failed, caller will queue offline
+    await Promise.all(toUpload.map((e) => markFileFailed(e.id)))
+    return []
+  }
+
+  const allSigned = signResponse.signeds
+
+  // Upload each file in parallel
+  const results = await Promise.allSettled(
+    toUpload.map(async (entry: LocalFileQueue, i: number) => {
+      const signed = allSigned[i]?.signed
+      // Supabase Python client returns signedURL (capital URL)
+      const signedUrl = signed?.signedUrl ?? signed?.signedUrl ?? signed?.signed_url
+      const path      = signed?.path
+
+      if (!signedUrl || !path) {
+        throw new Error('No signed URL or path returned for file')
+      }
+
+      // Write path back to Dexie so retries and submission collection
+      // can find the correct path even if the upload fails mid-flight
+      await db.fileQueue.update(entry.id, { path })
+      const file = await db.fileQueue.get(entry.id)
+
+      await uploadBlob(entry.blob, entry.mimeType, signedUrl)
+      await markFileUploaded(entry.id)
+
+      return { dexieId: entry.id, moduleId: entry.moduleId, blockId: entry.blockId, path } satisfies UploadedFile
+    })
+  )
+
+  const uploaded: UploadedFile[] = []
+
+  for (let i = 0; i < results.length; i++) {
+    const result = results[i]
+    if (result.status === 'fulfilled') {
+      uploaded.push(result.value)
+    } else {
+      await markFileFailed(toUpload[i].id)
+    }
+  }
+
+  return uploaded
 }
 
 /**
  * Upload ALL pending files across all modules.
  * Call on reconnect (useOnlineStatus) to drain the queue.
  */
-export async function uploadAllPendingFiles(): Promise<UploadedFile[]> {
+export async function uploadAllPendingFiles(
+  accessToken: string | null,
+): Promise<UploadedFile[]> {
   const pending = await getPendingFiles()
-  const results = await Promise.allSettled(pending.map(uploadFile))
+  if (pending.length === 0) return []
 
-  return results
-    .filter(
-      (r): r is PromiseFulfilledResult<UploadedFile> =>
-        r.status === 'fulfilled' && r.value !== null
-    )
-    .map((r) => r.value)
+  // Group by moduleId so we batch per module (each module scoped separately)
+  const byModule = new Map<string, LocalFileQueue[]>()
+  for (const entry of pending) {
+    const group = byModule.get(entry.moduleId) ?? []
+    group.push(entry)
+    byModule.set(entry.moduleId, group)
+  }
+
+  const allUploaded: UploadedFile[] = []
+  for (const moduleId of byModule.keys()) {
+    const uploaded = await uploadFilesForModule(moduleId, accessToken)
+    allUploaded.push(...uploaded)
+  }
+
+  return allUploaded
 }
 
 /**
  * Remove a queued file entry from Dexie.
- * Call when the student removes a file from the task upload list before submitting.
+ * Call when the student removes a file from the task upload list.
  */
 export async function removeQueuedFile(dexieId: string): Promise<void> {
   await dequeueFile(dexieId)

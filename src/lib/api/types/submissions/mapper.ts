@@ -1,4 +1,5 @@
-import { 
+import {
+    UploadRequestDto,
     CreateSubmissionRequestDto, 
     CreateSubmissionResponseDto,
     SyncSubmissionItemDto,
@@ -9,7 +10,8 @@ import {
     ResubmissionDto,
     CreateSubmissionResponsesDto
 } from "@/lib/api/types/submissions/types-dto";
-import { 
+import {
+    UploadRequest,
     CreateSubmissionRequest, 
     CreateSubmissionResponse,
     SyncSubmissionItem,
@@ -32,6 +34,14 @@ import {
  * Converts backend DTOs into frontend/domain models
  * (snake_case -> camelCase, API shape -> app shape)
  */
+
+export function fromUploadRequest(model: UploadRequest): UploadRequestDto {
+    return {
+        name: model.name,
+        type: model.type,
+        module_id: model.moduleId
+    }
+}
 
 export function fromAiFormState(model: AiFormState): AiFormStateDto {
     return {

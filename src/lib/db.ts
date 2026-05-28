@@ -262,8 +262,6 @@ export async function submitLesson({
   const existing = await getDraftForModule(studentId, moduleId)
   const localId     = existing?.localId ?? crypto.randomUUID()
 
-  console.log(localId)
-  console.log(existing?.localId)
   const submittedAt = new Date().toISOString()
  
   // Always write to Dexie first.
@@ -600,6 +598,23 @@ export async function clearPendingProgress(studentId: string): Promise<void> {
 }
 
 /**
+ * Updates the File Urls in each Submission with the paths 
+ * after uploading.
+ */
+export async function updateSubmissionFileUrls(
+  moduleId: string,
+  studentId: string,
+  fileUrls: string[]
+): Promise<void> {
+  await db.submissions
+    .where('[studentId+moduleId]')
+    .equals([studentId, moduleId])
+    .modify((s) => {
+      s.fileUrls = fileUrls
+    })
+}
+
+/**
  * Mapper for converting LocalSubmission to LocalSubmissionDto
  * to be used for syncing submissions to backend
  */
@@ -617,6 +632,8 @@ function fromLocalSubmission(model: LocalSubmission): LocalSubmissionDto {
     submitted_at: model.submittedAt
   }
 }
+
+
 // ── Sync function ─────────────────────────────────────────────────────────────
 // Call this:
 // 1. When the app comes back online (useOnlineStatus hook)

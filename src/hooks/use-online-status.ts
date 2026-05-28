@@ -1,10 +1,16 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getPendingSubmissions, getPendingProgress, clearPendingProgress, db } from "@/lib/db"
+import { 
+  getPendingSubmissions, 
+  getPendingProgress, 
+  clearPendingProgress, 
+  updateSubmissionFileUrls
+} from "@/lib/db"
 import { syncPendingSubmissions } from "@/lib/db"
 import { studentApi } from "@/lib/api/student"
 import { AuthUser, UserRole } from "@/lib/utils/roles";
+import { uploadAllPendingFiles } from "@/lib/file-pipeline";
 
 export function useOnlineStatus(
   user: AuthUser,
@@ -28,10 +34,28 @@ export function useOnlineStatus(
         const token = accessToken ?? await refreshToken()
         if (!token) return
 
-        // 1. Sync pending submissions first
+        // 1. Upload pending files to get their paths
+        const uploaded = await uploadAllPendingFiles(token)
+        if (uploaded.length > 0) {
+          // Group paths by moduleId
+          const pathsByModule = new Map<string, string[]>()
+          for (const u of uploaded) {
+            const paths = pathsByModule.get(u.moduleId) ?? []
+            paths.push(u.path)
+            pathsByModule.set(u.moduleId, paths)
+          }
+
+          // Patch each affected submission in Dexie before sync
+          for (const [moduleId, paths] of pathsByModule) {
+            await updateSubmissionFileUrls(moduleId, user.id, paths)
+          }
+        }
+        
+
+        // 2. Sync pending submissions first
         await syncPendingSubmissions(user.id, token)
 
-        // 2. Sync pending progress — but only for modules with no pending submission
+        // 3. Sync pending progress — but only for modules with no pending submission
         // (if submission was just synced, markSubmissionSynced already cleared progress)
         const pendingProgress = await getPendingProgress(user.id)
         if (pendingProgress.length === 0) return

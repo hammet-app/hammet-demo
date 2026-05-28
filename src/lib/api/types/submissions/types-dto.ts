@@ -24,6 +24,12 @@ export type AiFormStateDto = {
   rating_comment: string; // optional
 };
 
+export type UploadRequestDto = {
+  name: string;
+  type: string;
+  module_id: string
+}
+
 // POST /submissions — online submission
 export type CreateSubmissionRequestDto = {
   module_id: string;

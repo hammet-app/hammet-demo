@@ -183,8 +183,8 @@ export default function LessonsPage() {
                 const prevModule = byWeek[prevWeek][0];
                 const prevStatus = statusMap.get(prevModule.id);
 
-                unlocked =
-                  prevStatus === "submitted" || prevStatus === "approved";
+                /**unlocked =
+                  prevStatus === "submitted" || prevStatus === "approved";*/
               }
 
               return (

@@ -18,6 +18,29 @@ export type TaskFileEntry = {
 
 export type TaskFilesState = Record<string, TaskFileEntry[]>; // blockId → entries
 
+export type UploadRequest = {
+  name: string;
+  type: string;
+  moduleId: string
+}
+
+export type UploadRequests = {
+  files: UploadRequest[]
+}
+
+export type UploadResponse = {
+  signed: {
+    path: string;
+    signed_url: string;
+    signedUrl: string;
+    token: string;
+  }
+}
+
+export type UploadResponses = {
+  signeds: UploadResponse[]
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // AI Form state
 // ─────────────────────────────────────────────────────────────────────────────

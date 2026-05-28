@@ -145,7 +145,6 @@ export default function LessonDetailPage() {
         setExistingSubmission(existing);
 
         const localDraft = await getDraftForModule(user.id, moduleId);
-        console.log(existing)
 
         if (existing?.status === "flagged") {
           // Start from teacher-reviewed submission
@@ -275,7 +274,7 @@ export default function LessonDetailPage() {
 
         // Step 2: attempt immediate upload to Supabase Storage
         // uploadFilesForModule picks up the Dexie entry we just wrote
-        const uploaded = await uploadFilesForModule(moduleId);
+        const uploaded = await uploadFilesForModule(moduleId, accessToken);
         const match = uploaded.find((u) => u.dexieId === dexieId);
 
         if (match) {
@@ -399,7 +398,22 @@ export default function LessonDetailPage() {
     setSubmitError("");
 
     // Retry any queued file uploads first
-    const freshUploads = await uploadFilesForModule(moduleId);
+    const freshUploads = await uploadFilesForModule(moduleId, accessToken)
+
+    if (freshUploads.length > 0) {
+      setTaskFiles((prev) => {
+        const next = { ...prev }
+        for (const u of freshUploads) {
+          const entries = [...(next[u.blockId] ?? [])]
+          const idx = entries.findIndex((e) => e.dexieId === u.dexieId)
+          if (idx !== -1) {
+            entries[idx] = { ...entries[idx], url: u.path, status: "done" }
+          }
+          next[u.blockId] = entries
+        }
+        return next
+      })
+    }
 
     const allPaths = Object.values(taskFiles)
       .flat()
@@ -410,6 +424,8 @@ export default function LessonDetailPage() {
       if (!allPaths.includes(u.path)) allPaths.push(u.path);
     }
     const existing = await getDraftForModule(user.id, moduleId)
+
+    console.log(allPaths)
 
     const payload = {
       moduleId: moduleId,
@@ -428,7 +444,7 @@ export default function LessonDetailPage() {
             id: existingSubmission.id,
             activityText: existingSubmission.activityText,
             reflectionText: existingSubmission.reflectionText,
-            fileUrls: existingSubmission.fileUrls,
+            fileUrls: existingSubmission.fileUrls?? allPaths.length> 0 ? allPaths : null,
             aiForm: existingSubmission.aiForm,
             localId: existingSubmission.localId
           }

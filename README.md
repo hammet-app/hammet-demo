@@ -1,75 +1,172 @@
-# HammetLabs — UI Components
+# Hammet AI Studies — Frontend
 
-## Files
+Frontend application for the Hammet AI Studies platform.
 
-```
-src/
-├── app/
-│   ├── globals.css          ← @import "tailwindcss" + full @theme block
-│   └── layout.tsx           ← Root layout wiring fonts
-├── lib/
-│   ├── fonts.ts             ← DM Sans + Plus Jakarta Sans via next/font
-│   ├── roles.ts             ← UserRole type, getPrimaryRole, getInitials helpers
-│   └── api-types.ts         ← CurriculumModuleBlock + shared API shapes
-└── components/
-    ├── ui/
-    │   └── status-pill.tsx  ← StatusPill — approved / submitted / flagged / not_started / locked
-    ├── sidebar-config.ts    ← Nav entries per role (student / teacher / school_admin / hammet_admin)
-    ├── topbar.tsx           ← Topbar — role badge, avatar, hamburger (mobile)
-    ├── sidebar.tsx          ← Sidebar — active state, section labels, badge counter
-    ├── dashboard-layout.tsx ← Wires Topbar + Sidebar + Sheet drawer (Sheet managed here)
-    ├── stat-card.tsx        ← Stat card — icon, value, sub label
-    ├── module-card.tsx      ← Module/lesson list item — week badge + status pill
-    ├── student-row-card.tsx ← Student row — avatar, progress bar (teacher/admin only)
-    ├── submission-card.tsx  ← Submission — flag note, Revise / View action
-    └── lesson-content-card.tsx ← Full lesson renderer — all 7 block types + reflection textarea
-```
+Built with:
+- Next.js 14
+- TypeScript
+- App Router
+- PWA support
+- Dexie.js (IndexedDB)
+- Serwist service workers
 
-## Setup notes
+---
 
-### 1. globals.css
-Replace the contents of your `src/app/globals.css` with the provided file.
-The `@theme` block defines all brand tokens as CSS custom properties available
-as Tailwind utilities (e.g. `bg-purple-dark`, `text-cyan`, `border-border`).
+## Requirements
 
-### 2. Fonts
-The `layout.tsx` applies `dmSans.variable` and `plusJakarta.variable` as class
-names on `<html>`. The CSS variables `--font-dm-sans` and `--font-plus-jakarta`
-are then consumed by the `--font-sans` and `--font-head` tokens in `@theme`.
+- Node.js 20+
+- npm 10+
+- Docker (optional)
 
-### 3. shadcn Sheet
-`dashboard-layout.tsx` imports `Sheet` from `@/components/ui/sheet`.
-Make sure you've run:
+---
+
+## Getting Started
+
+Clone the repository:
+
 ```bash
-npx shadcn@latest add sheet
+git clone <repo-url>
+cd hammetlabs-frontend
 ```
 
-### 4. DashboardLayout usage
-Wrap each role's page layout with `<DashboardLayout user={user}>`:
+Install dependencies:
 
-```tsx
-// app/(dashboard)/layout.tsx
-import { DashboardLayout } from "@/components/dashboard-layout";
-import { getSession } from "@/lib/session"; // your auth helper
-
-export default async function Layout({ children }: { children: React.ReactNode }) {
-  const user = await getSession(); // returns AuthUser shape
-  return <DashboardLayout user={user}>{children}</DashboardLayout>;
-}
+```bash
+npm install
 ```
 
-### 5. Active nav highlighting
-`Sidebar` uses `usePathname()` internally via the `activePath` prop passed from
-`DashboardLayout`. Exact match + prefix match both highlight the item.
+Start development server:
 
-### 6. Adding a badge count to nav items
-In `sidebar-config.ts`, add a `badge` number to any `NavItem`.
-The Sidebar renders it as a cyan pill. Update counts by fetching from your API
-and passing them into a modified config (e.g. pending review count for teachers).
+```bash
+npm run dev
+```
 
-### 7. Tailwind v4 custom tokens
-All brand tokens in `@theme` become Tailwind utilities automatically:
-- `--color-purple-dark` → `bg-purple-dark`, `text-purple-dark`, `border-purple-dark`
-- `--color-cyan` → `bg-cyan`, `text-cyan`, `border-cyan`
-- etc.
-No `tailwind.config.ts` needed.
+Application runs on:
+
+```text
+http://localhost:3000
+```
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file in the project root.
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
+```
+
+---
+
+## Scripts
+
+```bash
+npm run dev        # Development server
+npm run build      # Production build
+npm run start      # Start production server
+npm run lint       # Run linting
+```
+
+---
+
+## Project Structure
+
+```text
+app/                # App Router pages
+components/         # Shared UI components
+lib/                # Utilities and helpers
+types/              # Shared TypeScript types
+public/             # Static assets
+```
+
+---
+
+## PWA Support
+
+The app supports:
+- Offline lesson access
+- Background sync
+- IndexedDB storage
+- Install to Home Screen
+- Service worker caching
+
+Main technologies:
+- Serwist
+- Dexie.js
+
+---
+
+## Docker Setup
+
+### Build Image
+
+```bash
+docker build -t hammet-frontend .
+```
+
+### Run Container
+
+```bash
+docker run -p 3000:3000 hammet-frontend
+```
+
+### Docker Compose
+
+```bash
+docker compose up
+```
+
+---
+
+## Docker Development Notes
+
+If hot reload fails on Windows:
+
+```yaml
+environment:
+  - WATCHPACK_POLLING=true
+```
+
+---
+
+## Branching
+
+Recommended workflow:
+
+```text
+main        -> production
+develop     -> staging/dev
+feature/*   -> feature branches
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 |
+| Language | TypeScript |
+| Styling | CSS Modules |
+| Offline Storage | Dexie.js |
+| PWA | Serwist |
+| Hosting | Vercel |
+
+---
+
+## Deployment
+
+Frontend is deployed on:
+- Vercel
+- Cloudflare proxy/CDN
+
+---
+
+## Notes
+
+- Do not commit `.env.local`
+- Always commit `package-lock.json`
+- Use Node.js 20
+- Keep modules offline-safe

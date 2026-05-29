@@ -16,14 +16,13 @@ import { getDeviceId } from "@/lib/auth/device-id";
 import { getDefaultRoute } from "@/lib/auth/routes";
 import { cn } from "@/lib/utils/utils";
 import { validatePassword } from "@/utils/password";
-import type { UserRole } from "@/lib/utils/roles";
-import { type ClaimAccountResponse, fromClaimAccountRequest } from "@/lib/api/types";
-
-interface InviteInfo {
-  fullName: string;
-  email: string;
-  roles: UserRole[];
-}
+import {
+  type ClaimAccountResponse,
+  type InviteInfo,
+  type InviteInfoDto,
+  toInviteInfo,
+  fromClaimAccountRequest
+} from "@/lib/api/types";
 
 type Step = "identify" | "set_password" | "success";
 
@@ -58,9 +57,9 @@ export default function ClaimPage() {
     setIsLoading(true);
 
     apiClient
-      .get<InviteInfo>(`/auth/claim/${token}`)
+      .get<InviteInfoDto>(`/auth/claim/${token}`)
       .then((data) => {
-        setInvite(data);
+        setInvite(toInviteInfo(data));
       })
       .catch(() => {
         setError("Invalid or expired link");
@@ -82,7 +81,7 @@ export default function ClaimPage() {
     setError(null);
 
     try {
-      const data = await apiClient.post<InviteInfo>(
+      const data = await apiClient.post<InviteInfoDto>(
         "/auth/claim/verify-code",
         {
           email,
@@ -96,7 +95,7 @@ export default function ClaimPage() {
         return;
       }
 
-      setInvite(data);
+      setInvite(toInviteInfo(data));
       setStep("set_password");
     } catch (err) {
       if (err instanceof ApiError) {
@@ -155,7 +154,7 @@ export default function ClaimPage() {
         }
         : {
           email,
-          claim_code: claimCode,
+          claimCode,
           password,
           deviceId: getDeviceId(),
         };

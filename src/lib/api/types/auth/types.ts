@@ -1,5 +1,11 @@
 import { UserRole } from "@/lib/utils/roles";
 
+export type InviteInfo = {
+  fullName: string;
+  email: string;
+  roles: UserRole[];
+}
+
 export type LoginRequest = {
   email: string;
   password: string;
@@ -22,7 +28,7 @@ export type LoginResponse = {
 
 // POST /auth/claim — student/teacher claiming invite via password or Google
 export type ClaimAccountRequest =
-  | { token?: string; code?:string; email?:string; password: string, deviceId: string }
+  | { token?: string; claimCode?: string; email?: string; password: string, deviceId: string }
   | { token: string; googleIdToken: string, deviceId: string };
 
 export type ClaimAccountResponse = {

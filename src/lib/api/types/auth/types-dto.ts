@@ -4,6 +4,13 @@ import { UserRole } from "@/lib/utils/roles";
 // AUTH ROUTES
 // ============================================================
 
+
+export type InviteInfoDto = {
+  full_name: string;
+  email: string;
+  roles: UserRole[];
+}
+
 // POST /auth/login
 export type LoginRequestDto = {
   email: string;
@@ -27,8 +34,8 @@ export type LoginResponseDto = {
 
 // POST /auth/claim — student/teacher claiming invite via password or Google
 export type ClaimAccountRequestDto =
-  | { token?: string; code?:string; email?:string; password: string, device_id: string }
-  | { token: string; google_id_token: string, device_id: string };
+  | { token?: string; claim_code?: string; email?: string; password: string, deviceId: string }
+  | { token: string; google_id_token: string, deviceId: string };
 
 export type ClaimAccountResponseDto = {
   access_token: string;

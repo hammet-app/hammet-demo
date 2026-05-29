@@ -1,19 +1,21 @@
-import { 
+import {
     BulkRegisterResponseDto,
     ClaimAccountRequestDto,
     ClaimAccountResponseDto,
-    LoginResponseDto, 
+    InviteInfoDto,
+    LoginResponseDto,
     RefreshResponseDto,
     RegisterSchoolRequestDto,
     RegisterSchoolResponseDto,
     RegisterStudentRequestDto,
     RegisterStudentResponseDto
 } from "@/lib/api/types/auth/types-dto";
-import { 
+import {
     BulkRegisterResponse,
     ClaimAccountRequest,
     ClaimAccountResponse,
-    LoginResponse, 
+    InviteInfo,
+    LoginResponse,
     RefreshResponse,
     RegisterSchoolRequest,
     RegisterSchoolResponse,
@@ -49,6 +51,14 @@ function toUser(dto: UserDto): User {
     }
 }
 
+export function toInviteInfo(dto: InviteInfoDto): InviteInfo {
+    return {
+        fullName: dto.full_name,
+        email: dto.email,
+        roles: dto.roles
+    }
+}
+
 export function toLoginResponse(dto: LoginResponseDto): LoginResponse {
     return {
         accessToken: dto.access_token,
@@ -61,14 +71,14 @@ export function fromClaimAccountRequest(model: ClaimAccountRequest): ClaimAccoun
         return {
             token: model.token,
             google_id_token: model.googleIdToken,
-            device_id: model.deviceId
+            deviceId: model.deviceId
         }
     }
     return {
         token: model.token,
-        code: model.code,
+        claim_code: model.claimCode,
         password: model.password,
-        device_id: model.deviceId
+        deviceId: model.deviceId
 
     }
 }

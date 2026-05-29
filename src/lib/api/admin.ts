@@ -81,6 +81,7 @@ export async function deleteStudent(
 ): Promise<DeleteResponse> {
   return apiClient.delete<DeleteResponse>(
     `/admin/students/${studentId}`,
+    null,
     token,
     { onRefresh }
   );

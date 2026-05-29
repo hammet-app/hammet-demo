@@ -147,8 +147,8 @@ export const apiClient = {
   put: <T>(path: string, body?: unknown, token?: string | null, options?: RequestOptions) =>
     request<T>("PUT", path, body, { token, ...options }),
 
-  delete: <T>(path: string, token?: string | null, options?: RequestOptions) =>
-    request<T>("DELETE", path, undefined, { token, ...options }),
+  delete: <T>(path: string, body?: unknown, token?: string | null, options?: RequestOptions) =>
+    request<T>("DELETE", path, body, { token, ...options }),
 
   postForm: <T>(path: string, form: FormData, token?: string | null, options?: RequestOptions) => 
     requestForm<T>("POST", path, form, { token, ...options }),

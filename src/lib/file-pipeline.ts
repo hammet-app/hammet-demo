@@ -22,7 +22,11 @@ import {
   dequeueFile,
   getPendingFiles,
   getFilesForModule,
-  type LocalFileQueue,
+  enqueueFileDeletion,
+  getPendingDeletions,
+  markDeletionDone,
+  markDeletionFailed,
+  type LocalFileQueue, 
 } from '@/lib/db'
 import { apiClient } from '@/lib/api/api-client'
 import {
@@ -226,7 +230,7 @@ export async function uploadFilesForModule(
       await db.fileQueue.update(entry.id, { path })
       const file = await db.fileQueue.get(entry.id)
 
-      await uploadBlob(entry.blob, entry.mimeType, signedUrl)
+      await uploadBlob(entry.blob!, entry.mimeType, signedUrl)
       await markFileUploaded(entry.id)
 
       return { dexieId: entry.id, moduleId: entry.moduleId, blockId: entry.blockId, path } satisfies UploadedFile
@@ -272,6 +276,68 @@ export async function uploadAllPendingFiles(
   }
 
   return allUploaded
+}
+
+/**
+ * Delete an already-uploaded file from Supabase Storage via the backend.
+ *
+ * If online  — calls the backend DELETE endpoint immediately.
+ * If offline — queues the path in Dexie (operation: 'delete') for later.
+ *
+ * Also removes the Dexie upload entry if one exists (dexieId provided).
+ */
+export async function deleteUploadedFile(
+  path: string,
+  studentId: string,
+  moduleId: string,
+  blockId: string,
+  accessToken: string | null,
+  dexieId?: string,
+): Promise<void> {
+  // Always remove the upload entry from Dexie regardless of online status
+  if (dexieId) {
+    await dequeueFile(dexieId).catch(() => {})
+  }
+ 
+  if (navigator.onLine && accessToken) {
+    try {
+      console.log(path)
+      await apiClient.delete('/submissions/upload', {path: path}, accessToken)
+      return
+    } catch {
+      // Fall through to queue
+    }
+  }
+ 
+  // Offline or request failed — queue for later
+  await enqueueFileDeletion(studentId, moduleId, blockId, path)
+}
+ 
+/**
+ * Drain all pending delete operations.
+ * Call on reconnect after draining uploads.
+ * Best-effort — failed deletions are marked failed in Dexie and retried
+ * next reconnect. If the Dexie cache is cleared, paths become orphans
+ * and are caught by the backend weekly cleanup job.
+ */
+export async function drainPendingDeletions(
+  accessToken: string | null,
+): Promise<void> {
+  if (!accessToken) return
+ 
+  const pending = await getPendingDeletions()
+  if (pending.length === 0) return
+ 
+  await Promise.allSettled(
+    pending.map(async (entry) => {
+      try {
+        await apiClient.delete('/submissions/upload', {path: entry.path}, accessToken)
+        await markDeletionDone(entry.id)
+      } catch {
+        await markDeletionFailed(entry.id)
+      }
+    })
+  )
 }
 
 /**

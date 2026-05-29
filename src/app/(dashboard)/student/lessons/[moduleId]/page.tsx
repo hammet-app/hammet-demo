@@ -16,6 +16,7 @@ import {
   compressAndEnqueue,
   uploadFilesForModule,
   removeQueuedFile,
+  deleteUploadedFile,
 } from "@/lib/file-pipeline";
 import { 
   clearUploadedFilesForModule, 
@@ -313,8 +314,10 @@ export default function LessonDetailPage() {
       const removed = entries[index];
 
       // Remove from Dexie queue if it hasn't uploaded yet
-      if (removed?.dexieId) {
-        removeQueuedFile(removed.dexieId).catch(() => {});
+      if (removed?.url) {
+        deleteUploadedFile(removed.url, user?.id!, moduleId, blockId, accessToken, removed.dexieId)
+      } else {
+        removeQueuedFile(removed?.dexieId!)
       }
 
       entries.splice(index, 1);

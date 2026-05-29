@@ -114,9 +114,10 @@ export interface LocalFileQueue {
   moduleId: string
   blockId: string         // which task block this file belongs to
   path: string            // Supabase Storage path: uploads/{studentId}/{timestamp}_filename
-  blob: Blob              // compressed blob ready for upload
+  blob: Blob | null             // compressed blob ready for upload or null for delete operation
   fileName: string        // original file name for display
   mimeType: string
+  operation: 'upload' | 'delete'
   uploadStatus: 'pending' | 'uploading' | 'done' | 'failed'
   uploadAttempts: number
   createdAt: string
@@ -176,6 +177,19 @@ class HammetLabsDB extends Dexie {
       modules:          'id, term, level, [term+level]',
       moduleSummaries:  'id, term, level, [term+level]',
       fileQueue:        'id, studentId, moduleId, blockId, uploadStatus',
+      session:          'id',
+      pendingProgress:  'studentId',   // ← one row per student, upserted on every page turn
+    })
+
+    // version 6: adds operation index to fileQueue
+    // Existing upload rows get operation = undefined which is fine —
+    // all helpers filter explicitly so undefined rows are ignored by delete helpers
+    this.version(6).stores({
+      submissions:      'localId, studentId, moduleId, syncStatus, [studentId+moduleId]',
+      portfolioEntries: 'localId, studentId, moduleId',
+      modules:          'id, term, level, [term+level]',
+      moduleSummaries:  'id, term, level, [term+level]',
+      fileQueue:        'id, studentId, moduleId, blockId, uploadStatus, operation',
       session:          'id',
       pendingProgress:  'studentId',   // ← one row per student, upserted on every page turn
     })
@@ -417,10 +431,11 @@ export async function clearSyncedSubmissions(): Promise<void> {
 // ── File queue helpers ────────────────────────────────────────────────────────
 
 export async function enqueueFile(
-  entry: Omit<LocalFileQueue, 'uploadStatus' | 'uploadAttempts' | 'createdAt'>
+  entry: Omit<LocalFileQueue, 'uploadStatus' | 'uploadAttempts' | 'createdAt' | 'operation'>
 ): Promise<string> {
   const record: LocalFileQueue = {
     ...entry,
+    operation: 'upload',
     uploadStatus: 'pending',
     uploadAttempts: 0,
     createdAt: new Date().toISOString(),
@@ -428,13 +443,19 @@ export async function enqueueFile(
   await db.fileQueue.put(record)
   return record.id
 }
-
+ 
 export async function getPendingFiles(): Promise<LocalFileQueue[]> {
-  return db.fileQueue.where('uploadStatus').equals('pending').toArray()
+  return db.fileQueue
+    .where('uploadStatus').equals('pending')
+    .filter((f) => f.operation === 'upload')
+    .toArray()
 }
-
+ 
 export async function getFilesForModule(moduleId: string): Promise<LocalFileQueue[]> {
-  return db.fileQueue.where('moduleId').equals(moduleId).toArray()
+  return db.fileQueue
+    .where('moduleId').equals(moduleId)
+    .filter((f) => f.operation === 'upload')
+    .toArray()
 }
 
 export async function markFileUploading(id: string): Promise<void> {
@@ -463,10 +484,58 @@ export async function dequeueFile(id: string): Promise<void> {
  */
 export async function clearUploadedFilesForModule(moduleId: string): Promise<void> {
   await db.fileQueue
-    .where('moduleId')
-    .equals(moduleId)
-    .filter((f) => f.uploadStatus === 'done')
+    .where('moduleId').equals(moduleId)
+    .filter((f) => f.operation === 'upload' && f.uploadStatus === 'done')
     .delete()
+}
+ 
+// ── File queue helpers — deletes ──────────────────────────────────────────────
+ 
+/**
+ * Queue a Supabase Storage path for deletion.
+ * blob is null — we only need the path to call the backend delete endpoint.
+ * Used when a student removes an already-uploaded file while offline.
+ */
+export async function enqueueFileDeletion(
+  studentId: string,
+  moduleId: string,
+  blockId: string,
+  path: string,
+): Promise<string> {
+  const record: LocalFileQueue = {
+    id:            crypto.randomUUID(),
+    studentId,
+    moduleId,
+    blockId,
+    path,
+    blob:          null,
+    fileName:      '',
+    mimeType:      '',
+    operation:     'delete',
+    uploadStatus:  'pending',
+    uploadAttempts: 0,
+    createdAt:     new Date().toISOString(),
+  }
+  await db.fileQueue.put(record)
+  return record.id
+}
+ 
+export async function getPendingDeletions(): Promise<LocalFileQueue[]> {
+  return db.fileQueue
+    .where('uploadStatus').equals('pending')
+    .filter((f) => f.operation === 'delete')
+    .toArray()
+}
+ 
+export async function markDeletionDone(id: string): Promise<void> {
+  await db.fileQueue.delete(id)
+}
+ 
+export async function markDeletionFailed(id: string): Promise<void> {
+  await db.fileQueue.where('id').equals(id).modify((f) => {
+    f.uploadStatus = 'failed'
+    f.uploadAttempts += 1
+  })
 }
 
 // ── Module cache helpers ──────────────────────────────────────────────────────

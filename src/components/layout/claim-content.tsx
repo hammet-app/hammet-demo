@@ -17,7 +17,7 @@ import { getDefaultRoute } from "@/lib/auth/routes";
 import { cn } from "@/lib/utils/utils";
 import { validatePassword } from "@/utils/password";
 import type { UserRole } from "@/lib/utils/roles";
-import { ClaimAccountResponse } from "@/lib/api/types";
+import { type ClaimAccountResponse, fromClaimAccountRequest } from "@/lib/api/types";
 
 interface InviteInfo {
   fullName: string;
@@ -86,7 +86,7 @@ export default function ClaimPage() {
         "/auth/claim/verify-code",
         {
           email,
-          claimCode,
+          claim_code: claimCode,
         }
       );
 
@@ -149,20 +149,20 @@ export default function ClaimPage() {
     try {
       const payload = token
         ? {
-            token,
-            password,
-            deviceId: getDeviceId(),
-          }
+          token,
+          password,
+          deviceId: getDeviceId(),
+        }
         : {
-            email,
-            claim_code: claimCode,
-            password,
-            deviceId: getDeviceId(),
-          };
+          email,
+          claim_code: claimCode,
+          password,
+          deviceId: getDeviceId(),
+        };
 
       const data = await apiClient.post<ClaimAccountResponse>(
         "/auth/claim",
-        payload
+        fromClaimAccountRequest(payload)
       );
       console.log(data)
       setSession(data.user, data.accessToken);
@@ -215,8 +215,8 @@ export default function ClaimPage() {
           step === "identify"
             ? "Enter your email and claim code"
             : invite
-            ? `Welcome, ${invite.fullName}`
-            : ""
+              ? `Welcome, ${invite.fullName}`
+              : ""
         }
       />
 

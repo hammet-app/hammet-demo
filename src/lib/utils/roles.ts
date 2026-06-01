@@ -33,10 +33,15 @@ export function getRoleLabel(role: UserRole): string {
 
 /** Returns initials from a full name (max 2 chars). */
 export function getInitials(name: string): string {
-  return name
+  if (name.split(" ").length >1) {
+    return name
     .split(" ")
     .filter(Boolean)
     .slice(0, 2)
     .map((n) => n[0].toUpperCase())
     .join("");
+  }
+  return name
+    .slice(0, 2).toUpperCase()
+  
 }

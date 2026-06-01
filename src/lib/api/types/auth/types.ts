@@ -116,3 +116,11 @@ export type BulkRegisterResponse = {
   total: number;
   codes: RegisterStudentResponse[];
 };
+
+// POST /auth/reset
+// Before you call this you call /auth/reset/{token}
+// to verify the code or token. It returns True if it's correct
+export type ResetPassword = {
+  token: string; // This is for either the code or token
+  password: string;
+}

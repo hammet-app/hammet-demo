@@ -20,7 +20,15 @@ export type SchoolProfileDto = {
   term: number;
   available_arms?: string[];
   stats: SchoolStatsDto;
+  term_start: string;
+  term_end: string;
 };
+
+// POST /admin/update-term
+export type UpdateTermDto = {
+  term_start: string;
+  term_end: string;
+}
 
 
 // GET /admin/students

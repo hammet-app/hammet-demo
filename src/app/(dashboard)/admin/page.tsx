@@ -3,15 +3,129 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getSchoolProfile } from "@/lib/api/admin";
+import { getSchoolProfile, updateTerm } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import type { SchoolProfile } from "@/lib/api/types";
+import type { SchoolProfile, UpdateTerm } from "@/lib/api/types";
 
 const TIER_STYLE: Record<string, { bg: string; text: string }> = {
   pilot:     { bg: "bg-cyan-50",     text: "text-cyan-700" },
   annual:    { bg: "bg-emerald-50",  text: "text-emerald-700" },
   suspended: { bg: "bg-red-50",      text: "text-red-600" },
 };
+
+// ── Term modal ────────────────────────────────────────────────────────────────
+
+function TermModal({
+  profile,
+  onClose,
+  onSaved,
+}: {
+  profile: SchoolProfile;
+  onClose: () => void;
+  onSaved: (start: string, end: string) => void;
+}) {
+  const { accessToken, refreshToken } = useAuth();
+
+  const [termStart, setTermStart] = useState(profile.termStart ?? "");
+  const [termEnd, setTermEnd] = useState(profile.termEnd ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    if (!termStart || !termEnd) {
+      setError("Both dates are required.");
+      return;
+    }
+    if (termEnd <= termStart) {
+      setError("Term end must be after term start.");
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      await updateTerm({ termStart, termEnd } satisfies UpdateTerm, accessToken!, refreshToken);
+      onSaved(termStart, termEnd);
+    } catch {
+      setError("Failed to save. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  // Close on backdrop click
+  function handleBackdrop(e: React.MouseEvent<HTMLDivElement>) {
+    if (e.target === e.currentTarget) onClose();
+  }
+
+  return (
+    <div
+      onClick={handleBackdrop}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+    >
+      <div className="w-full max-w-sm bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col gap-5">
+        <div>
+          <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
+            Update term dates
+          </h2>
+          <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+            Changes take effect immediately for all students.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-[var(--color-text-secondary)]">
+              Term start
+            </label>
+            <input
+              type="date"
+              value={termStart}
+              onChange={(e) => setTermStart(e.target.value)}
+              className="h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-[var(--color-text-secondary)]">
+              Term end
+            </label>
+            <input
+              type="date"
+              value={termEnd}
+              onChange={(e) => setTermEnd(e.target.value)}
+              className="h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
+            />
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-xs text-red-600">{error}</p>
+        )}
+
+        <div className="flex justify-end gap-2">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="h-9 px-4 rounded-lg border border-[var(--color-border)] text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-page)] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="h-9 px-4 rounded-lg bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Stat card ─────────────────────────────────────────────────────────────────
 
 function StatCard({
   label,
@@ -35,10 +149,13 @@ function StatCard({
   );
 }
 
+// ── Quick action card ─────────────────────────────────────────────────────────
+
 type QuickAction = {
   label: string;
   description: string;
-  href: string;
+  href?: string;
+  onClick?: () => void;
   icon: React.ReactNode;
   accent: string;
 };
@@ -48,7 +165,7 @@ function QuickActionCard({ action }: { action: QuickAction }) {
 
   return (
     <button
-      onClick={() => router.push(action.href)}
+      onClick={() => (action.onClick ? action.onClick() : router.push(action.href!))}
       className="group w-full text-left bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-5 hover:border-[var(--color-purple)] hover:shadow-md transition-all"
     >
       <div
@@ -68,12 +185,15 @@ function QuickActionCard({ action }: { action: QuickAction }) {
   );
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function AdminDashboardPage() {
   const { accessToken, refreshToken } = useAuth();
 
   const [profile, setProfile] = useState<SchoolProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [termModalOpen, setTermModalOpen] = useState(false);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -94,50 +214,44 @@ export default function AdminDashboardPage() {
       description: "Add a single student to the school roster.",
       href: "/admin/students/new",
       accent: "bg-[var(--color-purple-light)]",
-      icon: 
+      icon: (
         <svg className="w-5 h-5 text-[var(--color-purple)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
         </svg>
+      ),
     },
     {
       label: "Bulk import students",
       description: "Paste a list to register multiple students at once.",
       href: "/admin/students/bulk",
       accent: "bg-cyan-50",
-      icon: 
+      icon: (
         <svg className="w-5 h-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
         </svg>
+      ),
     },
-    /**{
-      label: "Register teacher",
-      description: "Add a teacher and assign their classes.",
-      href: "/admin/teachers/new",
-      accent: "bg-indigo-50",
-      icon: 
-        <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 3.741-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
-        </svg>
-    },
-    {
-      label: "Promote students",
-      description: "End-of-year class promotion with CSV upload.",
-      href: "/admin/students/promote",
-      accent: "bg-emerald-50",
-      icon: 
-        <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18" />
-        </svg>
-    },*/
     {
       label: "View modules",
       description: "Browse curriculum.",
       href: "/admin/modules",
       accent: "bg-amber-50",
-      icon: 
+      icon: (
         <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
         </svg>
+      ),
+    },
+    {
+      label: "Manage term",
+      description: "Update the current term start and end dates.",
+      onClick: () => setTermModalOpen(true),
+      accent: "bg-emerald-50",
+      icon: (
+        <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+        </svg>
+      ),
     },
   ];
 
@@ -189,7 +303,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Quick actions */}
           <div>
             <p className="text-xs uppercase mb-3 text-[var(--color-text-muted)]">
               Quick actions
@@ -197,11 +311,25 @@ export default function AdminDashboardPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {quickActions.map((action) => (
-                <QuickActionCard key={action.href} action={action} />
+                <QuickActionCard key={action.label} action={action} />
               ))}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Term modal — rendered outside the scroll container */}
+      {termModalOpen && profile && (
+        <TermModal
+          profile={profile}
+          onClose={() => setTermModalOpen(false)}
+          onSaved={(start, end) => {
+            setProfile((prev) =>
+              prev ? { ...prev, termStart: start, termEnd: end } : prev
+            );
+            setTermModalOpen(false);
+          }}
+        />
       )}
     </PageShell>
   );

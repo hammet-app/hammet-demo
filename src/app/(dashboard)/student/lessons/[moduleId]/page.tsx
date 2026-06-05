@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
@@ -10,7 +10,6 @@ import {
   buildPages,
   isPageBlocked,
   EMPTY_AI_FORM,
-  
 } from "@/components/cards/lesson-stepper";
 import {
   compressAndEnqueue,
@@ -18,14 +17,14 @@ import {
   removeQueuedFile,
   deleteUploadedFile,
 } from "@/lib/file-pipeline";
-import { 
-  clearUploadedFilesForModule, 
+import {
+  clearUploadedFilesForModule,
   submitLesson,
   getDraftForModule,
   saveSubmissionLocally,
   savePendingProgress,
   clearPendingProgress,
-  hasPendingSubmission
+  hasPendingSubmission,
 } from "@/lib/db";
 import { PageShell } from "@/components/layout/page-shell";
 import { StatusPill } from "@/components/ui/status-pill";
@@ -46,10 +45,18 @@ import type {
 } from "@/lib/api/types";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Font constants (match lesson-stepper.tsx)
+// Font constants
 // ─────────────────────────────────────────────────────────────────────────────
 
 const FONT_BODY = "var(--font-body)";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Progress dwell threshold — how long the student must stay on a page
+// before progress is saved. Short enough to be useful, long enough to
+// avoid saving on every quick swipe-through.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const PROGRESS_DWELL_MS = 10_000;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Offline save helper
@@ -60,12 +67,12 @@ async function saveOffline(
   studentId: string,
   moduleId: string,
   fileUrls: string[],
-  aiForm: AiFormState|null,
-  syncStatus: 'pending' | 'synced' | 'failed' | 'draft',
-  submissionType: 'submit' | 'resubmit',
+  aiForm: AiFormState | null,
+  syncStatus: "pending" | "synced" | "failed" | "draft",
+  submissionType: "submit" | "resubmit",
   activityText?: string,
   reflectionText?: string,
-  accessToken?:string,
+  accessToken?: string
 ): Promise<void> {
   try {
     await submitLesson({
@@ -108,68 +115,47 @@ export default function LessonDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // Task file state — keyed by block ID
-  // Each entry tracks the file's compress/upload lifecycle shown in the UI
   const [taskFiles, setTaskFiles] = useState<TaskFilesState>({});
-
-  // AI form state
   const [aiForm, setAiForm] = useState<AiFormState>(EMPTY_AI_FORM);
-
-  // Stepper page state lives here so the fixed footer can access it
   const [currentPage, setCurrentPage] = useState(0);
+
+  // Stable ref so saveSectionProgress inside the dwell effect doesn't
+  // need to be in the dependency array and re-create the timer on every render
+  const saveSectionProgressRef = useRef<((pageIdx: number) => Promise<void>) | null>(null);
 
   const pages = useMemo(() => {
     if (!module) return [];
     return buildPages(module.contentJson.sections, module.title);
   }, [module]);
 
-  // ── Load module + list + submission history in parallel ──────────────────
+  // ── Load ─────────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (!user) return
+    if (!user) return;
     if (!accessToken || !user?.classLevel || !user?.term) return;
 
     async function load() {
       try {
-        if (!user) return
+        if (!user) return;
         const [mod, list, history] = await Promise.all([
           studentApi.getModule(moduleId, accessToken!, refreshToken),
-          // getModules calls cacheModules internally — Dexie is populated here
           studentApi.getModules(user!.term!, user!.classLevel!, accessToken!, refreshToken),
-          studentApi.getSubmissions(accessToken!, refreshToken).catch(() => ({submissions: []})),
+          studentApi.getSubmissions(accessToken!, refreshToken).catch(() => ({ submissions: [] })),
         ]);
 
         setModule(mod);
         setAllModules(list.modules);
 
-        const existing =
-          history.submissions.find((s) => s.moduleId === moduleId) ?? null;
+        const existing = history.submissions.find((s) => s.moduleId === moduleId) ?? null;
         setExistingSubmission(existing);
 
         const localDraft = await getDraftForModule(user.id, moduleId);
 
         if (existing?.status === "flagged") {
-          // Start from teacher-reviewed submission
-          setReflectionText(
-            localDraft?.reflectionText ??
-            existing.reflectionText ??
-            ""
-          );
-
-          setActivityText(
-            localDraft?.activityText ??
-            existing.activityText ??
-            ""
-          );
-
-          setAiForm(
-            localDraft?.aiForm ??
-            existing.aiForm ??
-            EMPTY_AI_FORM
-          );
+          setReflectionText(localDraft?.reflectionText ?? existing.reflectionText ?? "");
+          setActivityText(localDraft?.activityText ?? existing.activityText ?? "");
+          setAiForm(localDraft?.aiForm ?? existing.aiForm ?? EMPTY_AI_FORM);
         } else {
-          // Normal precedence
           const source = existing ?? localDraft;
-
           if (source) {
             setReflectionText(source.reflectionText ?? "");
             setActivityText(source.activityText ?? "");
@@ -186,33 +172,33 @@ export default function LessonDetailPage() {
     load();
   }, [accessToken, moduleId, user?.classLevel]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Fetch the last page opened ────────────────────────────────────
-  // After pages are built and module is set:
+  // ── Resume at last saved section ──────────────────────────────────────────
   useEffect(() => {
-    if (!module || pages.length === 0) return
-    if (!module.stoppedAt) return   // not started — begin at 0
+    if (!module || pages.length === 0) return;
+    if (!module.stoppedAt) return;
 
     const resumeIdx = pages.findIndex(
-      (p) => (p.kind === "content" || p.kind === "activity" || p.kind === "reflection")
-        && p.sectionId === module.stoppedAt
-    )
-    if (resumeIdx !== -1) setCurrentPage(resumeIdx)
-  }, [module, pages]) // eslint-disable-line react-hooks/exhaustive-deps
+      (p) =>
+        (p.kind === "content" || p.kind === "activity" || p.kind === "reflection") &&
+        p.sectionId === module.stoppedAt
+    );
+    if (resumeIdx !== -1) setCurrentPage(resumeIdx);
+  }, [module, pages]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Auto-save text to Dexie on change ────────────────────────────────────
+  // ── Auto-save text drafts ─────────────────────────────────────────────────
   useEffect(() => {
     if (!user || !module) return;
     if (!activityText && !reflectionText) return;
 
     const t = setTimeout(async () => {
       await saveOffline(
-        existingSubmission?.id?? null,
+        existingSubmission?.id ?? null,
         user.id,
         moduleId,
         [],
         aiForm,
-        'draft',
-        existingSubmission?.status === "flagged" ? "resubmit" :"submit" ,
+        "draft",
+        existingSubmission?.status === "flagged" ? "resubmit" : "submit",
         activityText || undefined,
         reflectionText || undefined,
         accessToken || undefined
@@ -223,15 +209,65 @@ export default function LessonDetailPage() {
     return () => clearTimeout(t);
   }, [activityText, reflectionText, moduleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── Task file handlers ────────────────────────────────────────────────────
+  // ── Section progress save ─────────────────────────────────────────────────
+  const saveSectionProgress = useCallback(
+    async (pageIdx: number) => {
+      const page = pages[pageIdx];
+      if (!page || !user) return;
+      if (
+        page.kind !== "content" &&
+        page.kind !== "activity" &&
+        page.kind !== "reflection"
+      )
+        return;
+      if (!page.sectionId) return;
 
+      const sectionId = page.sectionId;
+
+      await savePendingProgress(user.id, moduleId, sectionId);
+
+      const isPending = await hasPendingSubmission(user.id, moduleId);
+      if (!isPending) {
+        try {
+          await studentApi.saveProgress(
+            { studentId: user.id, moduleId, sectionId },
+            accessToken!,
+            refreshToken
+          );
+          await clearPendingProgress(moduleId);
+        } catch {
+          // Network failed — Dexie has it, sync will pick it up
+        }
+      }
+    },
+    [pages, moduleId, accessToken, refreshToken, user]
+  );
+
+  // Keep the ref in sync so the dwell timer always calls the latest version
+  // without needing to be in the effect's dependency array
+  useEffect(() => {
+    saveSectionProgressRef.current = saveSectionProgress;
+  }, [saveSectionProgress]);
+
+  // ── Dwell-based progress saving ───────────────────────────────────────────
+  // After the student lands on a page, wait PROGRESS_DWELL_MS (10 s).
+  // If they're still there, save progress. If they navigate away first,
+  // the cleanup cancels the timer — no save fires.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveSectionProgressRef.current?.(currentPage);
+    }, PROGRESS_DWELL_MS);
+
+    return () => clearTimeout(timer);
+  }, [currentPage]); // only re-arm when the page changes
+
+  // ── Task file handlers ────────────────────────────────────────────────────
   const handleTaskFilesSelected = useCallback(
     async (blockId: string, files: FileList) => {
       if (!user) return;
 
       const incoming = Array.from(files);
 
-      // Add placeholder entries immediately so the UI responds
       setTaskFiles((prev) => {
         const existing = prev[blockId] ?? [];
         const placeholders: TaskFileEntry[] = incoming.map((file) => ({
@@ -242,22 +278,13 @@ export default function LessonDetailPage() {
         return { ...prev, [blockId]: [...existing, ...placeholders] };
       });
 
-      // Compress → Dexie → Supabase Storage for each file
       for (let i = 0; i < incoming.length; i++) {
         const file = incoming[i];
-        // Offset by however many entries existed before we added placeholders
         const entryIdx = (taskFiles[blockId]?.length ?? 0) + i;
 
-        // Step 1: compress + enqueue to Dexie
-        const enqueueResult = await compressAndEnqueue(
-          file,
-          user.id,
-          moduleId,
-          blockId
-        );
+        const enqueueResult = await compressAndEnqueue(file, user.id, moduleId, blockId);
 
         if (!enqueueResult.ok) {
-          // Compression rejected the file (e.g. video too large)
           const msg =
             enqueueResult.error.kind === "video_too_large"
               ? `Video too large (${enqueueResult.error.sizeMb} MB). Max is ${enqueueResult.error.maxMb} MB.`
@@ -272,63 +299,49 @@ export default function LessonDetailPage() {
         }
 
         const { dexieId } = enqueueResult;
-
-        // Step 2: attempt immediate upload to Supabase Storage
-        // uploadFilesForModule picks up the Dexie entry we just wrote
         const uploaded = await uploadFilesForModule(moduleId, accessToken);
         const match = uploaded.find((u) => u.dexieId === dexieId);
 
-        if (match) {
-          // Upload succeeded — store the path as the URL
-          setTaskFiles((prev) => {
-            const entries = [...(prev[blockId] ?? [])];
-            entries[entryIdx] = {
-              url: match.path,
-              file,
-              dexieId,
-              status: "done",
-            };
-            return { ...prev, [blockId]: entries };
-          });
-        } else {
-          // Upload failed — blob is safely in Dexie, will retry on reconnect
-          setTaskFiles((prev) => {
-            const entries = [...(prev[blockId] ?? [])];
-            entries[entryIdx] = {
-              url: null,
-              file,
-              dexieId,
-              status: "queued",
-            };
-            return { ...prev, [blockId]: entries };
-          });
-        }
+        setTaskFiles((prev) => {
+          const entries = [...(prev[blockId] ?? [])];
+          entries[entryIdx] = match
+            ? { url: match.path, file, dexieId, status: "done" }
+            : { url: null, file, dexieId, status: "queued" };
+          return { ...prev, [blockId]: entries };
+        });
       }
     },
-    [user, moduleId, taskFiles]
+    [user, moduleId, taskFiles, accessToken]
   );
 
-  const handleTaskFileRemove = useCallback(async (blockId: string, index: number) => {
-    setTaskFiles((prev) => {
-      const entries = [...(prev[blockId] ?? [])];
-      const removed = entries[index];
+  const handleTaskFileRemove = useCallback(
+    async (blockId: string, index: number) => {
+      setTaskFiles((prev) => {
+        const entries = [...(prev[blockId] ?? [])];
+        const removed = entries[index];
 
-      // Remove from Dexie queue if it hasn't uploaded yet
-      if (removed?.url) {
-        deleteUploadedFile(removed.url, user?.id!, moduleId, blockId, accessToken, removed.dexieId)
-      } else {
-        removeQueuedFile(removed?.dexieId!)
-      }
+        if (removed?.url) {
+          deleteUploadedFile(
+            removed.url,
+            user?.id!,
+            moduleId,
+            blockId,
+            accessToken,
+            removed.dexieId
+          ).catch(() => {});
+        } else if (removed?.dexieId) {
+          removeQueuedFile(removed.dexieId).catch(() => {});
+        }
 
-      entries.splice(index, 1);
-      return { ...prev, [blockId]: entries };
-    });
-  }, []);
+        entries.splice(index, 1);
+        return { ...prev, [blockId]: entries };
+      });
+    },
+    [user?.id, moduleId, accessToken]
+  );
 
   // ── Navigation helpers ────────────────────────────────────────────────────
-  const sortedModules = [...allModules].sort(
-    (a, b) => a.weekNumber - b.weekNumber
-  );
+  const sortedModules = [...allModules].sort((a, b) => a.weekNumber - b.weekNumber);
   const currentIdx = sortedModules.findIndex((m) => m.id === moduleId);
   const nextMod =
     currentIdx !== -1 && currentIdx < sortedModules.length - 1
@@ -336,63 +349,26 @@ export default function LessonDetailPage() {
       : null;
   const prevMod = currentIdx > 0 ? sortedModules[currentIdx - 1] : null;
 
-  // ── Stepper page navigation ───────────────────────────────────────────────
+  // ── Stepper page state ────────────────────────────────────────────────────
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
   const blocked = module
-    ? isPageBlocked(
-        pages[currentPage],
-        activityText,
-        reflectionText,
-        taskFiles,
-        aiForm,
-        false
-      )
+    ? isPageBlocked(pages[currentPage], activityText, reflectionText, taskFiles, aiForm, false)
     : false;
-
-  const saveSectionProgress = useCallback(async (pageIdx: number) => {
-    const page = pages[pageIdx]
-    if (!page || !user) return
-    if (page.kind !== "content" && page.kind !== "activity" && page.kind !== "reflection") return
-    if (!page.sectionId) return
-
-    const sectionId = page.sectionId
-
-    // Always write to Dexie first — this is the source of truth when offline
-    await savePendingProgress(user?.id, moduleId, sectionId)
-
-    // If online and no pending submission for this module, sync immediately
-    const isPending = await hasPendingSubmission(user?.id, moduleId)
-
-      if (!isPending) {
-        try {
-          await studentApi.saveProgress({studentId: user?.id, moduleId, sectionId}, accessToken!, refreshToken)
-          await clearPendingProgress(moduleId)
-        } catch {
-          // Network failed mid-lesson — Dexie has it, sync will pick it up
-        }
-      }
-      // If there IS a pending submission, don't PATCH — submission sync will
-      // clear progress on the backend when it fires
-  }, [pages, moduleId, accessToken, refreshToken])
 
   const goNext = useCallback(() => {
     if (blocked) return;
     if (isLastPage) { handleSubmit(); return; }
-    const next = Math.min(total - 1, currentPage + 1)
-    setCurrentPage(next);
-    saveSectionProgress(next)
-  }, [blocked, isLastPage, total, currentPage]); // eslint-disable-line react-hooks/exhaustive-deps
+    setCurrentPage((p) => Math.min(total - 1, p + 1));
+  }, [blocked, isLastPage, total]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goBack = useCallback(() => {
     if (currentPage === 0) {
       if (prevMod) router.push(`/student/lessons/${prevMod.id}`);
       return;
     }
-    const prev = Math.max(0, currentPage - 1)
-    setCurrentPage(prev);
-    saveSectionProgress(prev)
-  }, [currentPage, prevMod, router, saveSectionProgress]);
+    setCurrentPage((p) => Math.max(0, p - 1));
+  }, [currentPage, prevMod, router]);
 
   // ── Submit ────────────────────────────────────────────────────────────────
   async function handleSubmit() {
@@ -400,22 +376,21 @@ export default function LessonDetailPage() {
     setIsSubmitting(true);
     setSubmitError("");
 
-    // Retry any queued file uploads first
-    const freshUploads = await uploadFilesForModule(moduleId, accessToken)
+    const freshUploads = await uploadFilesForModule(moduleId, accessToken);
 
     if (freshUploads.length > 0) {
       setTaskFiles((prev) => {
-        const next = { ...prev }
+        const next = { ...prev };
         for (const u of freshUploads) {
-          const entries = [...(next[u.blockId] ?? [])]
-          const idx = entries.findIndex((e) => e.dexieId === u.dexieId)
+          const entries = [...(next[u.blockId] ?? [])];
+          const idx = entries.findIndex((e) => e.dexieId === u.dexieId);
           if (idx !== -1) {
-            entries[idx] = { ...entries[idx], url: u.path, status: "done" }
+            entries[idx] = { ...entries[idx], url: u.path, status: "done" };
           }
-          next[u.blockId] = entries
+          next[u.blockId] = entries;
         }
-        return next
-      })
+        return next;
+      });
     }
 
     const allPaths = Object.values(taskFiles)
@@ -426,14 +401,13 @@ export default function LessonDetailPage() {
     for (const u of freshUploads) {
       if (!allPaths.includes(u.path)) allPaths.push(u.path);
     }
-    const existing = await getDraftForModule(user.id, moduleId)
 
-    console.log(allPaths)
+    const existing = await getDraftForModule(user.id, moduleId);
 
     const payload = {
-      moduleId: moduleId,
-      activityText: activityText,
-      reflectionText: reflectionText,
+      moduleId,
+      activityText,
+      reflectionText,
       fileUrls: allPaths.length > 0 ? allPaths : null,
       aiForm: aiForm.used != null ? aiForm : null,
       localId: existing?.localId ?? crypto.randomUUID(),
@@ -447,14 +421,15 @@ export default function LessonDetailPage() {
             id: existingSubmission.id,
             activityText: existingSubmission.activityText,
             reflectionText: existingSubmission.reflectionText,
-            fileUrls: existingSubmission.fileUrls?? allPaths.length> 0 ? allPaths : null,
+            fileUrls: existingSubmission.fileUrls ?? (allPaths.length > 0 ? allPaths : null),
             aiForm: existingSubmission.aiForm,
-            localId: existingSubmission.localId
-          }
-          await studentApi.resubmitModule(user.id, resubmission, accessToken, refreshToken)
+            localId: existingSubmission.localId,
+          };
+          await studentApi.resubmitModule(user.id, resubmission, accessToken, refreshToken);
         } else {
           await studentApi.submitModule(user.id, payload, accessToken, refreshToken);
         }
+
         await clearUploadedFilesForModule(moduleId);
 
         setExistingSubmission({
@@ -462,9 +437,9 @@ export default function LessonDetailPage() {
           moduleTitle: module.title,
           term: module.term,
           weekNumber: module.weekNumber,
-          aiForm: aiForm,
-          moduleId: moduleId,
-          activityText: activityText,
+          aiForm,
+          moduleId,
+          activityText,
           reflectionText: reflectionText || null,
           fileUrls: allPaths.length > 0 ? allPaths : null,
           syncedAt: null,
@@ -476,36 +451,36 @@ export default function LessonDetailPage() {
 
         setIsSubmitting(false);
         return;
+      } catch {
+        // Fall through to Dexie
+      }
+    }
+
+    // Backend failed or no token — save to Dexie for later sync
+    try {
+      await saveSubmissionLocally({
+        id: existingSubmission?.id ?? null,
+        localId: payload.localId,
+        studentId: user.id,
+        moduleId,
+        activityText: activityText || undefined,
+        reflectionText: reflectionText || undefined,
+        aiForm,
+        fileUrls: allPaths,
+        submittedAt: new Date().toISOString(),
+        syncStatus: "pending",
+        submissionType: existingSubmission?.status === "flagged" ? "resubmit" : "submit",
+      });
+      setSavedOffline(true);
+      setSubmitError(
+        "No connection. Your work is saved and will submit automatically when you reconnect."
+      );
     } catch {
-      // Fall through to Dexie
+      setSubmitError("Failed to save your work. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   }
-
-  // Backend failed or no token — save to Dexie for later sync
-  try {
-    await saveSubmissionLocally({
-      id: existingSubmission?.id ?? null,
-      localId: payload.localId,
-      studentId: user.id,
-      moduleId,
-      activityText: activityText || undefined,
-      reflectionText: reflectionText || undefined,
-      aiForm,
-      fileUrls: allPaths,
-      submittedAt: new Date().toISOString(),
-      syncStatus: 'pending',
-      submissionType: existingSubmission?.status === "flagged" ? "resubmit" :"submit"
-    });
-    setSavedOffline(true);
-    setSubmitError(
-      "No connection. Your work is saved and will submit automatically when you reconnect."
-    );
-  } catch {
-    setSubmitError("Failed to save your work. Please try again.");
-  } finally {
-    setIsSubmitting(false);
-  }
-}
 
   // ── Render states ─────────────────────────────────────────────────────────
   if (loadState === "loading") {
@@ -552,11 +527,7 @@ export default function LessonDetailPage() {
             <SubmittedNotice
               status={status}
               submittedAt={existingSubmission!.submittedAt}
-              onNext={
-                nextMod
-                  ? () => router.push(`/student/lessons/${nextMod.id}`)
-                  : undefined
-              }
+              onNext={nextMod ? () => router.push(`/student/lessons/${nextMod.id}`) : undefined}
               onBack={() => router.push("/student/lessons")}
             />
           )}
@@ -590,11 +561,7 @@ export default function LessonDetailPage() {
               aiForm={aiForm}
               onAiFormChange={setAiForm}
               savedOffline={savedOffline}
-              onPrevLesson={
-                prevMod
-                  ? () => router.push(`/student/lessons/${prevMod.id}`)
-                  : undefined
-              }
+              onPrevLesson={prevMod ? () => router.push(`/student/lessons/${prevMod.id}`) : undefined}
               currentPage={currentPage}
               onSwipeNext={goNext}
               onSwipeBack={goBack}
@@ -608,10 +575,7 @@ export default function LessonDetailPage() {
         <div className="fixed bottom-0 left-0 right-0 md:left-[240px] z-10 bg-bg-page border-t border-border">
           <div className="w-full max-w-[680px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
 
-            <div
-              className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]"
-              style={{ fontFamily: FONT_BODY }}
-            >
+            <div className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]" style={{ fontFamily: FONT_BODY }}>
               <span className="w-[6px] h-[6px] rounded-full bg-[#1D9E75] shrink-0" />
               {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
             </div>

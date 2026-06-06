@@ -76,7 +76,7 @@ export const navConfig: Record<UserRole, NavEntry[]> = {
     { type: "item", label: "Platform Overview", href: "/hammet",             icon: Home,     tourId: "hammet-overview" },
     { type: "section", label: "Schools" },
     //{ type: "item",    label: "All Schools",        href: "/hammet",        icon: Building2 },
-    { type: "item", label: "Register School",   href: "/hammet/schools/new", icon: Plus },
+    { type: "item", label: "Register School",   href: "/hammet/schools/new", icon: Plus,     tourId: "register-school"},
     { type: "section", label: "Curriculum" },
     { type: "item", label: "Modules",           href: "/hammet/modules",     icon: BookOpen, tourId: "hammet-modules" },
     { type: "item", label: "Upload Module",     href: "/hammet/modules/bulk",icon: Upload,   tourId: "hammet-upload" },

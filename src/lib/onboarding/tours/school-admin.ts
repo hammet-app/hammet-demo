@@ -6,7 +6,7 @@ export const schoolAdminTourSteps: DriveStep[] = [
     element: '[data-tour="admin-dashboard"]',
     popover: {
       title: '🏠 Dashboard',
-      description: 'Your command centre — school-wide submission stats and term progress at a glance.',
+      description: 'Your command centre — Register students, Update students and more.',
       side: 'right',
     },
   },

@@ -6,7 +6,15 @@ export const hammetAdminTourSteps: DriveStep[] = [
     element: '[data-tour="hammet-overview"]',
     popover: {
       title: '🏢 Platform Overview',
-      description: 'Top-level metrics across all schools — submissions, approvals, and active students.',
+      description: 'Top-level metrics across all schools — pending and active students.',
+      side: 'right',
+    },
+  },
+  {
+    element: '[data-tour="register-school"]',
+    popover: {
+      title: '➕ Register School',
+      description: 'Register a new school',
       side: 'right',
     },
   },

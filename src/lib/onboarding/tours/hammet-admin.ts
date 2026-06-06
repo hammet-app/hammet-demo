@@ -30,7 +30,7 @@ export const hammetAdminTourSteps: DriveStep[] = [
     element: '[data-tour="hammet-upload"]',
     popover: {
       title: '⬆️ Upload Module',
-      description: 'Bulk-upload new lesson content. Angel uses this to publish curriculum updates.',
+      description: 'Bulk-upload new lesson content. Used to publish curriculum updates.',
       side: 'right',
     },
   },

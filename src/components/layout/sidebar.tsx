@@ -128,6 +128,7 @@ export function Sidebar({
               key={item.href}
               href={item.href!}
               onClick={onNavigate}
+              {...(item.tourId ? { 'data-tour': item.tourId } : {})}
               className={cn(
                 "flex items-center gap-[10px] rounded-md px-5 py-2 text-xs transition-all",
                 isActive

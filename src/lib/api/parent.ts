@@ -21,7 +21,7 @@ export const parentApi = {
   },
 
   postVerify: async (linkToken: string, body: ParentVerifyRequest): Promise<ParentVerifyResponse> =>{
-    const response = await apiClient.post<ParentVerifyResponseDto>(`/parent/${encodeURIComponent(linkToken)}/verify`, body)
+    const response = await apiClient.post<ParentVerifyResponseDto>(`/parent/${encodeURIComponent(linkToken)}/answer`, body)
     return toParentVerifyResponse(response)
   },
   getPortal: async(

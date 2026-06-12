@@ -18,6 +18,7 @@ import {
   toDeactivateSchoolResponse,
   toCurriculumModule,
   toAdminModulesResponse,
+  fromRegisterSchoolRequest,
 } from "@/lib/api/types";
 
 // ------------------------------------------------------------
@@ -40,9 +41,10 @@ export async function registerSchool(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<RegisterSchoolResponse> {
+  const payload = fromRegisterSchoolRequest(body)
   const response = await apiClient.post<RegisterSchoolResponseDto>(
     "/auth/register/school",
-    body,
+    payload,
     token,
     { onRefresh }
   );

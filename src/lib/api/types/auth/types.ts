@@ -26,6 +26,15 @@ export type LoginResponse = {
   };
 };
 
+export type VerifyOTPRequest = {
+  otp: string;
+};
+
+export type ResetPasswordRequest = {
+  password: string;
+  confirmPassword: string;
+};
+
 // POST /auth/claim — student/teacher claiming invite via password or Google
 export type ClaimAccountRequest =
   | { token?: string; claimCode?: string; email?: string; password: string, deviceId: string }

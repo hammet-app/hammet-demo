@@ -239,6 +239,14 @@ export default function ClaimPage() {
           </button>
 
           {error && <AuthAlert message={error} />}
+
+          {/* Pending invite nudge */}
+          <p className="mt-6 text-center text-[12px] text-text-muted leading-relaxed">
+            Haven&apos;t received your invite?{" "}
+            <span className="text-text-secondary font-medium">
+              Contact your school admin.
+            </span>
+          </p>
         </form>
       )}
 

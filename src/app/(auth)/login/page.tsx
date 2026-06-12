@@ -150,13 +150,18 @@ useEffect(() => {
         </button>
       </form>
 
-      {/* Pending invite nudge */}
-      <p className="mt-6 text-center text-[12px] text-text-muted leading-relaxed">
-        Haven&apos;t received your invite?{" "}
-        <span className="text-text-secondary font-medium">
-          Contact your school admin.
-        </span>
+      {/* Forgot password nudge */}
+      <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
+        Forgot password?{" "}
+        <a
+          href="/reset-password"
+          className="text-purple-mid font-medium hover:underline"
+        >
+          Reset password
+        </a>
       </p>
+
+      {/* Pending invite nudge */}
       <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
         New student?{" "}
         <a

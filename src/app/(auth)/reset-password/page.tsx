@@ -11,9 +11,7 @@ import { getDefaultRoute } from "@/lib/auth/routes";
 import {
   type LoginRequest,
   type LoginResponseDto,
-  ResetPasswordRequest,
-  toLoginResponse,
-  VerifyOTPRequest
+  ResetPasswordRequest
 } from "@/lib/api/types";
 import type { UserRole } from "@/lib/utils/roles";
 import { getDeviceId } from "@/lib/auth/device-id";
@@ -56,13 +54,15 @@ export default function ResetPassword() {
       next.password = "Password is required";
     } else if (!confirmPassword.trim()) {
       next.confirmPassword = "Confirm password";
+    } else if (password !== confirmPassword) {
+      next.confirmPassword = "Passwords do not match";
     }
 
     setErrors(next);
     return Object.keys(next).length === 0;
   }
 
-  const handleVerify = async (e: any) => {
+  const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateOTP()) return;
@@ -72,8 +72,7 @@ export default function ResetPassword() {
 
     try {
       const response = await apiClient.post<boolean>(
-        `/auth/reset/token=${otp}`,
-        { otp } satisfies VerifyOTPRequest
+        `/auth/reset/${otp}`
       );
 
       if (response) {
@@ -96,7 +95,9 @@ export default function ResetPassword() {
     
   }
 
-  const handleReset = async () => {
+  const handleReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+
     if (!validatePassword()) return;
 
     setIsLoading(true);
@@ -104,15 +105,11 @@ export default function ResetPassword() {
 
     try {
       const response = await apiClient.post<boolean>(
-        "/auth/login",
-        { password, confirmPassword } satisfies ResetPasswordRequest
+        "/auth/reset",
+        { token: otp, password }
       );
-
-      if (response) {
-        router.push('/login')
-      } else {
-        setErrors({ form: `Something went wrong, please try again` });
-      }
+      
+      router.push('/login')
 
     } catch (err) {
       if (err instanceof ApiError) {
@@ -205,26 +202,26 @@ export default function ResetPassword() {
 
         <form onSubmit={handleReset} noValidate className="flex flex-col gap-4">
         <AuthInput
-          id="old_password"
+          id="password"
           label="New password"
           type="password"
           value={password}
           onChange={setPassword}
           placeholder="Enter new passwword"
-          // autoComplete="email"
+          autoComplete="new-password"
           error={errors.password}
           disabled={isLoading}
         />
 
         <AuthInput
-          id="new_password"
+          id="confirm_password"
           label="Confirm password"
           type="password"
           value={confirmPassword}
           onChange={setConfirmPassword}
           placeholder="Confirm new password"
-          autoComplete="current-password"
-          error={errors.password}
+          autoComplete="confirm-password"
+          error={errors.confirmPassword}
           disabled={isLoading}
         />
 

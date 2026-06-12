@@ -17,6 +17,7 @@ import type { UserRole } from "@/lib/utils/roles";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { cn } from "@/lib/utils/utils";
 import { MailCheck } from "lucide-react";
+import { forgotPasswordResponseDto, toForgotPasswordResponse } from "@/lib/api/types";
 
 interface FormErrors {
   email?: string;
@@ -85,12 +86,12 @@ export default function ResetPassword() {
     setErrors({});
 
     try {
-      const response = await apiClient.post<{ admin: boolean }>(
+      const response = await apiClient.post<forgotPasswordResponseDto>(
         `/auth/reset/email`,
         { email }
       );
 
-      if (response?.admin) {
+      if (toForgotPasswordResponse(response).isAdmin) {
         setStep(3)
       } else {
         setStep(1)

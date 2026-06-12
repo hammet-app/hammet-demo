@@ -26,6 +26,7 @@ export interface NavItem {
   icon: LucideIcon;
   badge?: number;
   danger?: boolean;
+  tourId?: string;
 }
 
 export interface NavSection {
@@ -41,13 +42,13 @@ export type NavEntry = NavItem | NavSection | NavDivider;
 
 export const navConfig: Record<UserRole, NavEntry[]> = {
   student: [
-    { type: "item", label: "My Lessons",   href: "/student/lessons",     icon: BookOpen },
-    { type: "item", label: "My Progress",  href: "/student/progress",    icon: BarChart2 },
-    { type: "item", label: "Submissions",  href: "/student/submissions", icon: ClipboardList },
-    { type: "item", label: "My Portfolio", href: "/student/portfolio",   icon: Award },
-    { type: "item", label: "My Performance", href: "/student/performance", icon: TrendingUp },
+    { type: "item", label: "My Lessons",     href: "/student/lessons",       icon: BookOpen,      tourId: "student-lessons" },
+    { type: "item", label: "My Progress",    href: "/student/progress",      icon: BarChart2,     tourId: "student-progress" },
+    { type: "item", label: "Submissions",    href: "/student/submissions",   icon: ClipboardList, tourId: "student-submissions" },
+    { type: "item", label: "My Portfolio",   href: "/student/portfolio",     icon: Award,         tourId: "student-portfolio" },
+    { type: "item", label: "My Performance", href: "/student/performance",   icon: TrendingUp, tourId: "student-performance" },
     { type: "divider" },
-    { type: "item",    label: "Sign Out",           action: "logout",           icon: LogOut, danger: true }
+    { type: "item", label: "Sign Out", action: "logout", icon: LogOut, danger: true },
   ],
 
   /**teacher: [
@@ -61,25 +62,25 @@ export const navConfig: Record<UserRole, NavEntry[]> = {
   ],*/
 
   school_admin: [
-    { type: "item",    label: "Dashboard",      href: "/admin",                icon: Home },
-    { type: "item",    label: "Students",       href: "/admin/students",       icon: Users },
+    { type: "item", label: "Dashboard",      href: "/admin",                 icon: Home,   tourId: "admin-dashboard" },
+    { type: "item", label: "Students",       href: "/admin/students",        icon: Users,  tourId: "admin-students" },
     /**{ type: "item",    label: "Teachers",       href: "/admin/teachers",       icon: User },
     { type: "item",    label: "Parent Links",   href: "/admin/parent-links",   icon: Link2 },*/
-    { type: "section", label: "End of Year" },
-    { type: "item",    label: "Class Promotion",href: "/admin/students/promote",      icon: ArrowUp },
+    /**{ type: "section", label: "End of Year" },
+    { type: "item", label: "Class Promotion",href: "/admin/students/promote",icon: ArrowUp },*/
     { type: "divider" },
-    { type: "item",    label: "Sign Out",       action: "logout",          icon: LogOut, danger: true },
+    { type: "item", label: "Sign Out", action: "logout", icon: LogOut, danger: true },
   ],
 
   hammet_admin: [
-    { type: "item",    label: "Platform Overview", href: "/hammet",                icon: Home },
+    { type: "item", label: "Platform Overview", href: "/hammet",             icon: Home,     tourId: "hammet-overview" },
     { type: "section", label: "Schools" },
     //{ type: "item",    label: "All Schools",        href: "/hammet",        icon: Building2 },
-    { type: "item",    label: "Register School",    href: "/hammet/schools/new",    icon: Plus },
+    { type: "item", label: "Register School",   href: "/hammet/schools/new", icon: Plus,     tourId: "register-school"},
     { type: "section", label: "Curriculum" },
-    { type: "item",    label: "Modules",            href: "/hammet/modules",        icon: BookOpen },
-    { type: "item",    label: "Upload Module",      href: "/hammet/modules/bulk",    icon: Upload },
+    { type: "item", label: "Modules",           href: "/hammet/modules",     icon: BookOpen, tourId: "hammet-modules" },
+    { type: "item", label: "Upload Module",     href: "/hammet/modules/bulk",icon: Upload,   tourId: "hammet-upload" },
     { type: "divider" },
-    { type: "item",    label: "Sign Out",           action: "logout",           icon: LogOut, danger: true },
+    { type: "item", label: "Sign Out", action: "logout", icon: LogOut, danger: true },
   ],
 };

@@ -9,7 +9,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import { getDefaultRoute } from "@/lib/auth/routes";
 import { 
-  type LoginRequest,  
+  type LoginRequestDto,  
   type LoginResponseDto, 
   toLoginResponse
 } from "@/lib/api/types";
@@ -60,7 +60,7 @@ export default function LoginPage() {
     try {
       const response = await apiClient.post<LoginResponseDto>(
         "/auth/login",
-        { email, password, deviceId } satisfies LoginRequest
+        ({ email, password, device_id:deviceId }) satisfies LoginRequestDto
       );
       const data = toLoginResponse(response)
       setSession(data.user, data.accessToken);

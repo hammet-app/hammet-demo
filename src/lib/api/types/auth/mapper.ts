@@ -71,14 +71,14 @@ export function fromClaimAccountRequest(model: ClaimAccountRequest): ClaimAccoun
         return {
             token: model.token,
             google_id_token: model.googleIdToken,
-            deviceId: model.deviceId
+            device_id: model.deviceId
         }
     }
     return {
         token: model.token,
         claim_code: model.claimCode,
         password: model.password,
-        deviceId: model.deviceId
+        device_id: model.deviceId
 
     }
 }

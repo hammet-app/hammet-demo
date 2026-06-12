@@ -22,9 +22,19 @@ export default function LessonsPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!accessToken || !user?.classLevel || !user?.term) return;
+    if (!accessToken || !user) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (!user.classLevel || !user.term) {
+      setError("Student profile incomplete");
+      setIsLoading(false);
+      return;
+    }
 
     async function load() {
+      setError("");
       try {
         const [modulesData, progressData] = await Promise.all([
           studentApi.getModules(
@@ -34,7 +44,7 @@ export default function LessonsPage() {
             refreshToken
           ),
           studentApi.getProgress(accessToken!, refreshToken).catch(() => null),
-        ]);
+        ]);        
         setModules(modulesData.modules);
         if (progressData) setProgress(progressData);
       } catch (err) {
@@ -63,7 +73,7 @@ export default function LessonsPage() {
     }
 
     load();
-  }, [accessToken, user?.classLevel]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accessToken, refreshToken, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build a map of moduleId → submission status from progress data
   const statusMap = new Map<string, SubmissionStatus>(
@@ -183,8 +193,8 @@ export default function LessonsPage() {
                 const prevModule = byWeek[prevWeek][0];
                 const prevStatus = statusMap.get(prevModule.id);
 
-                /**unlocked =
-                  prevStatus === "submitted" || prevStatus === "approved";*/
+                unlocked =
+                  prevStatus === "submitted" || prevStatus === "approved";
               }
 
               return (

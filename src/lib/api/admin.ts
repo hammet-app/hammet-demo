@@ -25,16 +25,19 @@ import {
   type UserUpdateRequest,
   type UserUpdateResponse,
   type AdminStudentsResponseDto,
+  type ParentLinkSendResponseDto,
+  type UpdateTerm,
+  type UpdateTermDto,
   toAdminModulesResponse,
   toAdminStudentResponse,
   fromUpdateUserRequest,
   fromRegisterStudentRequest,
   toRegisterStudentResponse,
   toBulkRegisterResponse,
-  ParentLinkSendResponseDto,
   toParentLinkSendResponse,
   toCurriculumModule,
-  toSchoolProfile
+  toSchoolProfile,
+  fromUpdateTermRequest,
 } from "@/lib/api/types";
 
 // ------------------------------------------------------------
@@ -47,6 +50,15 @@ export async function getSchoolProfile(
 ): Promise<SchoolProfile> {
   const response = await apiClient.get<SchoolProfileDto>("/admin/school", token, { onRefresh });
   return toSchoolProfile(response)
+}
+
+export async function updateTerm(
+  body: UpdateTerm,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<boolean> {
+  const payload = fromUpdateTermRequest(body)
+  return await apiClient.post<boolean>("/admin/update-term", payload, token, { onRefresh })
 }
 
 // ------------------------------------------------------------

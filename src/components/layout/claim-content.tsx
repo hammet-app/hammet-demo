@@ -21,7 +21,9 @@ import {
   type InviteInfo,
   type InviteInfoDto,
   toInviteInfo,
-  fromClaimAccountRequest
+  fromClaimAccountRequest,
+  toClaimAccountResponse,
+  ClaimAccountResponseDto
 } from "@/lib/api/types";
 
 type Step = "identify" | "set_password" | "success";
@@ -81,7 +83,7 @@ export default function ClaimPage() {
     setError(null);
 
     try {
-      const data = await apiClient.post<InviteInfoDto>(
+      const dataDto = await apiClient.post<InviteInfoDto>(
         "/auth/claim/verify-code",
         {
           email,
@@ -89,13 +91,15 @@ export default function ClaimPage() {
         }
       );
 
+      const data = toInviteInfo(dataDto)
+
       // ❗ block non-students in code flow
       if (!data.roles.includes("student")) {
         setError("This account must be activated via invite link");
         return;
       }
 
-      setInvite(toInviteInfo(data));
+      setInvite(data);
       setStep("set_password");
     } catch (err) {
       if (err instanceof ApiError) {
@@ -159,11 +163,11 @@ export default function ClaimPage() {
           deviceId: getDeviceId(),
         };
 
-      const data = await apiClient.post<ClaimAccountResponse>(
+      const raw_data = await apiClient.post<ClaimAccountResponseDto>(
         "/auth/claim",
         fromClaimAccountRequest(payload)
       );
-      console.log(data)
+      const data  = toClaimAccountResponse(raw_data)
       setSession(data.user, data.accessToken);
       setStep("success");
 

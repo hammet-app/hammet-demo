@@ -5,6 +5,7 @@ import {
     ParentLinkSendResponseDto,
     SchoolProfileDto,
     SchoolStatsDto,
+    UpdateTermDto,
     UserUpdateRequestDto
 } from "@/lib/api/types/admin/types-dto"
 import {
@@ -15,7 +16,8 @@ import {
     AdminModulesResponse,
     AdminStudentsResponse,
     UserUpdateRequest,
-    ParentLinkSendResponse
+    ParentLinkSendResponse,
+    UpdateTerm
 } from "@/lib/api/types/admin/types"
 import {toCurriculumModule} from "@/lib/api/types/module"
 
@@ -46,7 +48,16 @@ export function toSchoolProfile(dto: SchoolProfileDto): SchoolProfile {
         tier: dto.tier,
         term: dto.term,
         availableArms: dto.available_arms,
-        stats: toSchoolStats(dto.stats)
+        stats: toSchoolStats(dto.stats),
+        termStart: dto.term_start,
+        termEnd: dto.term_end
+    }
+}
+
+export function fromUpdateTermRequest(model: UpdateTerm): UpdateTermDto {
+    return {
+        term_start: model.termStart,
+        term_end: model.termEnd
     }
 }
 

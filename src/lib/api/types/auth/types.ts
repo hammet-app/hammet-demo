@@ -26,10 +26,6 @@ export type LoginResponse = {
   };
 };
 
-export type VerifyOTPRequest = {
-  otp: string;
-};
-
 export type ResetPasswordRequest = {
   password: string;
   confirmPassword: string;

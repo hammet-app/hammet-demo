@@ -7,15 +7,9 @@ import { AuthShell, AuthHeading, AuthAlert } from "@/components/ui/auth-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
-import { getDefaultRoute } from "@/lib/auth/routes";
 import {
-  type LoginRequest,
-  type LoginResponseDto,
   ResetPasswordRequest,
-  toLoginResponse,
-  VerifyOTPRequest
 } from "@/lib/api/types";
-import type { UserRole } from "@/lib/utils/roles";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { cn } from "@/lib/utils/utils";
 
@@ -27,9 +21,7 @@ interface FormErrors {
 }
 
 export default function ResetPassword() {
-  const { setSession, isResolved, accessToken, user } = useAuth();
   const router = useRouter();
-  const deviceId = getDeviceId();
 
   const [step, setStep] = useState<1 | 2>(1)
   const [otp, setOTP] = useState("");
@@ -72,8 +64,7 @@ export default function ResetPassword() {
 
     try {
       const response = await apiClient.post<boolean>(
-        `/auth/reset/token=${otp}`,
-        { otp } satisfies VerifyOTPRequest
+        `/auth/reset/${otp}`
       );
 
       if (response) {

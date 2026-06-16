@@ -326,7 +326,7 @@ export default function AdminStudentsPage() {
         if (!student) return;
 
         const res = await resendCode(
-          { id: action.studentId, role: "student" },
+          { id: action.studentId, role: "student", reset: student.status === "active" },
           accessToken,
           refreshToken
         );

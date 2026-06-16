@@ -7,13 +7,9 @@ import { AuthShell, AuthHeading, AuthAlert } from "@/components/ui/auth-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
-// import { getDefaultRoute } from "@/lib/auth/routes";
-// import {
-//   type LoginRequest,
-//   type LoginResponseDto,
-//   ResetPasswordRequest
-// } from "@/lib/api/types";
-import type { UserRole } from "@/lib/utils/roles";
+import {
+  ResetPasswordRequest,
+} from "@/lib/api/types";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { cn } from "@/lib/utils/utils";
 import { MailCheck } from "lucide-react";
@@ -28,9 +24,7 @@ interface FormErrors {
 }
 
 export default function ResetPassword() {
-  const { setSession, isResolved, accessToken, user } = useAuth();
   const router = useRouter();
-  const deviceId = getDeviceId();
 
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0)
   const [email, setEmail] = useState("");

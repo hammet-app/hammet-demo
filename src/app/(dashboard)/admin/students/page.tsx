@@ -331,8 +331,8 @@ export default function AdminStudentsPage() {
           refreshToken
         );
 
-        if (typeof res.message === "string") {
-          const code = res.message;
+        if (typeof res.code === "string") {
+          const code = res.code;
 
           setCreatedMap((prev) => ({
             ...prev,

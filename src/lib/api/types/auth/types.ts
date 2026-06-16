@@ -27,8 +27,8 @@ export type LoginResponse = {
 };
 
 export type ResetPasswordRequest = {
+  token: string;
   password: string;
-  confirmPassword: string;
 };
 
 // POST /auth/claim — student/teacher claiming invite via password or Google

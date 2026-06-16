@@ -5,12 +5,11 @@ import { useRouter } from "next/navigation";
 import { Loader2, Pin } from "lucide-react";
 import { AuthShell, AuthHeading, AuthAlert } from "@/components/ui/auth-shell";
 import { AuthInput } from "@/components/ui/auth-input";
-import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import {
   ResetPasswordRequest,
 } from "@/lib/api/types";
-import { getDeviceId } from "@/lib/auth/device-id";
+import { validatePassword } from "@/utils/password";
 import { cn } from "@/lib/utils/utils";
 
 interface FormErrors {
@@ -41,13 +40,18 @@ export default function ResetPassword() {
     return Object.keys(next).length === 0;
   }
 
-  function validatePassword(): boolean {
+  function validatedPassword(): boolean {
     const next: FormErrors = {};
+
+    const pwdError = validatePassword(password);
 
     if (!password.trim()) {
       next.password = "Password is required";
     } else if (!confirmPassword.trim()) {
       next.confirmPassword = "Confirm password";
+    } else if (pwdError) {
+      next.password = pwdError;
+      return false;
     }
 
     setErrors(next);
@@ -88,15 +92,15 @@ export default function ResetPassword() {
   }
 
   const handleReset = async () => {
-    if (!validatePassword()) return;
+    if (!validatedPassword()) return;
 
     setIsLoading(true);
     setErrors({});
 
     try {
       const response = await apiClient.post<boolean>(
-        "/auth/login",
-        { password, confirmPassword } satisfies ResetPasswordRequest
+        "/auth/reset",
+        { token: otp, password, } satisfies ResetPasswordRequest
       );
 
       if (response) {
@@ -201,7 +205,7 @@ export default function ResetPassword() {
           type="password"
           value={password}
           onChange={setPassword}
-          placeholder="Enter new passwword"
+          placeholder="Enter new password"
           // autoComplete="email"
           error={errors.password}
           disabled={isLoading}

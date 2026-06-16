@@ -53,7 +53,7 @@ export type ResendVerificationRequest = {
 };
 
 export type ResendVerificationResponse = {
-  message: string | boolean;
+  code: string
 };
 
 

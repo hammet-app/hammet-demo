@@ -49,6 +49,7 @@ export type ClaimAccountResponse = {
 export type ResendVerificationRequest = {
   id: string;
   role: UserRole
+  reset: boolean
 };
 
 export type ResendVerificationResponse = {

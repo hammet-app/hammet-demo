@@ -96,7 +96,7 @@ export type RegisterSchoolRequest = {
 export type RegisterSchoolResponse = {
   schoolId: string;
   adminId: string;
-  message: string;              // invite email sent to admin
+  message: boolean;              // invite email sent to admin
 };
 
 // POST /auth/register/student — school_admin only

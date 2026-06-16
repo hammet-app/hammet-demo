@@ -112,7 +112,9 @@ export default function NewSchoolPage() {
 
     try {
       const res = await registerSchool(payload, accessToken, refreshToken);
-      setSuccess(res);
+      if(res.message) {
+        setSuccess("School Registered Successfully");
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setErrors({ form: err.message });

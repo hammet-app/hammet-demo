@@ -63,7 +63,7 @@ export type UserUpdateResponse = {
 
 // DELETE /admin/students/[id] — reuses DeleteResponse
 export type DeleteResponse = {
-  message: string;
+  message: boolean;
 };
 
 // POST /admin/parent-links/[studentId]/send

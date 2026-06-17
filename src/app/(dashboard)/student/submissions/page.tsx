@@ -54,7 +54,7 @@ export default function SubmissionsPage() {
     >
       {/* Filter tabs */}
       {!isLoading && !error && (
-        <div className="flex gap-2 mb-5 flex-wrap">
+        <div className="flex gap-2 mb-5 flex-wrap py-6">
           {filters.map((f) => (
             <button
               key={f.key}

@@ -62,33 +62,37 @@ export default function ProgressPage() {
         </div>
       ) : (
         <>
-          {/* Stat cards */}
-          {tp && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              <StatCard label="Total modules" value={tp.totalModules} icon={BookOpen} iconVariant="purple" />
-              <StatCard label="Submitted" value={tp.submittedModules} icon={Clock} iconVariant="cyan" />
-              <StatCard label="Approved" value={tp.approvedModules} icon={CheckCircle2} iconVariant="green" />
-              <StatCard label="Flagged" value={tp.flaggedModules} icon={Flag} iconVariant={tp.flaggedModules > 0 ? "amber" : "purple"} />
-            </div>
-          )}
+          <div className="relative overflow-hidden bg-purple-light border border-border rounded-b-[20px] p-6 shadow-sm shadow-slate-200/10 mb-6">
+            
+            <div className="relative">
 
-          {/* Progress bars */}
-          {tp && (
-            <div className="bg-bg-card border border-border rounded-[10px] p-4 mb-6 flex flex-col gap-4">
-              <ProgressBar
-                label="Approved"
-                pct={approvedPct}
-                color="bg-cyan"
-                value={`${tp.approvedModules} / ${tp.totalModules}`}
-              />
-              <ProgressBar
-                label="Submitted"
-                pct={submittedPct}
-                color="bg-purple-mid"
-                value={`${tp.submittedModules} / ${tp.totalModules}`}
-              />
+              {tp && (
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                  <StatCard label="Total modules" value={tp.totalModules} icon={BookOpen} iconVariant="purple" />
+                  <StatCard label="Submitted" value={tp.submittedModules} icon={Clock} iconVariant="cyan" />
+                  <StatCard label="Approved" value={tp.approvedModules} icon={CheckCircle2} iconVariant="green" />
+                  <StatCard label="Flagged" value={tp.flaggedModules} icon={Flag} iconVariant={tp.flaggedModules > 0 ? "amber" : "purple"} />
+                </div>
+              )}
+
+              {tp && (
+                <div className="bg-bg-page border border-border rounded-[14px] p-4 mb-0 flex flex-col gap-4">
+                  <ProgressBar
+                    label="Approved"
+                    pct={approvedPct}
+                    color="bg-cyan"
+                    value={`${tp.approvedModules} / ${tp.totalModules}`}
+                  />
+                  <ProgressBar
+                    label="Submitted"
+                    pct={submittedPct}
+                    color="bg-purple-mid"
+                    value={`${tp.submittedModules} / ${tp.totalModules}`}
+                  />
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Module breakdown by week */}
           {Object.entries(byWeek)

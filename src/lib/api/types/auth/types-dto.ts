@@ -77,7 +77,7 @@ export type RegisterSchoolRequestDto = {
 export type RegisterSchoolResponseDto = {
   school_id: string;
   admin_id: string;
-  message: string;              // invite email sent to admin
+  message: boolean;              // invite email sent to admin
 };
 
 

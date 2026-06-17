@@ -27,8 +27,8 @@ export type LoginResponse = {
 };
 
 export type ResetPasswordRequest = {
+  token: string;
   password: string;
-  confirmPassword: string;
 };
 
 // POST /auth/claim — student/teacher claiming invite via password or Google
@@ -41,14 +41,15 @@ export type ClaimAccountResponse = {
   user: LoginResponse["user"];
 };
 
-// POST /auth/resend-verification
+// POST /auth/resend/student
 export type ResendVerificationRequest = {
   id: string;
   role: UserRole
+  reset: boolean
 };
 
 export type ResendVerificationResponse = {
-  message: string | boolean;
+  code: string
 };
 
 
@@ -92,7 +93,7 @@ export type RegisterSchoolRequest = {
 export type RegisterSchoolResponse = {
   schoolId: string;
   adminId: string;
-  message: string;              // invite email sent to admin
+  message: boolean;              // invite email sent to admin
 };
 
 // POST /auth/register/student — school_admin only

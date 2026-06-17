@@ -7,13 +7,6 @@ import { AuthShell, AuthHeading, AuthAlert } from "@/components/ui/auth-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
-// import { getDefaultRoute } from "@/lib/auth/routes";
-// import {
-//   type LoginRequest,
-//   type LoginResponseDto,
-//   ResetPasswordRequest
-// } from "@/lib/api/types";
-import type { UserRole } from "@/lib/utils/roles";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { cn } from "@/lib/utils/utils";
 import { MailCheck } from "lucide-react";
@@ -133,7 +126,6 @@ export default function ResetPassword() {
       if (err instanceof ApiError) {
 
         setErrors({ form: `${err.message}` });
-
       } else if (err instanceof Error) {
         setErrors({ form: `Unable to connect. Check your internet connection. ${err.message}` });
       }
@@ -173,7 +165,6 @@ export default function ResetPassword() {
       setIsLoading(false);
     }
   }
-
 
 
   return (

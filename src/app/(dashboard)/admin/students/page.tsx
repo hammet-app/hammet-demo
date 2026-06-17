@@ -326,13 +326,13 @@ export default function AdminStudentsPage() {
         if (!student) return;
 
         const res = await resendCode(
-          { id: action.studentId, role: "student" },
+          { id: action.studentId, role: "student", reset: student.status === "active" },
           accessToken,
           refreshToken
         );
 
-        if (typeof res.message === "string") {
-          const code = res.message;
+        if (typeof res.code === "string") {
+          const code = res.code;
 
           setCreatedMap((prev) => ({
             ...prev,

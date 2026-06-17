@@ -136,7 +136,7 @@ export async function resendCode(
   onRefresh: () => Promise<string | null>
 ): Promise<ResendVerificationResponse> {
   return apiClient.post<ResendVerificationResponse>(
-    "/auth/resend",
+    "/auth/resend/student",
     body,
     token,
     { onRefresh }

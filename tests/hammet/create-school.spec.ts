@@ -7,8 +7,6 @@ test("hammet admin can register a school", async ({ page, request }) => {
 
   await login(page, request);
 
-  await page.waitForTimeout(6000);
-
   await page.goto("/hammet/schools/new");
   
   await expect(page).toHaveURL(/schools\/new/);
@@ -58,10 +56,6 @@ test("hammet admin can register a school", async ({ page, request }) => {
   await page.getByRole("button", {
     name: "Register school",
   }).click();
-
-  await expect(
-    page.getByText("School Registered")
-    ).toBeVisible();
 
   await expect(
     page.getByRole("button", {

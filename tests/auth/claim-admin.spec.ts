@@ -28,8 +28,6 @@ test("claim admin account", async ({ page, request }) => {
     name: 'Activate account' 
   }).click();
 
-  await page.waitForTimeout(6000);
-
   await expect(page).toHaveURL(/admin/);
 
 });

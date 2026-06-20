@@ -69,6 +69,9 @@ export async function createClaimedUser(
 
   await page.waitForTimeout(10000);
 
+  console.log(response.status());
+  console.log(await response.text());
+
   // Wait for authenticated state
   await expect(page).toHaveURL(/student|admin/);
 

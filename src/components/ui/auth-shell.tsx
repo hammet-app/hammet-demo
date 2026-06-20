@@ -8,37 +8,90 @@ interface AuthShellProps {
 
 export function AuthShell({ children, className }: AuthShellProps) {
   return (
-    <div className="min-h-screen bg-bg-page flex flex-col items-center justify-center px-4 py-12">
-      {/* Logo */}
-      <a href="/" className="flex items-center gap-2.5 mb-8 no-underline">
-        <div className="w-8 h-8 rounded-[8px] bg-cyan flex items-center justify-center">
-          <LogoMark />
+    <div className="min-h-screen bg-bg-page flex flex-col lg:flex-row lg:bg-bg-card">
+      {/* Left side (Illustration & Branding) */}
+      <div className="hidden lg:flex lg:w-2/5 bg-[#0F0728] relative flex-col justify-between p-12 text-white overflow-hidden">
+        {/* Background Decorative Gradients/Blobs */}
+        <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] rounded-full bg-purple opacity-20 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-cyan opacity-25 blur-[100px] pointer-events-none" />
+
+        {/* Brand/Logo in the upper corner */}
+        <a href="/" className="flex items-center gap-2.5 no-underline z-10">
+          <div className="w-8 h-8 rounded-[8px] bg-cyan flex items-center justify-center">
+            <LogoMark />
+          </div>
+          <div className="flex flex-col leading-none">
+            <span
+              className="text-[16px] font-bold text-white"
+              style={{ fontFamily: "var(--font-head)" }}
+            >
+              Hammet<span className="text-cyan">Labs</span>
+            </span>
+            <span className="text-[11px] text-purple-light/75">AI Studies</span>
+          </div>
+        </a>
+
+        {/* Central Illustration / Artwork */}
+        <div className="my-auto flex flex-col items-center justify-center z-10">
+          <div className="relative w-full max-w-[420px] aspect-square rounded-2xl overflow-hidden border border-purple-light/10 shadow-2xl">
+            <img
+              src="/images/auth-artwork.png"
+              alt="Hammet Labs AI Studies"
+              className="w-full h-full object-cover"
+            />
+            {/* Soft gradient overlay on image */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0F0728]/40 via-transparent to-transparent" />
+          </div>
         </div>
-        <div className="flex flex-col leading-none">
-          <span
-            className="text-[16px] font-bold text-purple-dark"
+
+        {/* Footer/Branding message */}
+        <div className="z-10">
+          <h2 
+            className="text-[20px] font-bold text-white mb-2 leading-tight"
             style={{ fontFamily: "var(--font-head)" }}
           >
-            Hammet<span className="text-purple-mid">Labs</span>
-          </span>
-          <span className="text-[11px] text-text-muted">AI Studies</span>
+            Step into the future of learning
+          </h2>
+          <p className="text-[13px] text-purple-light/80 leading-relaxed max-w-[400px]">
+            Empowering students and educators with cutting-edge artificial intelligence learning tools.
+          </p>
         </div>
-      </a>
-
-      {/* Card */}
-      <div
-        className={cn(
-          "w-full max-w-[420px] bg-bg-card border border-border rounded-[14px] p-8",
-          className
-        )}
-      >
-        {children}
       </div>
 
-      {/* Footer */}
-      <p className="mt-6 text-[12px] text-text-muted text-center">
-        © {new Date().getFullYear()} HammetLabs · AI Studies
-      </p>
+      {/* Right side (Form) */}
+      <div className="w-full lg:w-3/5 flex flex-col items-center justify-center px-4 py-12 lg:px-12 lg:py-16 bg-bg-page lg:bg-bg-card min-h-screen lg:min-h-0 overflow-y-auto">
+        {/* Mobile-only Logo */}
+        <a href="/" className="flex items-center gap-2.5 mb-8 no-underline lg:hidden">
+          <div className="w-8 h-8 rounded-[8px] bg-cyan flex items-center justify-center">
+            <LogoMark />
+          </div>
+          <div className="flex flex-col leading-none">
+            <span
+              className="text-[16px] font-bold text-purple-dark"
+              style={{ fontFamily: "var(--font-head)" }}
+            >
+              Hammet<span className="text-purple-mid">Labs</span>
+            </span>
+            <span className="text-[11px] text-text-muted">AI Studies</span>
+          </div>
+        </a>
+
+        {/* Card */}
+        <div
+          className={cn(
+            "w-full max-w-[420px] bg-bg-card border border-border rounded-[14px] p-8",
+            "lg:border-0 lg:shadow-none lg:p-0 lg:bg-transparent",
+            className
+          )}
+        >
+          {children}
+        </div>
+
+        {/* Footer */}
+        <p className="mt-8 text-[12px] text-text-muted text-center lg:mt-12">
+          © {new Date().getFullYear()} HammetLabs · AI Studies
+        </p>
+      </div>
     </div>
   );
 }

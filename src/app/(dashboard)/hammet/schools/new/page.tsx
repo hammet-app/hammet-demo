@@ -73,7 +73,7 @@ export default function NewSchoolPage() {
 
   const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [success, setSuccess] = useState<any>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   function set<K extends keyof RegisterSchoolRequest>(
     key: K,

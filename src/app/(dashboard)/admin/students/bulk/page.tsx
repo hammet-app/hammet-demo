@@ -8,7 +8,7 @@ import { PageShell } from "@/components/layout/page-shell";
 import { BulkRegisterRequest, BulkRegisterResponse } from "@/lib/api/types";
 
 const PLACEHOLDER = `Chisom Obi,chisom@school.edu.ng,SSS1,A,parent@email.com,+2348001234567,2011-01-09
-Motilola Lambo,moti@school.edu.ng,JS2,B,dad@email.com,+2347012345678,2014-04-10
+Motilola Lambo,moti@school.edu.ng,JSS2,B,dad@email.com,+2347012345678,2014-04-10
 Aisha Bello,aisha@school.edu.ng,SSS3,,mum@email.com,+2348098765432,2010-09-21`;
 
 export default function BulkImportPage() {
@@ -45,13 +45,19 @@ export default function BulkImportPage() {
         } else if (err.status === 409) {
           setServerError("Some records already exist or conflict with existing data.");
         } else if (err.status === 400 || err.status === 422) {
-          setServerError(
-            `Invalid data. ${
-              Array.isArray(err.details)
-                ? err.details.map((e: any) => e.message).join(", ")
-                : err.message
-            }`
-          );
+          if (Array.isArray(err.details)) {
+            setServerError(
+              err.details
+                .map((item) =>
+                  typeof item === "object" &&
+                  item !== null &&
+                  "row" in item
+                    ? `Row ${item.row}`
+                    : JSON.stringify(item)
+                )
+                .join(", ")
+            );
+          }
         } else if (err.status === 500) {
           setServerError("Server error. Please try again.");
         } else {

@@ -7,6 +7,12 @@ import { getSchools, deactivateSchool } from "@/lib/api/hammet";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import type { SchoolListItem } from "@/lib/api/types";
 
+type TierFilter =
+  | "all"
+  | "pilot"
+  | "annual"
+  | "suspended";
+
 function tierLabel(tier: SchoolListItem["tier"]) {
   switch (tier) {
     case "pilot":
@@ -125,9 +131,7 @@ export default function HammetDashboardPage() {
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const [tierFilter, setTierFilter] = useState<
-    "all" | "pilot" | "annual" | "suspended"
-  >("all");
+  const [tierFilter, setTierFilter] = useState<TierFilter>("all");
 
   useEffect(() => {
     if (!accessToken) return;
@@ -201,10 +205,12 @@ export default function HammetDashboardPage() {
           {/* Filters */}
           {schools.length > 0 && (
             <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit bg-[var(--color-purple-light)]">
-              {["all", "pilot", "annual", "suspended"].map((key) => (
+              {(
+                ["all", "pilot", "annual", "suspended"] as const
+              ).map((key) => (
                 <button
                   key={key}
-                  onClick={() => setTierFilter(key as any)}
+                  onClick={() => setTierFilter(key)}
                   className={`px-4 py-1.5 rounded-lg text-sm ${
                     tierFilter === key
                       ? "bg-white text-[var(--color-purple)]"
@@ -213,7 +219,7 @@ export default function HammetDashboardPage() {
                 >
                   {key}
                   <span className="ml-1.5 text-xs">
-                    {tierCounts[key as keyof typeof tierCounts]}
+                    {tierCounts[key]}
                   </span>
                 </button>
               ))}

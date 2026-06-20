@@ -49,6 +49,19 @@
   --topbar-height: 56px;
 }
 
+.dark {
+  --color-bg-page: #0f172a;
+  --color-bg-card: #1e293b;
+
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+
+  --color-border: #334155;
+
+  --color-purple-dark: #0f172a;
+}
+
 /* ── Driver.js tour popover — Hammet brand theme ── */
 .hammet-tour-popover {
   background: #1e0a3c !important;

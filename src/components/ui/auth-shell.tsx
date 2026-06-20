@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils/utils";
+import Link from "next/link";
 
 interface AuthShellProps {
   children: React.ReactNode;
@@ -10,7 +11,7 @@ export function AuthShell({ children, className }: AuthShellProps) {
   return (
     <div className="min-h-screen bg-bg-page flex flex-col items-center justify-center px-4 py-12">
       {/* Logo */}
-      <a href="/" className="flex items-center gap-2.5 mb-8 no-underline">
+      <Link href="/" className="flex items-center gap-2.5 mb-8 no-underline">
         <div className="w-8 h-8 rounded-[8px] bg-cyan flex items-center justify-center">
           <LogoMark />
         </div>
@@ -23,7 +24,7 @@ export function AuthShell({ children, className }: AuthShellProps) {
           </span>
           <span className="text-[11px] text-text-muted">AI Studies</span>
         </div>
-      </a>
+      </Link>
 
       {/* Card */}
       <div

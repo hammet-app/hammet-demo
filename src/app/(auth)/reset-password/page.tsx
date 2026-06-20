@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Pin } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AuthShell, AuthHeading, AuthAlert } from "@/components/ui/auth-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { apiClient, ApiError } from "@/lib/api/api-client";
@@ -44,6 +46,11 @@ export default function ResetPassword() {
     const next: FormErrors = {};
 
     const pwdError = validatePassword(password);
+    const samePassword = password.trim() === confirmPassword.trim();
+
+    if (!samePassword) {
+      next.password = "Both passwords must match"
+    }
 
     if (!password.trim()) {
       next.password = "Password is required";
@@ -58,7 +65,9 @@ export default function ResetPassword() {
     return Object.keys(next).length === 0;
   }
 
-  const handleVerify = async (e: any) => {
+  const handleVerify = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
 
     if (!validateOTP()) return;
@@ -72,26 +81,28 @@ export default function ResetPassword() {
       );
 
       if (response) {
-        setStep(2)
+        setStep(2);
       } else {
-        setErrors({ form: "Incorrect pin" })
+        setErrors({ form: "Incorrect pin" });
       }
-
     } catch (err) {
       if (err instanceof ApiError) {
-
-        setErrors({ form: `${err.message}` });
-        
+        setErrors({ form: err.message });
       } else if (err instanceof Error) {
-        setErrors({ form: `Unable to connect. Check your internet connection. ${err.message}` });
+        setErrors({
+          form: `Unable to connect. Check your internet connection. ${err.message}`,
+        });
       }
     } finally {
       setIsLoading(false);
     }
-    
-  }
+  };
 
-  const handleReset = async () => {
+  const handleReset = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault();
+
     if (!validatedPassword()) return;
 
     setIsLoading(true);
@@ -100,29 +111,37 @@ export default function ResetPassword() {
     try {
       const response = await apiClient.post<boolean>(
         "/auth/reset",
-        { token: otp, password, } satisfies ResetPasswordRequest
+        {
+          token: otp,
+          password,
+        } satisfies ResetPasswordRequest
       );
 
       if (response) {
-        router.push('/login')
+        router.push("/login");
       } else {
-        setErrors({ form: `Something went wrong, please try again` });
+        setErrors({
+          form: "Something went wrong, please try again",
+        });
       }
-
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 422) {
-          setErrors({ form: `Please check your details and try again.${err.message}` });
+          setErrors({
+            form: `Please check your details and try again. ${err.message}`,
+          });
         } else {
-          setErrors({ form: `${err.message}` });
+          setErrors({ form: err.message });
         }
       } else if (err instanceof Error) {
-        setErrors({ form: `Unable to connect. Check your internet connection. ${err.message}` });
+        setErrors({
+          form: `Unable to connect. Check your internet connection. ${err.message}`,
+        });
       }
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   
 
@@ -180,12 +199,12 @@ export default function ResetPassword() {
         {/* Login nudge  */}
         <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
           Remember password?{" "}
-          <a
+          <Link
             href="/login"
             className="text-purple-mid font-medium hover:underline"
           >
             Sign in
-          </a>
+          </Link>
         </p>
       </AuthShell>:
 
@@ -247,23 +266,23 @@ export default function ResetPassword() {
 
         
         <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
-          Forgot password?{" "}
-          <a
-            href="/reset-password"
+          Remember password?{" "}
+          <Link
+            href="/login"
             className="text-purple-mid font-medium hover:underline"
           >
-            Reset password
-          </a>
+            Sign In
+          </Link>
         </p>
 
         <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
           New student?{" "}
-          <a
+          <Link
             href="/claim"
             className="text-purple-mid font-medium hover:underline"
           >
             Activate your account with a claim code
-          </a>
+          </Link>
         </p>
       </AuthShell>
     }

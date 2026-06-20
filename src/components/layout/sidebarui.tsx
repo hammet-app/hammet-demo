@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { NavEntry } from "@/components/layout/sidebar-config";
 
 type SidebarUIProps = {
-  entries: any[];
+  entries: NavEntry[];
   activePath: string;
   onNavigate?: () => void;
   onLogout: () => void;
@@ -58,13 +59,23 @@ export function SidebarUI({
             }
 
             const item = entry;
-            const isActive =
-              activePath === item.href ||
-              activePath.startsWith(item.href + "/");
+            
 
             if (item.action === "logout") {
               return null; // handled below
             }
+
+            if (!item.href) {
+              return null;
+            }
+
+            if (!item.badge) {
+              return null;
+            }
+
+            const isActive =
+              activePath === item.href ||
+              activePath.startsWith(item.href + "/");
 
             return (
               <Link

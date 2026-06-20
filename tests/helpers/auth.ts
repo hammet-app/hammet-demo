@@ -8,12 +8,15 @@ export async function login(page: Page, request: APIRequestContext) {
   const password = "Password123!"
   const role = "hammet_admin"
 
-  await request.post(
+  const response = await request.post(
     `${process.env.NEXT_PUBLIC_API_URL}/test/claim_code`,
     {
       params: { email, role },
     }
   );
+
+  console.log(response.status());
+  console.log(await response.text());
 
   await page.goto("/login");
 
@@ -40,6 +43,8 @@ export async function logout(page: Page) {
   await page.getByRole("button", {
     name: "Sign Out",
   }).click();
+
+  await page.waitForTimeout(3000);
 }
 
 export async function createPendingUser(

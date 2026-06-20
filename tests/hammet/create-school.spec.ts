@@ -59,6 +59,14 @@ test("hammet admin can register a school", async ({ page, request }) => {
 
   await expect(
     page.getByRole("button", {
+      name: "Registering…",
+    })
+  ).not.toBeVisible({
+    timeout: 15000,
+  });
+
+  await expect(
+    page.getByRole("button", {
         name: "Back to schools",
     })
     ).toBeVisible()

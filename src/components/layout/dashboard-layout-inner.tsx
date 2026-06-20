@@ -12,7 +12,6 @@ import { Topbar } from "@/components/layout/Topbar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { UserRole } from "@/lib/utils/roles";
-import { usePersistedRole } from "@/hooks/use-online-status";
 import { OnboardingProvider } from '@/components/onboarding/onbarding-provider'
 import { HelpButton } from '@/components/onboarding/help-button'
 
@@ -29,7 +28,7 @@ export function DashboardLayoutInner({
 
   const roles = user.roles as UserRole[];
 
-  const [activeRole, setActiveRole] = usePersistedRole(roles);
+  const activeRole = user.roles[0] as UserRole;
 
   return (
     <OnboardingProvider userId={user.id} role={activeRole}>
@@ -46,7 +45,6 @@ export function DashboardLayoutInner({
             <Sidebar
               roles={roles}
               activeRole={activeRole}
-              setActiveRole={setActiveRole}
               activePath={pathname}
             />
           </div>
@@ -70,7 +68,6 @@ export function DashboardLayoutInner({
             <Sidebar
               roles={roles}
               activeRole={activeRole}
-              setActiveRole={setActiveRole}
               activePath={pathname}
               onNavigate={() => setDrawerOpen(false)}
               className="h-full"

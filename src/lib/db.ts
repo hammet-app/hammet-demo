@@ -11,12 +11,9 @@ import {
   type ModuleSummary, 
   type AiFormState,
   type AiFormStateDto,
-  type CreateSubmissionResponse,
-  type CreateSubmissionResponseDto,
   type CreateSubmissionResponsesDto,
   type CreateSubmissionResponses,
   fromAiFormState,
-  toCreateSubmissionResponse,
   toCreateSubmissionResponses,
 } from '@/lib/api/types'
 
@@ -122,6 +119,12 @@ export interface LocalFileQueue {
   uploadAttempts: number
   createdAt: string
 }
+
+type SyncRegistration = ServiceWorkerRegistration & {
+  sync: {
+    register(tag: string): Promise<void>;
+  };
+};
 
 // ── Database ─────────────────────────────────────────────────────────────────
 
@@ -314,7 +317,7 @@ export async function submitLesson({
     try {
       const reg = await navigator.serviceWorker.ready
       if ('sync' in reg) {
-        await (reg as any).sync.register('submissions-queue')
+        await (reg as SyncRegistration).sync.register('submissions-queue')
       }
     } catch {
       // Background sync not supported or SW not active — Dexie row will be
@@ -409,7 +412,7 @@ export async function markSubmissionSynced(localId: string): Promise<void> {
   const submission = await db.submissions.get(localId)
   await db.submissions.update(localId, { syncStatus: 'synced' })
   if (submission?.moduleId) {
-    await clearPendingProgress(submission.moduleId)
+    await clearPendingProgress(submission.studentId)
   }
 }
 

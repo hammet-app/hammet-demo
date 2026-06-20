@@ -10,7 +10,6 @@ import type { CurriculumModule } from "@/lib/api/types";
 
 export default function AdminModulesListPage() {
   const { accessToken, refreshToken } = useAuth();
-    const router = useRouter();
     const params = useParams<{ level: string; term: string }>();
   
     const level = decodeURIComponent(params.level);

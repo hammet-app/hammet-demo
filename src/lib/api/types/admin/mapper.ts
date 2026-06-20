@@ -50,14 +50,16 @@ export function toSchoolProfile(dto: SchoolProfileDto): SchoolProfile {
         availableArms: dto.available_arms,
         stats: toSchoolStats(dto.stats),
         termStart: dto.term_start,
-        termEnd: dto.term_end
+        termEnd: dto.term_end,
+        session: dto.session
     }
 }
 
 export function fromUpdateTermRequest(model: UpdateTerm): UpdateTermDto {
     return {
         term_start: model.termStart,
-        term_end: model.termEnd
+        term_end: model.termEnd,
+        session: model.session
     }
 }
 

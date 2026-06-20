@@ -13,7 +13,6 @@ import {
   type LoginResponseDto, 
   toLoginResponse
 } from "@/lib/api/types";
-import type { UserRole } from "@/lib/utils/roles";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { cn } from "@/lib/utils/utils";
 
@@ -72,7 +71,7 @@ export default function LoginPage() {
         } else if (err.status === 403) {
           setErrors({ form: `Your account has been suspended. Contact your school admin.` });
         } else if (err.status === 422) {
-          setErrors({ form: `Please check your details and try again.${err.message}` });
+          setErrors({ form: `Please check your details and try again.` });
         } else {
           setErrors({ form: `${err.message}` });
         }
@@ -92,7 +91,7 @@ useEffect(() => {
   if (window.location.pathname !== route) {
     router.replace(route);
   }
-}, [accessToken, user, isResolved]);
+}, [accessToken, user, isResolved, router]);
 
   return (
     <AuthShell>

@@ -23,7 +23,7 @@ export default function ProgressPage() {
       .then(setProgress)
       .catch(() => setError("Failed to load progress. Please try again."))
       .finally(() => setIsLoading(false));
-  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [accessToken, refreshToken]);
 
   const tp = progress?.termProgress;
   const approvedPct = tp
@@ -157,7 +157,7 @@ function ModuleProgressRow({ module: m }: { module: ModuleProgress }) {
           <p className="text-[11px] text-text-muted">Submitted {date}</p>
         )}
       </div>
-      <StatusPill status={m.submissionStatus as any} />
+      <StatusPill status={m.submissionStatus} />
     </div>
   );
 }

@@ -1,16 +1,5 @@
 "use client";
 
-/**
- * Claim / Activate account page
- * File location: src/app/(auth)/claim/page.tsx
- *
- * CHANGED:
- *  - User identity pill: styled card instead of bare div
- *  - Buttons: gradient + lift treatment matching login
- *  - Success state: centered icon + animated checkmark
- *  - showStrength added to new-password fields
- *  - All logic, state, API calls, error handling identical
- */
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -109,10 +98,23 @@ export default function ClaimPage() {
     setError(null);
     try {
       const payload = token
-        ? { token, password, deviceId: getDeviceId() }
-        : { email, claimCode, password, deviceId: getDeviceId() };
-      const raw_data = await apiClient.post<ClaimAccountResponseDto>("/auth/claim", fromClaimAccountRequest(payload));
-      const data = toClaimAccountResponse(raw_data);
+        ? {
+          token,
+          password,
+          deviceId: getDeviceId(),
+        }
+        : {
+          email,
+          claimCode,
+          password,
+          deviceId: getDeviceId(),
+        };
+
+      const raw_data = await apiClient.post<ClaimAccountResponseDto>(
+        "/auth/claim",
+        fromClaimAccountRequest(payload)
+      );
+      const data  = toClaimAccountResponse(raw_data)
       setSession(data.user, data.accessToken);
       setStep("success");
       setTimeout(() => { router.replace(getDefaultRoute(data.user.roles)); }, 1200);

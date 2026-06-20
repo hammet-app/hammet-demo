@@ -18,10 +18,6 @@ test("claim admin account must be by invite link", async ({ page, request }) => 
 
   await expect(page).toHaveURL(/claim/);
 
-  page.on("pageerror", (err) => {
-    console.log("PAGE ERROR:", err);
-  });
-
   await page.getByRole('textbox', { 
     name: 'Email' 
   }).fill(user.email);

@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * Auth shell primitives — shared across all (auth) pages.
- *
- * Exports:
- *   AuthShell    — glassmorphism card with 3D mouse-tilt
- *   AuthHeading  — title + description block
- *   AuthAlert    — error banner
- *   AuthDivider  — "or" divider
- *   FieldError   — inline field error
- *
- * File location: src/components/ui/auth-shell.tsx
- */
-
 import { useEffect, useRef, type ReactNode } from "react";
 import { AlertCircle, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/lib/use-theme";

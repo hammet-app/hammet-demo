@@ -21,12 +21,14 @@ export type SchoolProfile = {
   stats: SchoolStats;
   termStart: string;
   termEnd: string;
+  session: string|null;
 };
 
 // POST /admin/update-term
 export type UpdateTerm = {
   termStart: string;
   termEnd: string;
+  session: string;
 }
 
 

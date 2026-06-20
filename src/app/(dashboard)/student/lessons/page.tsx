@@ -13,40 +13,52 @@ import { ApiError } from "@/lib/api/api-client";
 import type { SubmissionStatus } from "@/components/ui/status-pill";
 
 export default function LessonsPage() {
-  const { accessToken, refreshToken, user } = useAuth();
+  const { accessToken, refreshToken, user, isResolved } = useAuth();
   const router = useRouter();
 
   const [modules, setModules] = useState<ModuleSummary[]>([]);
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  const profileIncomplete =
+    !!user &&
+    (!user.classLevel || !user.term);
 
   useEffect(() => {
-    if (!accessToken || !user) {
-      setIsLoading(false);
-      return;
-    }
+    if (!isResolved) return;
 
-    if (!user.classLevel || !user.term) {
-      setError("Student profile incomplete");
-      setIsLoading(false);
+    if (!accessToken || !user || profileIncomplete) {
       return;
     }
 
     async function load() {
       setError("");
+
       try {
+        if (!accessToken || !user || profileIncomplete || !user.term  || !user.classLevel) {
+            return;
+        }
         const [modulesData, progressData] = await Promise.all([
           studentApi.getModules(
-            user!.term!, // current term — expand later when multi-term is needed
-            user!.classLevel!,
+            user.term,
+            user.classLevel,
+            accessToken,
+            refreshToken,
+            (freshModules) => {
+              setModules(freshModules);
+            }
+          ),
+          studentApi.getProgress(
             accessToken!,
             refreshToken
-          ),
-          studentApi.getProgress(accessToken!, refreshToken).catch(() => null),
+          ).catch(() => null),
         ]);
+
         setModules(modulesData.modules);
-        if (progressData) setProgress(progressData);
+
+        if (progressData) {
+          setProgress(progressData);
+        }
       } catch (err) {
         if (err instanceof ApiError) {
           if (err.status === 401) {
@@ -72,8 +84,8 @@ export default function LessonsPage() {
       }
     }
 
-    load();
-  }, [accessToken, refreshToken, user]); // eslint-disable-line react-hooks/exhaustive-deps
+    void load();
+  }, [accessToken, refreshToken, user, profileIncomplete]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Build a map of moduleId → submission status from progress data
   const statusMap = new Map<string, SubmissionStatus>(
@@ -111,6 +123,10 @@ export default function LessonsPage() {
           </div>
           <ListSkeleton rows={6} />
         </>
+      ) : profileIncomplete ? (
+        <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
+          Student profile incomplete
+        </div>
       ) : error ? (
         <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
           {error}
@@ -187,7 +203,7 @@ export default function LessonsPage() {
             .map(Number)
             .sort((a, b) => a - b)
             .map((week, index, arr) => {
-              const module = byWeek[week][0]; // only one module per week
+              const lessonModule = byWeek[week][0]; // only one module per week
 
               let unlocked = true;
 
@@ -207,15 +223,15 @@ export default function LessonsPage() {
                   </p>
 
                   <ModuleCard
-                    key={module.id}
-                    title={module.title}
-                    weekNumber={module.weekNumber}
-                    term={module.term}
-                    status={statusMap.get(module.id) ?? "not_started"}
+                    key={lessonModule.id}
+                    title={lessonModule.title}
+                    weekNumber={lessonModule.weekNumber}
+                    term={lessonModule.term}
+                    status={statusMap.get(lessonModule.id) ?? "not_started"}
                     locked={!unlocked}
                     onClick={() => {
                       if (!unlocked) return;
-                      router.push(`/student/lessons/${module.id}`);
+                      router.push(`/student/lessons/${lessonModule.id}`);
                     }}
                   />
                 </div>

@@ -2,11 +2,9 @@ import { getToken } from "@/utils/token";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL
 
-interface ApiOptions extends RequestInit {}
-
 export const apiRequest = async (
     endpoint: string,
-    options: ApiOptions = {}
+    options: RequestInit = {}
 ) => {
     const token = getToken()
 

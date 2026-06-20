@@ -13,6 +13,28 @@ import {
 } from "recharts";
 import type { PerformancePoint } from "@/lib/api/types";
 
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    payload: PerformancePoint & {
+      tick: string;
+    };
+  }>;
+}
+
+interface CustomDotProps {
+  cx?: number;
+  cy?: number;
+  index?: number;
+  dataLength: number;
+}
+
+type DotProps = {
+  cx?: number;
+  cy?: number;
+  index?: number;
+};
+
 const BAND_THRESHOLDS = { needsWork: 0.4, improving: 0.75 };
 
 const BAND_COLORS = {
@@ -25,8 +47,12 @@ function buildTick(point: PerformancePoint, isMultiTerm: boolean): string {
   return isMultiTerm ? `T${point.term}W${point.label}` : `W${point.label}`;
 }
 
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({
+  active,
+  payload,
+}: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
+
   const point = payload[0].payload as PerformancePoint & { tick: string };
   const colors = BAND_COLORS[point.band];
 
@@ -62,7 +88,7 @@ function CustomTooltip({ active, payload }: any) {
   );
 }
 
-function CustomDot(props: any) {
+function CustomDot(props: CustomDotProps) {
   const { cx, cy, index, dataLength } = props;
   if (index !== dataLength - 1) return null;
   return (
@@ -124,7 +150,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
             stroke="#06B6D4"
             strokeWidth={2.5}
             fill="url(#perfGradient)"
-            dot={(props: any) => (
+            dot={(props: DotProps) => (
               <CustomDot {...props} dataLength={chartData.length} />
             )}
             activeDot={{ r: 5, fill: "#06B6D4", stroke: "#fff", strokeWidth: 2 }}

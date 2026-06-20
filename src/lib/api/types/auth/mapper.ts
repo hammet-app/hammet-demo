@@ -76,6 +76,7 @@ export function fromClaimAccountRequest(model: ClaimAccountRequest): ClaimAccoun
         }
     }
     return {
+        email: model.email,
         token: model.token,
         claim_code: model.claimCode,
         password: model.password,

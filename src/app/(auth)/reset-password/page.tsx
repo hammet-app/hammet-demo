@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, Pin } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AuthShell, AuthHeading, AuthAlert } from "@/components/ui/auth-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { apiClient, ApiError } from "@/lib/api/api-client";
@@ -48,6 +50,11 @@ export default function ResetPassword() {
     const next: FormErrors = {};
 
     const pwdError = validatePassword(password);
+    const samePassword = password.trim() === confirmPassword.trim();
+
+    if (!samePassword) {
+      next.password = "Both passwords must match"
+    }
 
     if (!password.trim()) {
       next.password = "Password is required";
@@ -121,18 +128,19 @@ export default function ResetPassword() {
       );
 
       if (response) {
-        setStep(2)
+        setStep(2);
       } else {
-        setErrors({ form: "Incorrect pin" })
+        setErrors({ form: "Incorrect pin" });
       }
-
     } catch (err) {
       if (err instanceof ApiError) {
 
         setErrors({ form: `${err.message}` });
 
       } else if (err instanceof Error) {
-        setErrors({ form: `Unable to connect. Check your internet connection. ${err.message}` });
+        setErrors({
+          form: `Unable to connect. Check your internet connection. ${err.message}`,
+        });
       }
     } finally {
       setIsLoading(false);
@@ -154,22 +162,31 @@ export default function ResetPassword() {
         { token: otp, password }
       );
 
-      router.push('/login')
-
+      if (response) {
+        router.push("/login");
+      } else {
+        setErrors({
+          form: "Something went wrong, please try again",
+        });
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 422) {
-          setErrors({ form: `Please check your details and try again.${err.message}` });
+          setErrors({
+            form: `Please check your details and try again. ${err.message}`,
+          });
         } else {
-          setErrors({ form: `${err.message}` });
+          setErrors({ form: err.message });
         }
       } else if (err instanceof Error) {
-        setErrors({ form: `Unable to connect. Check your internet connection. ${err.message}` });
+        setErrors({
+          form: `Unable to connect. Check your internet connection. ${err.message}`,
+        });
       }
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
 
 
@@ -283,19 +300,17 @@ export default function ResetPassword() {
                 </button>
               </form>
 
-              {/* Login nudge  */}
-              <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
-                Remember password?{" "}
-                <a
-                  href="/login"
-                  className="text-purple-mid font-medium hover:underline"
-                >
-                  Sign in
-                </a>
-              </p>
-            </AuthShell> :
-
-            step == 2 ?
+        {/* Login nudge  */}
+        <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
+          Remember password?{" "}
+          <Link
+            href="/login"
+            className="text-purple-mid font-medium hover:underline"
+          >
+            Sign in
+          </Link>
+        </p>
+      </AuthShell>:
 
               // STEP 2
               <AuthShell>
@@ -353,56 +368,28 @@ export default function ResetPassword() {
                   </button>
                 </form>
 
+        
+        <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
+          Remember password?{" "}
+          <Link
+            href="/login"
+            className="text-purple-mid font-medium hover:underline"
+          >
+            Sign In
+          </Link>
+        </p>
 
-                <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
-                  Forgot password?{" "}
-                  <a
-                    href="/reset-password"
-                    className="text-purple-mid font-medium hover:underline"
-                  >
-                    Reset password
-                  </a>
-                </p>
-
-                <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
-                  New student?{" "}
-                  <a
-                    href="/claim"
-                    className="text-purple-mid font-medium hover:underline"
-                  >
-                    Activate your account with a claim code
-                  </a>
-                </p>
-              </AuthShell> :
-
-          // STEP 3
-          <AuthShell>
-            <div className="bg-[var(--color-bg-card)] rounded-2xl flex flex-col items-center gap-4 text-center">
-              <div className="w-14 h-14 rounded-full bg-[var(--color-success)]/10 flex items-center justify-center">
-                <MailCheck color="green" />
-              </div>
-              <div>
-                <p className="text-base font-semibold text-[var(--color-text-primary)]">
-                  Check your email
-                </p>
-                <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                  A reset link has been sent to your email address. <br /> Please click on the link to reset your password.
-                </p>
-              </div>
-
-              <span>
-                Didn't get reset email? {" "}
-                <button
-                  onClick={handleReset}
-                  className="text-sm text-[var(--color-purple)] font-medium hover:underline"
-                >
-                  Resend reset link
-                </button>
-              </span>
-            </div>
-          </AuthShell>
-
-      }
+        <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
+          New student?{" "}
+          <Link
+            href="/claim"
+            className="text-purple-mid font-medium hover:underline"
+          >
+            Activate your account with a claim code
+          </Link>
+        </p>
+      </AuthShell>
+    }
 
 
 

@@ -1,5 +1,5 @@
 // hooks/use-onboarding.ts
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { UserRole } from '@/lib/utils/roles'
 import {
   hasCompletedOnboarding,
@@ -8,11 +8,9 @@ import {
 } from '@/lib/onboarding/storage'
 
 export function useOnboarding(userId: string, role: UserRole) {
-  const [hasCompleted, setHasCompleted] = useState(true) // optimistic default avoids flash
-
-  useEffect(() => {
-    setHasCompleted(hasCompletedOnboarding(userId, role))
-  }, [userId, role])
+  const [hasCompleted, setHasCompleted] = useState(() =>
+    hasCompletedOnboarding(userId, role)
+  )
 
   const markComplete = useCallback(() => {
     setRoleCompleted(userId, role)

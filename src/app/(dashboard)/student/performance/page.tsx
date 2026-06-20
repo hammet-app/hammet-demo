@@ -1,13 +1,14 @@
 "use client";
 
+import { PageShell, CardSkeleton } from "@/components/layout/page-shell";
+import { PerformanceChart } from "@/components/cards/performance-chart";
+import type { PerformancePoint } from "@/lib/api/types";
+import { performanceApi } from "@/lib/api/performance";
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { performanceApi } from "@/lib/api/performance";
-import type { PerformancePoint } from "@/lib/api/types";
-import { PerformanceChart } from "@/components/cards/performance-chart";
-import { PageShell, CardSkeleton } from "@/components/layout/page-shell";
 import { TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
+import Link from "next/link"
 
 const ALL_TERMS = [1, 2, 3] as const;
 
@@ -40,7 +41,10 @@ export default function PerformancePage() {
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
 
   const [data, setData] = useState<PerformancePoint[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState<
+    "loading" | "success" | "error"
+  >("loading");
+
   const [error, setError] = useState("");
 
   // Derive available levels from data returned — only levels student has submissions for
@@ -70,24 +74,30 @@ export default function PerformancePage() {
   useEffect(() => {
     if (!accessToken) return;
 
-    setIsLoading(true);
-    setError("");
-
     const params = buildParams();
 
     performanceApi
       .getPerformance(params, accessToken, refreshToken)
-      .then(setData)
+      .then((result) => {
+        setData(result);
+        setStatus("success");
+      })
       .catch((err) => {
         if (err?.status === 404 || err?.message?.includes("No submissions")) {
           setData([]);
+          setStatus("success");
         } else if (err?.message?.includes("incomplete")) {
-          setError("Your class level hasn't been set yet. Contact your school admin.");
+          setError(
+            "Your class level hasn't been set yet. Contact your school admin."
+          );
+          setStatus("error");
         } else {
-          setError("Failed to load performance data. Please try again.");
+          setError(
+            "Failed to load performance data. Please try again."
+          );
+          setStatus("error");
         }
       })
-      .finally(() => setIsLoading(false));
   }, [accessToken, selectedTerms, selectedLevel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentBand = data.length ? data[data.length - 1].band : null;
@@ -150,9 +160,9 @@ export default function PerformancePage() {
       </div>
 
       {/* ── Content ── */}
-      {isLoading ? (
+      {status === "loading" ? (
         <CardSkeleton className="h-[400px]" />
-      ) : error ? (
+      ) : status === "error" ? (
         <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
           {error}
         </div>
@@ -264,12 +274,12 @@ function EmptyPerformance() {
           Complete and submit lessons to start tracking your learning trajectory.
         </p>
       </div>
-      <a
+      <Link
         href="/dashboard/student/lessons"
         className="mt-2 text-[13px] font-semibold text-purple-mid hover:text-purple transition-colors no-underline"
       >
         Go to My Lessons
-      </a>
+      </Link>
     </div>
   );
 }

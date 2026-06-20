@@ -6,7 +6,6 @@ import { Loader2, CheckCircle2 } from "lucide-react";
 import {
   AuthShell,
   AuthHeading,
-  AuthDivider,
   AuthAlert,
 } from "@/components/ui/auth-shell";
 import { AuthInput } from "@/components/ui/auth-input";
@@ -17,7 +16,6 @@ import { getDefaultRoute } from "@/lib/auth/routes";
 import { cn } from "@/lib/utils/utils";
 import { validatePassword } from "@/utils/password";
 import {
-  type ClaimAccountResponse,
   type InviteInfo,
   type InviteInfoDto,
   toInviteInfo,
@@ -45,7 +43,7 @@ export default function ClaimPage() {
   const [confirm, setConfirm] = useState("");
 
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(token));
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const isStaff =
@@ -55,8 +53,6 @@ export default function ClaimPage() {
   // ── Token flow: fetch invite directly ──
   useEffect(() => {
     if (!token) return;
-
-    setIsLoading(true);
 
     apiClient
       .get<InviteInfoDto>(`/auth/claim/${token}`)
@@ -163,6 +159,8 @@ export default function ClaimPage() {
           deviceId: getDeviceId(),
         };
 
+      console.log(fromClaimAccountRequest(payload))
+
       const raw_data = await apiClient.post<ClaimAccountResponseDto>(
         "/auth/claim",
         fromClaimAccountRequest(payload)
@@ -240,8 +238,13 @@ export default function ClaimPage() {
 
           {error && <AuthAlert message={error} />}
 
-          {/* Pending invite nudge */}
+          {/* Login nudge */}
           <p className="mt-6 text-center text-[12px] text-text-muted leading-relaxed">
+            Already claimed your account?<a href="/login" className="text-purple-mid font-medium hover:underline">Login</a>
+          </p>
+
+          {/* Pending invite nudge */}
+          <p className="mt-0 text-center text-[12px] text-text-muted leading-relaxed">
             Haven&apos;t received your invite?{" "}
             <span className="text-text-secondary font-medium">
               Contact your school admin.

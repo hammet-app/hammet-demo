@@ -13,7 +13,6 @@ import { getDashboardRoute } from "@/lib/auth/routes";
 interface SidebarProps {
   roles: UserRole[];
   activeRole: UserRole;
-  setActiveRole: (role: UserRole) => void;
   activePath: string;
   onNavigate?: () => void;
   className?: string;
@@ -22,7 +21,6 @@ interface SidebarProps {
 export function Sidebar({
   roles,
   activeRole,
-  setActiveRole,
   activePath,
   onNavigate,
   className,
@@ -47,31 +45,6 @@ export function Sidebar({
         className
       )}
     >
-      {roles.length > 1 && (
-        <div className="mb-8">
-          <select
-            value={activeRole}
-            onChange={(e) => {
-              const newRole = e.target.value as UserRole;
-
-              setActiveRole(newRole);
-              router.push(getDashboardRoute(newRole));
-            }}
-            className="w-full rounded-md bg-white/90 px-3 py-3 text-sm text-purple-dark outline-none shadow-sm"
-          >
-            {roles.map((role) => (
-              <option
-                key={role}
-                value={role}
-                className="bg-[var(--color-bg-sidebar)] text-purple-dark"
-              >
-                {formatRole(role)}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       <nav className="flex flex-1 flex-col gap-[25px]">
         {entries.map((entry, i) => {
           if (entry.type === "section") {

@@ -29,8 +29,6 @@ test("email is required", async ({ page }) => {
     name: "Sign in",
   }).click();
 
-  await page.waitForTimeout(6000);
-
   await expect(
     page.getByText(/Email is required/i)
   ).toBeVisible();
@@ -46,8 +44,6 @@ test("password is required", async ({ page }) => {
   await page.getByRole("button", {
     name: "Sign in",
   }).click();
-
-  await page.waitForTimeout(6000);
 
   await expect(
     page.getByText(/Password is required/i)
@@ -66,8 +62,6 @@ test("invalid email format", async ({ page }) => {
   await page.getByRole("button", {
     name: "Sign in",
   }).click();
-
-  await page.waitForTimeout(6000);
 
   await expect(
     page.getByText(/Enter a valid email address/i)

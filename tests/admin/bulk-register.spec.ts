@@ -20,7 +20,7 @@ const rows = Array.from({ length: 10 }, () => {
       "SSS3",
     ]),
     faker.helpers.arrayElement(["A", "B", "C"]),
-    faker.internet.email(),
+    faker.internet.email().toLowerCase(),
     `+2349090234444`,
     faker.date.birthdate({
       min: 10,

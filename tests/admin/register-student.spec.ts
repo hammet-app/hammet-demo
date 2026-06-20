@@ -17,13 +17,13 @@ test("school admin can create student", async ({ page }) => {
 
     await page.getByRole("textbox", {
       name: 'Email', exact: true
-    }).fill(faker.internet.email());
+    }).fill(faker.internet.email().toLowerCase());
 
     await page.getByRole("combobox").first().selectOption("JSS2");
 
     await page.getByRole("textbox", {
       name: 'Parent email', exact: true
-    }).fill(faker.internet.email());
+    }).fill(faker.internet.email().toLowerCase());
 
     await page.getByRole("textbox", {
       name: 'Phone number', exact: true

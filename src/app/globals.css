@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/*
+ * Binds Tailwind's `dark:` prefix to the .dark class your theme toggle
+ * sets on <html>. Without this, `dark:` falls back to
+ * @media (prefers-color-scheme: dark) and ignores the toggle entirely —
+ * which is why the card looked dark regardless of the in-app setting.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ── Brand colours ── */
   --color-purple-dark:   #3B0764;

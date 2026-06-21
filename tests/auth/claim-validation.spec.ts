@@ -10,12 +10,11 @@ test("claim admin account must be by invite link", async ({ page, request }) => 
 
   await page.goto("/login");
 
-  await Promise.all([
-    page.waitForURL(/claim/),
-    page.getByRole("link", {
-      name: /activate your account/i,
+  await page.getByRole("link", {
+      name: "Activate with a claim code"
     }).click(),
-  ]);
+
+  await page.waitForURL(/claim/),
 
   await expect(page).toHaveURL(/claim/);
 

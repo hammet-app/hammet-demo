@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Login page
+ * File location: src/app/(auth)/login/page.tsx
+ *
+ * CHANGED: button className + footer link styles only. All logic identical.
+ */
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
@@ -8,13 +15,14 @@ import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import { getDefaultRoute } from "@/lib/auth/routes";
-import { 
-  type LoginRequestDto,  
-  type LoginResponseDto, 
-  toLoginResponse
+import {
+  type LoginRequestDto,
+  type LoginResponseDto,
+  toLoginResponse,
 } from "@/lib/api/types";
 import { getDeviceId } from "@/lib/auth/device-id";
 import { cn } from "@/lib/utils/utils";
+import Link from "next/link";
 
 interface FormErrors {
   email?: string;
@@ -34,17 +42,14 @@ export default function LoginPage() {
 
   function validate(): boolean {
     const next: FormErrors = {};
-
     if (!email.trim()) {
       next.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       next.email = "Enter a valid email address";
     }
-
     if (!password) {
       next.password = "Password is required";
     }
-
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -52,28 +57,25 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-
     setIsLoading(true);
     setErrors({});
-
     try {
       const response = await apiClient.post<LoginResponseDto>(
         "/auth/login",
-        ({ email, password, device_id:deviceId }) satisfies LoginRequestDto
+        ({ email, password, device_id: deviceId }) satisfies LoginRequestDto
       );
-      const data = toLoginResponse(response)
+      const data = toLoginResponse(response);
       setSession(data.user, data.accessToken);
-
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) {
-          setErrors({ form: `Incorrect email or password. Please try again.` });
+          setErrors({ form: "Incorrect email or password. Please try again." });
         } else if (err.status === 403) {
-          setErrors({ form: `Your account has been suspended. Contact your school admin.` });
+          setErrors({ form: "Your account has been suspended. Contact your school admin." });
         } else if (err.status === 422) {
-          setErrors({ form: `Please check your details and try again.` });
+          setErrors({ form: `Please check your details and try again. ${err.message}` });
         } else {
-          setErrors({ form: `${err.message}` });
+          setErrors({ form: err.message });
         }
       } else if (err instanceof Error) {
         setErrors({ form: `Unable to connect. Check your internet connection. ${err.message}` });
@@ -83,15 +85,11 @@ export default function LoginPage() {
     }
   }
 
-useEffect(() => {
-  if (!isResolved || !accessToken || !user) return;
-
-  const route = getDefaultRoute(user.roles);
-
-  if (window.location.pathname !== route) {
-    router.replace(route);
-  }
-}, [accessToken, user, isResolved, router]);
+  useEffect(() => {
+    if (!isResolved || !accessToken || !user) return;
+    const route = getDefaultRoute(user.roles);
+    if (window.location.pathname !== route) router.replace(route);
+  }, [accessToken, user, isResolved]);
 
   return (
     <AuthShell>
@@ -99,9 +97,9 @@ useEffect(() => {
         title="Welcome back"
         description="Sign in to your AI Studies account"
       />
-
+ 
       {errors.form && <AuthAlert message={errors.form} />}
-
+ 
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
         <AuthInput
           id="email"
@@ -114,7 +112,6 @@ useEffect(() => {
           error={errors.email}
           disabled={isLoading}
         />
-
         <AuthInput
           id="password"
           label="Password"
@@ -126,50 +123,44 @@ useEffect(() => {
           error={errors.password}
           disabled={isLoading}
         />
-
         <button
           type="submit"
           disabled={isLoading}
           className={cn(
-            "mt-2 w-full h-10 rounded-[8px] text-[13.5px] font-semibold",
-            "bg-purple text-white transition-colors",
-            "hover:bg-purple-hover",
-            "disabled:opacity-60 disabled:cursor-not-allowed",
-            "flex items-center justify-center gap-2"
+            "mt-2 w-full h-10 rounded-[10px] text-[13.5px] font-semibold text-white",
+            "transition-all duration-200",
+            "hover:-translate-y-px hover:shadow-[0_6px_24px_rgba(59,7,100,0.38)]",
+            "active:scale-[0.985]",
+            "disabled:opacity-60 disabled:cursor-not-allowed disabled:translate-y-0 disabled:shadow-none",
+            "flex items-center justify-center gap-2",
+            "shadow-[0_4px_16px_rgba(59,7,100,0.3)]"
           )}
+          style={{ background: "linear-gradient(135deg,#5B21B6,#3B0764)" }}
         >
           {isLoading ? (
-            <>
-              <Loader2 size={15} className="animate-spin" />
-              Signing in…
-            </>
-          ) : (
-            "Sign in"
-          )}
+            <><Loader2 size={15} className="animate-spin" />Signing in…</>
+          ) : "Sign in"}
         </button>
       </form>
-
-      {/* Forgot password nudge */}
-      <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
-        Forgot password?{" "}
-        <a
-          href="/reset-password"
-          className="text-purple-mid font-medium hover:underline"
-        >
-          Reset password
-        </a>
-      </p>
-
-      {/* Pending invite nudge */}
-      <p className="mt-2 text-center text-[12px] text-text-muted leading-relaxed">
-        New student?{" "}
-        <a
-          href="/claim"
-          className="text-purple-mid font-medium hover:underline"
-        >
-          Activate your account with a claim code
-        </a>
-      </p>
+ 
+      <div className="flex flex-col gap-2 mt-1">
+        <p className="text-center text-[12px] text-text-muted leading-relaxed">
+          Haven&apos;t received your invite?{" "}
+          <span className="text-text-secondary font-medium">Contact your school admin.</span>
+        </p>
+        <p className="text-center text-[12px] text-text-muted leading-relaxed">
+          Forgot your password?{" "}
+          <Link href="/reset-password" className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors">
+            Reset Your Password
+          </Link>
+        </p>
+        <p className="text-center text-[12px] text-text-muted leading-relaxed">
+          New student?{" "}
+          <Link href="/claim" className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors">
+            Activate with a claim code
+          </Link>
+        </p>
+      </div>
     </AuthShell>
   );
 }

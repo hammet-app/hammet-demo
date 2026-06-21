@@ -17,10 +17,10 @@ export async function login(page: Page, request: APIRequestContext) {
 
   await page.goto("/login");
 
-  await page.getByLabel("Email address")
+  await page.getByRole('textbox',{name: "Email address"})
     .fill(email);
 
-  await page.getByLabel("Password")
+  await page.getByRole("textbox", {name: "Password"})
     .fill(password);
 
   await page.getByRole("button", {
@@ -44,14 +44,20 @@ export async function logout(page: Page) {
 
 export async function createPendingUser(
   request: APIRequestContext,
-  role: string
+  role: string,
+  reset?: boolean,
 ) {
   const email = faker.internet.email()
+
+  const params = {
+    email,
+    role,
+    ...(reset !== undefined && { reset }),
+  };
+
   const response = await request.post(
     `${process.env.NEXT_PUBLIC_API_URL}/test/claim_code`,
-    {
-      params: { email, role },
-    }
+    { params }
   );
 
   return await response.json();

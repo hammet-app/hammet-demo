@@ -59,7 +59,7 @@ export function DashboardLayoutInner({
         <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
           <SheetContent
             side="left"
-            className="p-0 w-[240px] bg-purple-dark border-r-0 [&>button]:hidden"
+            className="p-0 w-[240px] bg-[var(--color-bg-sidebar)] border-r-0 [&>button]:hidden"
           >
             <SheetHeader className="sr-only">
               <SheetTitle>Navigation</SheetTitle>

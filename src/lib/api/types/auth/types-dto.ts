@@ -104,3 +104,7 @@ export type BulkRegisterResponseDto = {
   total: number;
   codes: RegisterStudentResponseDto[];
 };
+
+export type forgotPasswordResponseDto = {
+  is_admin: boolean;
+}

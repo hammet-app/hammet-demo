@@ -3,11 +3,11 @@ import { test, expect } from "@playwright/test";
 test("shows error for invalid credentials", async ({ page }) => {
   await page.goto("/login");
 
-  await page.getByLabel("Email address")
+  await page.getByRole('textbox',{name: "Email address"})
     .fill("wrong@example.com");
 
-  await page.getByLabel("Password")
-    .fill("wrong-password");
+  await page.getByRole("textbox", {name: "Password"})
+    .fill("password");
 
   await page.getByRole("button", {
     name: "Sign in",
@@ -22,7 +22,7 @@ test("shows error for invalid credentials", async ({ page }) => {
 test("email is required", async ({ page }) => {
   await page.goto("/login");
 
-  await page.getByLabel("Password")
+  await page.getByRole("textbox", {name: "Password"})
     .fill("1234567890");
 
   await page.getByRole("button", {
@@ -38,7 +38,7 @@ test("email is required", async ({ page }) => {
 test("password is required", async ({ page }) => {
   await page.goto("/login");
 
-  await page.getByLabel("Email address")
+  await page.getByRole('textbox',{name: "Email address"})
     .fill("test@example.com");
 
   await page.getByRole("button", {
@@ -53,11 +53,11 @@ test("password is required", async ({ page }) => {
 test("invalid email format", async ({ page }) => {
   await page.goto("/login");
 
-  await page.getByLabel("Email address")
+  await page.getByRole('textbox',{name: "Email address"})
     .fill("invalid-email");
 
-  await page.getByLabel("Password")
-    .fill("1234567890");
+  await page.getByRole("textbox", {name: "Password"})
+    .fill("password");
 
   await page.getByRole("button", {
     name: "Sign in",

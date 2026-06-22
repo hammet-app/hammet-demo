@@ -2,6 +2,7 @@ import {
     BulkRegisterResponseDto,
     ClaimAccountRequestDto,
     ClaimAccountResponseDto,
+    forgotPasswordResponseDto,
     InviteInfoDto,
     LoginResponseDto,
     RefreshResponseDto,
@@ -145,5 +146,10 @@ export function toBulkRegisterResponse(dto: BulkRegisterResponseDto): BulkRegist
     return {
         total: dto.total,
         codes: dto.codes.map(toRegisterStudentResponse)
+    }
+}
+export function toForgotPasswordResponse(dto: forgotPasswordResponseDto) {
+    return {
+        isAdmin: dto.is_admin
     }
 }

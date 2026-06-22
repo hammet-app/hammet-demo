@@ -73,6 +73,30 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
       </Link>
 
       <div className="flex-1" />
+      {/* Dark theme */}
+      <button
+        onClick={toggle}
+        className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition-colors"
+        aria-label="Toggle theme"
+      >
+        {theme === "dark" ? (
+          <Sun size={16} />
+        ) : (
+          <Moon size={16} />
+        )}
+      </button>
+
+      <button
+        onClick={toggle}
+        className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition-colors"
+        aria-label="Toggle theme"
+      >
+        {theme === "dark" ? (
+          <Sun size={16} />
+        ) : (
+          <Moon size={16} />
+        )}
+      </button>
 
       <button
         onClick={toggle}

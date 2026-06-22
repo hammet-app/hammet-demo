@@ -89,11 +89,11 @@ export default function LessonsPage() {
 
   // Build a map of moduleId → submission status from progress data
   const statusMap = new Map<string, SubmissionStatus>(
-  (progress?.modules ?? []).map((m) => [
-    m.moduleId,
-    m.submissionStatus as SubmissionStatus,
-  ])
-);
+    (progress?.modules ?? []).map((m) => [
+      m.moduleId,
+      m.submissionStatus as SubmissionStatus,
+    ])
+  );
 
   // Group modules by week
   const byWeek = modules.reduce<Record<number, ModuleSummary[]>>((acc, m) => {
@@ -133,67 +133,70 @@ export default function LessonsPage() {
         </div>
       ) : (
         <>
-          {/* Term progress stats */}
-          {tp && (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              <StatCard
-                label="Total modules"
-                value={tp.totalModules}
-                icon={BookOpen}
-                iconVariant="purple"
-              />
-              <StatCard
-                label="Submitted"
-                value={tp.submittedModules}
-                sub={`${Math.round((tp.submittedModules / tp.totalModules) * 100)}% done`}
-                icon={Clock}
-                iconVariant="cyan"
-              />
-              <StatCard
-                label="Approved"
-                value={tp.approvedModules}
-                icon={CheckCircle2}
-                iconVariant="green"
-              />
-              <StatCard
-                label="Flagged"
-                value={tp.flaggedModules}
-                sub={tp.flaggedModules > 0 ? "Needs revision" : undefined}
-                icon={Flag}
-                iconVariant={tp.flaggedModules > 0 ? "amber" : "purple"}
-              />
-            </div>
-          )}
+          <div className="relative overflow-hidden bg-purple-light border border-border rounded-b-[20px] p-6 shadow-sm shadow-slate-200/10 mb-6">
 
-          {/* Term progress bar */}
-          {tp && (
-            <div className="bg-bg-card border border-border rounded-[10px] px-4 py-3 mb-6 flex items-center gap-4">
-              <div className="flex-1">
-                <div className="flex justify-between text-[12px] mb-1.5">
-                  <span className="text-text-secondary font-medium">
-                    Term {progress?.currentTerm} progress
-                  </span>
-                  <span className="text-cyan font-semibold">
-                    {Math.round((tp.approvedModules / tp.totalModules) * 100)}%
-                  </span>
+            {/* Term progress stats */}
+            {tp && (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                <StatCard
+                  label="Total modules"
+                  value={tp.totalModules}
+                  icon={BookOpen}
+                  iconVariant="purple"
+                />
+                <StatCard
+                  label="Submitted"
+                  value={tp.submittedModules}
+                  sub={`${Math.round((tp.submittedModules / tp.totalModules) * 100)}% done`}
+                  icon={Clock}
+                  iconVariant="cyan"
+                />
+                <StatCard
+                  label="Approved"
+                  value={tp.approvedModules}
+                  icon={CheckCircle2}
+                  iconVariant="green"
+                />
+                <StatCard
+                  label="Flagged"
+                  value={tp.flaggedModules}
+                  sub={tp.flaggedModules > 0 ? "Needs revision" : undefined}
+                  icon={Flag}
+                  iconVariant={tp.flaggedModules > 0 ? "amber" : "purple"}
+                />
+              </div>
+            )}
+
+            {/* Term progress bar */}
+            {tp && (
+              <div className="bg-bg-card border border-border rounded-[10px] px-4 py-3 mb-6 flex items-center gap-4">
+                <div className="flex-1">
+                  <div className="flex justify-between text-[12px] mb-1.5">
+                    <span className="text-text-secondary font-medium">
+                      Term {progress?.currentTerm} progress
+                    </span>
+                    <span className="text-cyan font-semibold">
+                      {Math.round((tp.approvedModules / tp.totalModules) * 100)}%
+                    </span>
+                  </div>
+                  <div className="h-2 bg-border rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-cyan rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.round((tp.approvedModules / tp.totalModules) * 100)}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 bg-border rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-cyan rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.round((tp.approvedModules / tp.totalModules) * 100)}%`,
-                    }}
-                  />
+                <div className="text-right shrink-0">
+                  <p className="text-[13px] font-semibold text-text-primary">
+                    {tp.approvedModules} / {tp.totalModules}
+                  </p>
+                  <p className="text-[11px] text-text-muted">modules approved</p>
                 </div>
               </div>
-              <div className="text-right shrink-0">
-                <p className="text-[13px] font-semibold text-text-primary">
-                  {tp.approvedModules} / {tp.totalModules}
-                </p>
-                <p className="text-[11px] text-text-muted">modules approved</p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Module list grouped by week */}
           {Object.keys(byWeek)

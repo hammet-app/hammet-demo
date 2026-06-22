@@ -21,10 +21,10 @@ export function PageShell({
   className,
 }: PageShellProps) {
   return (
-    <div className={cn("flex flex-col w-full min-h-full", className)}>
+    <div className={cn("flex flex-col w-full min-h-full px-4 sm:px-6 lg:px-8 py-6", className)}>
       
       {/* Header */}
-      <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-5 border-b border-border bg-bg-card">
+      <div className={`px-4 sm:px-6 lg:px-8 pt-6 pb-5 border-b border-border rounded-t-[20px] bg-purple-light ${title == "Submissions" || title == "My Portfolio" || title == "My Performance" && "rounded-b-[20px]"}`}>
         {backHref && (
           <a
             href={backHref}
@@ -53,7 +53,7 @@ export function PageShell({
       </div>
 
       {/* Content */}
-      <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex-1">
         {children}
       </div>
     </div>

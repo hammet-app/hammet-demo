@@ -14,12 +14,6 @@ type TierFilter =
   | "annual"
   | "suspended";
 
-type TierFilter =
-  | "all"
-  | "pilot"
-  | "annual"
-  | "suspended";
-
 function tierLabel(tier: SchoolListItem["tier"]) {
   switch (tier) {
     case "pilot":
@@ -210,18 +204,13 @@ export default function HammetDashboardPage() {
 
           {/* Filters */}
           {schools.length > 0 && (
-<<<<<<< HEAD
             <div className="flex gap-6 mb-6 p-6 pb-2 rounded-b-xl w-full bg-[var(--color-purple-light)]">
-=======
-            <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit bg-[var(--color-purple-light)]">
->>>>>>> e147ec7a9e701eeaf5f483406a6d90109c83fa52
               {(
                 ["all", "pilot", "annual", "suspended"] as const
               ).map((key) => (
                 <button
                   key={key}
                   onClick={() => setTierFilter(key)}
-<<<<<<< HEAD
                   className={`px-4 py-1.5 rounded-md text-sm text-purple-dark ${tierFilter === key
                       ? "font-medium bg-[rgba(91,33,182,0.15)] text-[var(--color-purple)]"
                       : "bg-white/60"
@@ -229,16 +218,6 @@ export default function HammetDashboardPage() {
                 >
                   {key.charAt(0).toUpperCase() + key.slice(1)}
                   <span className="ml-1.5 text-xs font-medium">
-=======
-                  className={`px-4 py-1.5 rounded-lg text-sm ${
-                    tierFilter === key
-                      ? "bg-white text-[var(--color-purple)]"
-                      : ""
-                  }`}
-                >
-                  {key}
-                  <span className="ml-1.5 text-xs">
->>>>>>> e147ec7a9e701eeaf5f483406a6d90109c83fa52
                     {tierCounts[key]}
                   </span>
                 </button>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { PageShell } from "@/components/layout/page-shell";
 import { useAuth } from "@/lib/auth/auth-context";
-import { UserUpdateRequest, UserUpdateResponse } from "@/lib/api/types";
+import { UserUpdateRequest } from "@/lib/api/types";
 import { updateStudent } from "@/lib/api/admin";
 
 export default function UpdateStudentPage() {
@@ -121,23 +121,23 @@ export default function UpdateStudentPage() {
 
         {/* Parent Email */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Full Name</label>
+          <label className="text-sm font-medium">Parent Email</label>
           <input
             value={parentEmail}
             onChange={(e) => setParentEmail(e.target.value)}
             className="px-4 py-2 rounded-xl border"
-            placeholder="Enter full name"
+            placeholder="Enter Parent Email"
           />
         </div>
 
         {/* Parent Phone */}
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium">Full Name</label>
+          <label className="text-sm font-medium">Parent Phone</label>
           <input
             value={parentPhone}
             onChange={(e) => setParentPhone(e.target.value)}
             className="px-4 py-2 rounded-xl border"
-            placeholder="Enter full name"
+            placeholder="Enter Parent phone"
           />
         </div>
 

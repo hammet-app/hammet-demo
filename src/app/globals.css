@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/*
+ * Binds Tailwind's `dark:` prefix to the .dark class your theme toggle
+ * sets on <html>. Without this, `dark:` falls back to
+ * @media (prefers-color-scheme: dark) and ignores the toggle entirely —
+ * which is why the card looked dark regardless of the in-app setting.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ── Brand colours ── */
   --color-purple-dark:   #3B0764;
@@ -47,6 +55,19 @@
   /* ── Sidebar / topbar dimensions ── */
   --sidebar-width: 240px;
   --topbar-height: 56px;
+}
+
+.dark {
+  --color-bg-page: #0f172a;
+  --color-bg-card: #1e293b;
+
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-muted: #94a3b8;
+
+  --color-border: #334155;
+
+  --color-purple-dark: #0f172a;
 }
 
 /* ── Driver.js tour popover — Hammet brand theme ── */

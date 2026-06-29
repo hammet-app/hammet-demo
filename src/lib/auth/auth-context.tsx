@@ -59,20 +59,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  let refreshPromise: Promise<string | null> | null = null;
+  const refreshPromiseRef = useRef<Promise<string | null> | null>(null);
+  const refreshTokenRef = useRef<() => Promise<string | null>>(async () => null);
 
-  const scheduleRefresh = useCallback(() => {
-    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
-    refreshTimerRef.current = setTimeout(async () => {
-      await refreshToken();
+  function scheduleRefresh() {
+    if (refreshTimerRef.current) {
+      clearTimeout(refreshTimerRef.current);
+    }
+
+    refreshTimerRef.current = setTimeout(() => {
+      void refreshTokenRef.current();
     }, REFRESH_INTERVAL_MS);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }; // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshToken = useCallback(async (): Promise<string | null> => {
     if (localStorage.getItem("logged_out") === "true") return null;
-    if (refreshPromise) return refreshPromise;
+    if (refreshPromiseRef.current) {
+      return refreshPromiseRef.current;
+    }
 
-    refreshPromise = (async () => {
+    refreshPromiseRef.current = (async () => {
       try {
         const res = await fetch(`${API_BASE}/auth/refresh`, {
           method: "POST",
@@ -123,12 +129,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }));
         return null;
       } finally {
-        refreshPromise = null;
+        refreshPromiseRef.current = null;
       }
     })();
 
-    return refreshPromise;
-  }, [scheduleRefresh]); // eslint-disable-line react-hooks/exhaustive-deps
+    return refreshPromiseRef.current;
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    refreshTokenRef.current = refreshToken;
+  }, [refreshToken]);
 
   // ── Silent refresh on mount ──
   // Step 1: hydrate from IndexedDB immediately (no skeleton if cached)
@@ -184,7 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setState({ user, accessToken, isLoading: false, isResolved: true, isOffline: false });
       scheduleRefresh();
     },
-    [scheduleRefresh]
+    [refreshToken]
   );
 
   const logout = useCallback(async () => {

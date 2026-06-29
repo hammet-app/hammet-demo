@@ -6,6 +6,13 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { getSchools, deactivateSchool } from "@/lib/api/hammet";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import type { SchoolListItem } from "@/lib/api/types";
+import { Plus } from "lucide-react";
+
+type TierFilter =
+  | "all"
+  | "pilot"
+  | "annual"
+  | "suspended";
 
 function tierLabel(tier: SchoolListItem["tier"]) {
   switch (tier) {
@@ -37,9 +44,8 @@ function SchoolCard({
 
   return (
     <div
-      className={`bg-[var(--color-bg-card)] border rounded-2xl p-6 flex flex-col gap-4 ${
-        isSuspended ? "opacity-60" : ""
-      } border-[var(--color-border)]`}
+      className={`bg-[var(--color-bg-card)] border rounded-2xl p-6 flex flex-col gap-4 ${isSuspended ? "opacity-60" : ""
+        } border-[var(--color-border)]`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -125,9 +131,7 @@ export default function HammetDashboardPage() {
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  const [tierFilter, setTierFilter] = useState<
-    "all" | "pilot" | "annual" | "suspended"
-  >("all");
+  const [tierFilter, setTierFilter] = useState<TierFilter>("all");
 
   useEffect(() => {
     if (!accessToken) return;
@@ -175,14 +179,14 @@ export default function HammetDashboardPage() {
     <PageShell
       title="Schools"
       description={`${schools.length} registered`}
-      actions={
-        <button
-          onClick={() => router.push("/hammet/schools/new")}
-          className="px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-semibold"
-        >
-          New school
-        </button>
-      }
+    // actions={
+    //   <button
+    //     onClick={() => router.push("/hammet/schools/new")}
+    //     className="px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-semibold"
+    //   >
+    //     New school
+    //   </button>
+    // }
     >
       {isLoading ? (
         <ListSkeleton rows={6} />
@@ -200,23 +204,31 @@ export default function HammetDashboardPage() {
 
           {/* Filters */}
           {schools.length > 0 && (
-            <div className="flex gap-1 mb-6 p-1 rounded-xl w-fit bg-[var(--color-purple-light)]">
-              {["all", "pilot", "annual", "suspended"].map((key) => (
+            <div className="flex gap-6 mb-6 p-6 pb-2 rounded-b-xl w-full bg-[var(--color-purple-light)]">
+              {(
+                ["all", "pilot", "annual", "suspended"] as const
+              ).map((key) => (
                 <button
                   key={key}
-                  onClick={() => setTierFilter(key as any)}
-                  className={`px-4 py-1.5 rounded-lg text-sm ${
-                    tierFilter === key
-                      ? "bg-white text-[var(--color-purple)]"
-                      : ""
-                  }`}
+                  onClick={() => setTierFilter(key)}
+                  className={`px-4 py-1.5 rounded-md text-sm text-purple-dark ${tierFilter === key
+                      ? "font-medium bg-[rgba(91,33,182,0.15)] text-[var(--color-purple)]"
+                      : "bg-white/60"
+                    }`}
                 >
-                  {key}
-                  <span className="ml-1.5 text-xs">
-                    {tierCounts[key as keyof typeof tierCounts]}
+                  {key.charAt(0).toUpperCase() + key.slice(1)}
+                  <span className="ml-1.5 text-xs font-medium">
+                    {tierCounts[key]}
                   </span>
                 </button>
               ))}
+              <button
+                onClick={() => router.push("/hammet/schools/new")}
+                className="flex gap-2 items-center px-4 py-2 rounded-md bg-[var(--color-purple)] text-white text-sm font-semibold"
+              >
+                <Plus />
+                New school
+              </button>
             </div>
           )}
 

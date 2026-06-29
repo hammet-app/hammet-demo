@@ -51,10 +51,11 @@ export default function SubmissionsPage() {
     <PageShell
       title="Submissions"
       description="Your submitted work across all modules this term"
+      rounded={true}
     >
       {/* Filter tabs */}
       {!isLoading && !error && (
-        <div className="flex gap-2 mb-5 flex-wrap py-6">
+        <div className="flex gap-2 mb-5 flex-wrap">
           {filters.map((f) => (
             <button
               key={f.key}

@@ -105,7 +105,7 @@ export default function LessonDetailPage() {
   const moduleId = params.moduleId as string;
 
   const [loadState, setLoadState] = useState<LoadState>("loading");
-  const [module, setModule] = useState<CurriculumModule | null>(null);
+  const [lessonModule, setModule] = useState<CurriculumModule | null>(null);
   const [allModules, setAllModules] = useState<ModulesResponse["modules"]>([]);
   const [existingSubmission, setExistingSubmission] = useState<Submission | null>(null);
 
@@ -124,9 +124,9 @@ export default function LessonDetailPage() {
   const saveSectionProgressRef = useRef<((pageIdx: number) => Promise<void>) | null>(null);
 
   const pages = useMemo(() => {
-    if (!module) return [];
-    return buildPages(module.contentJson.sections, module.title);
-  }, [module]);
+    if (!lessonModule) return [];
+    return buildPages(lessonModule.contentJson.sections, lessonModule.title);
+  }, [lessonModule]);
 
   // ── Load ─────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -173,21 +173,33 @@ export default function LessonDetailPage() {
   }, [accessToken, moduleId, user?.classLevel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Resume at last saved section ──────────────────────────────────────────
+  const hasResumedRef = useRef(false);
+
   useEffect(() => {
-    if (!module || pages.length === 0) return;
-    if (!module.stoppedAt) return;
+    if (hasResumedRef.current) return;
+    if (!lessonModule || pages.length === 0) return;
+    if (!lessonModule.stoppedAt) return;
 
     const resumeIdx = pages.findIndex(
       (p) =>
-        (p.kind === "content" || p.kind === "activity" || p.kind === "reflection") &&
-        p.sectionId === module.stoppedAt
+        (p.kind === "content" ||
+          p.kind === "activity" ||
+          p.kind === "reflection") &&
+        p.sectionId === lessonModule.stoppedAt
     );
-    if (resumeIdx !== -1) setCurrentPage(resumeIdx);
-  }, [module, pages]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (resumeIdx !== -1) {
+      hasResumedRef.current = true;
+
+      queueMicrotask(() => {
+        setCurrentPage(resumeIdx);
+      });
+    }
+  }, [lessonModule, pages]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Auto-save text drafts ─────────────────────────────────────────────────
   useEffect(() => {
-    if (!user || !module) return;
+    if (!user || !lessonModule) return;
     if (!activityText && !reflectionText) return;
 
     const t = setTimeout(async () => {
@@ -319,11 +331,12 @@ export default function LessonDetailPage() {
       setTaskFiles((prev) => {
         const entries = [...(prev[blockId] ?? [])];
         const removed = entries[index];
+        const id = user?.id
 
         if (removed?.url) {
           deleteUploadedFile(
             removed.url,
-            user?.id!,
+            id!,
             moduleId,
             blockId,
             accessToken,
@@ -352,7 +365,7 @@ export default function LessonDetailPage() {
   // ── Stepper page state ────────────────────────────────────────────────────
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
-  const blocked = module
+  const blocked = lessonModule
     ? isPageBlocked(pages[currentPage], activityText, reflectionText, taskFiles, aiForm, false)
     : false;
 
@@ -372,7 +385,7 @@ export default function LessonDetailPage() {
 
   // ── Submit ────────────────────────────────────────────────────────────────
   async function handleSubmit() {
-    if (!module || !user) return;
+    if (!lessonModule || !user) return;
     setIsSubmitting(true);
     setSubmitError("");
 
@@ -434,9 +447,9 @@ export default function LessonDetailPage() {
 
         setExistingSubmission({
           id: crypto.randomUUID(),
-          moduleTitle: module.title,
-          term: module.term,
-          weekNumber: module.weekNumber,
+          moduleTitle: lessonModule.title,
+          term: lessonModule.term,
+          weekNumber: lessonModule.weekNumber,
           aiForm,
           moduleId,
           activityText,
@@ -491,7 +504,7 @@ export default function LessonDetailPage() {
     );
   }
 
-  if (loadState === "error" || !module) {
+  if (loadState === "error" || !lessonModule) {
     return (
       <PageShell title="Lesson" backHref="/student/lessons" backLabel="My Lessons">
         <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
@@ -503,7 +516,7 @@ export default function LessonDetailPage() {
 
   const status = existingSubmission?.status ?? null;
 
-  const toolNames = module.contentJson.sections
+  const toolNames = lessonModule.contentJson.sections
     .flatMap((s) => s.blocks)
     .filter((b) => b.type === "toolLink")
     .map((b) => b.toolName || b.content)
@@ -545,12 +558,12 @@ export default function LessonDetailPage() {
 
           {showStepper && (
             <LessonStepper
-              title={module.title}
-              description={module.description}
-              weekNumber={module.weekNumber}
-              term={module.term}
+              title={lessonModule.title}
+              description={lessonModule.description}
+              weekNumber={lessonModule.weekNumber}
+              term={lessonModule.term}
               toolNames={toolNames}
-              sections={module.contentJson.sections}
+              sections={lessonModule.contentJson.sections}
               activityText={activityText}
               onActivityChange={setActivityText}
               reflectionText={reflectionText}
@@ -685,7 +698,7 @@ function SubmittedNotice({
               onClick={onNext}
               className="inline-flex items-center gap-1.5 text-[13px] font-bold bg-[#5B21B6] text-white px-4 py-2 rounded-[8px] hover:bg-[#4c1d95] transition-colors"
             >
-              Next module
+              Next Module
               <ChevronRight size={14} />
             </button>
           )}

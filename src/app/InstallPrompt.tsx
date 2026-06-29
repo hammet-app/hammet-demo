@@ -40,10 +40,9 @@ function isInStandaloneMode(): boolean {
 }
 
 export default function InstallPrompt() {
-  const [platform, setPlatform] = useState<Platform>('other')
+  const [platform] = useState<Platform>(() => detectPlatform())
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showPrompt, setShowPrompt] = useState(false)
-  const [showIOSInstructions, setShowIOSInstructions] = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
@@ -54,7 +53,6 @@ export default function InstallPrompt() {
     if (localStorage.getItem('pwa-install-dismissed') === 'true') return
 
     const p = detectPlatform()
-    setPlatform(p)
 
     if (p === 'android') {
       // Intercept the native install prompt

@@ -9,6 +9,7 @@ interface PageShellProps {
   actions?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
+  rounded?: boolean;
 }
 
 export function PageShell({
@@ -19,12 +20,13 @@ export function PageShell({
   actions,
   children,
   className,
+  rounded
 }: PageShellProps) {
   return (
     <div className={cn("flex flex-col w-full min-h-full px-4 sm:px-6 lg:px-8 py-6", className)}>
       
       {/* Header */}
-      <div className={`px-4 sm:px-6 lg:px-8 pt-6 pb-5 border-b border-border rounded-t-[20px] bg-purple-light ${title == "Submissions" || title == "My Portfolio" || title == "My Performance" && "rounded-b-[20px]"}`}>
+      <div className={`px-4 sm:px-6 lg:px-8 pt-6 pb-5 border-b border-border rounded-t-[20px] bg-purple-light ${ rounded && "rounded-b-[20px] mb-6"}`}>
         {backHref && (
           <a
             href={backHref}

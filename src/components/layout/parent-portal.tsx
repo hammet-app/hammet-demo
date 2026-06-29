@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ApiError } from "@/lib/api/api-client";
 import { useSearchParams } from "next/navigation";
 import { ParentShell } from "@/components/ui/parent-shell";
 import { PerformanceChart } from "@/components/cards/performance-chart";
@@ -33,7 +34,7 @@ type Stage =
 // Sub-components
 // ---------------------------------------------------------------------------
 
-function LoadingState() {
+export function LoadingState() {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-3 py-24">
       <div className="w-8 h-8 rounded-full border-2 border-purple-mid border-t-transparent animate-spin" />
@@ -63,7 +64,7 @@ function ErrorState({ message }: { message: string }) {
         </p>
       </div>
       <p className="text-[12px] text-text-muted mt-2">
-        Please contact your child's school admin for a new link.
+        Please contact your child&apos;s school admin for a new link.
       </p>
     </div>
   );
@@ -94,10 +95,10 @@ function ChallengeForm({
           className="text-[24px] font-bold text-text-primary leading-snug"
           style={{ fontFamily: "var(--font-head)" }}
         >
-          {studentName}'s Progress
+          {studentName}&apos;s Progress
         </h1>
         <p className="mt-2 text-[13px] text-text-secondary leading-relaxed">
-          To protect your child's information, please answer the security
+          To protect your child&apos;s information, please answer the security
           question below.
         </p>
       </div>
@@ -405,9 +406,11 @@ export default function ParentPortalPage() {
         selectedLevels: defaultLevels,
         portalLoading: false,
       });
-    } catch (err: any) {
-      const isWrongAnswer = err?.status === 422 || err?.status === 400;
-      if (isWrongAnswer) {
+    } catch (err: unknown) {
+      if (
+        err instanceof ApiError &&
+        (err.status === 422 || err.status === 400)
+      ) {
         setStage({
           type: "wrong_answer",
           studentName,

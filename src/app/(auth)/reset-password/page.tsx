@@ -8,4 +8,8 @@ export default function ResetPassword() {
       <ResetContent />
     </Suspense>
   )
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> e147ec7a9e701eeaf5f483406a6d90109c83fa52

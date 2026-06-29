@@ -117,6 +117,7 @@ export default function PerformancePage() {
     <PageShell
       title="My Performance"
       description="Your learning trajectory over time"
+      rounded={true}
     >
       {/* ── Filters ── */}
       <div className="flex flex-wrap gap-6 mb-6 py-6">

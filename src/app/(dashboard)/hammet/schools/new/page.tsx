@@ -144,16 +144,18 @@ export default function NewSchoolPage() {
       title="Register School"
       description="Create a new school and admin account"
       backHref="/hammet"
+      rounded={true}
     >
-      <form onSubmit={handleSubmit} className="max-w-xl flex flex-col gap-8">
+      <form onSubmit={handleSubmit} className="w-full p-6 rounded-lg flex flex-col gap-8 bg-purple-light/50">
 
         {/* SCHOOL INFO */}
         <div className="flex flex-col gap-4">
-          <p className="text-xs uppercase text-muted">School Info</p>
+          <p className="text-sm uppercase text-muted">School Info</p>
 
           <AuthInput
             id="school-name"
             label="School name"
+            placeholder="Hammet Group of Schools"
             value={form.name}
             onChange={(e) => set("name", e)}
             error={errors.name}
@@ -162,6 +164,7 @@ export default function NewSchoolPage() {
           <AuthInput
             id="school-email"
             label="School email"
+            placeholder="school@youremail.com"
             value={form.schoolEmail}
             onChange={(e) => set("schoolEmail", e)}
             error={errors.schoolEmail}
@@ -170,6 +173,7 @@ export default function NewSchoolPage() {
           <AuthInput
             id="school-address"
             label="Address"
+            placeholder="10, John Doe street, Ikeja, Lagos"
             value={form.schoolAddress}
             onChange={(e) => set("schoolAddress", e)}
             error={errors.schoolAddress}
@@ -178,6 +182,7 @@ export default function NewSchoolPage() {
           <AuthInput
             id="school-website"
             label="Website (optional)"
+            placeholder="www.yourwebsite.com"
             value={form.schoolWebsite || ""}
             onChange={(e) => set("schoolWebsite", e)}
           />
@@ -187,18 +192,28 @@ export default function NewSchoolPage() {
         <div className="flex flex-col gap-4">
           <p className="text-xs uppercase text-muted">Contact</p>
 
-          <div className="flex gap-2">
-            <input
+          <div className="flex gap-2 justify-start">
+            <AuthInput
+              id="country-code"
+              label=""
+              placeholder="+234"
+              defaultValue="+234"
+              type="number"
               value={countryCode}
-              onChange={(e) => setCountryCode(e.target.value)}
-              className="w-24 px-3 py-3 rounded-xl border"
+              onChange={(e) => setCountryCode(e)}
+              style="w-1/3"
             />
-            <input
+
+            <AuthInput 
+              id="contact"
+              value={form.phoneNumber}
+              onChange={(e) => set("phoneNumber", e)}
+              label=""
               placeholder="Phone number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-xl border"
+              type="number"
+              style="w-100 -ml-36"
             />
+
           </div>
           {errors.phoneNumber && (
             <p className="text-xs text-red-600">{errors.phoneNumber}</p>
@@ -237,8 +252,8 @@ export default function NewSchoolPage() {
                 type="button"
                 key={t}
                 onClick={() => set("tier", t)}
-                className={`flex-1 py-2.5 rounded-xl border ${
-                  form.tier === t.toLowerCase() ? "bg-purple/10 border-purple" : ""
+                className={`flex-1 py-2.5 rounded-sm cursor-pointer ${
+                  form.tier === t.toLowerCase() ? "bg-[rgba(91,33,182,0.15)] " : " bg-white/40"
                 }`}
               >
                 {t.toUpperCase()}
@@ -256,20 +271,20 @@ export default function NewSchoolPage() {
           />
 
           {/* Roles */}
-          <label className="flex items-center gap-2 text-sm">
+          {/* <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
               checked={isTeacher}
               onChange={(e) => setIsTeacher(e.target.checked)}
             />
             Also assign as teacher
-          </label>
+          </label> */}
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="h-11 rounded-xl bg-purple text-white flex items-center justify-center gap-2"
+          className="h-11 rounded-sm bg-purple text-white flex items-center justify-center gap-2 text-md cursor-pointer"
         >
           {isLoading ? (
             <>

@@ -51,6 +51,7 @@ export default function SubmissionsPage() {
     <PageShell
       title="Submissions"
       description="Your submitted work across all modules this term"
+      rounded={true}
     >
       {/* Filter tabs */}
       {!isLoading && !error && (

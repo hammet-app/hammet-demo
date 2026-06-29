@@ -27,6 +27,7 @@ export default function PortfolioPage() {
     <PageShell
       title="My Portfolio"
       description="Approved work that showcases your AI literacy journey"
+      rounded={true}
     >
       {isLoading ? (
         <ListSkeleton rows={4} />

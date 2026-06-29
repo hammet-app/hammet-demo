@@ -51,7 +51,7 @@ export function Sidebar({
             return (
               <p
                 key={i}
-                className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40"
+                className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-purple-dark -pb-[20px]"
               >
                 {entry.label}
               </p>
@@ -103,7 +103,7 @@ export function Sidebar({
               onClick={onNavigate}
               {...(item.tourId ? { 'data-tour': item.tourId } : {})}
               className={cn(
-                "flex items-center gap-[10px] rounded-md px-5 py-3 text-sm transition-all",
+                "flex items-center gap-[10px] rounded-md px-5 py-3 text-sm font-medium transition-all",
                 isActive
                   ? "bg-[rgba(91,33,182,0.15)] text-purple-dark"
                   : item.danger

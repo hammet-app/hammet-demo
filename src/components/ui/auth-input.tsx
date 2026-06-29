@@ -20,10 +20,12 @@ import { FieldError } from "@/components/ui/auth-shell";
 interface AuthInputProps {
   id: string;
   label: string;
-  type?: "text" | "email" | "password";
+  type?: "text" | "number" | "email" | "password";
   value: string;
   onChange: (v: string) => void;
+  style?: string;
   placeholder?: string;
+  defaultValue?: string;
   error?: string;
   autoComplete?: string;
   disabled?: boolean;
@@ -52,9 +54,11 @@ function getStrength(pw: string): { score: number; label: string; color: string 
 export function AuthInput({
   id,
   label,
-  type = "text",
+  type,
   value,
+  defaultValue,
   onChange,
+  style,
   placeholder,
   error,
   autoComplete,
@@ -93,7 +97,7 @@ export function AuthInput({
           disabled={disabled}
           className={cn(
             "w-full h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
-            "placeholder:text-text-muted bg-bg-page/80 dark:bg-black/20 outline-none",
+            "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
             "transition-all duration-200",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             error
@@ -104,12 +108,13 @@ export function AuthInput({
                   // focus accent only in dark mode, matching the logo's accent swap.
                   "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10"
                 ),
-            isPassword && "pr-10"
+            isPassword && "pr-10",
+            style && style
           )}
         />
 
         {/* animated underline trace */}
-        <span
+        {/* <span
           aria-hidden="true"
           className={cn(
             "absolute bottom-0 left-3 right-3 h-[2px] rounded-full pointer-events-none",
@@ -121,7 +126,7 @@ export function AuthInput({
             transition: "transform 0.3s ease, opacity 0.2s",
             transformOrigin: "left",
           }}
-        />
+        /> */}
 
         {isPassword && (
           <button

@@ -49,6 +49,7 @@ export default function AdminModulesLevelsPage() {
         title={level}
         description={`${terms.length} ${terms.length === 1 ? "term" : "terms"}`}
         backHref="/admin/modules"
+        rounded
       >
         {isLoading ? (
           <ListSkeleton rows={3} />

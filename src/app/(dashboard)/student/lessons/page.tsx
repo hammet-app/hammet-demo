@@ -133,7 +133,7 @@ export default function LessonsPage() {
         </div>
       ) : (
         <>
-          <div className="relative overflow-hidden bg-purple-light border border-border rounded-b-[20px] p-6 shadow-sm shadow-slate-200/10 mb-6">
+          <div className="relative overflow-hidden bg-purple-light border-t border-border rounded-b-[20px] p-6 shadow-sm shadow-slate-200/10 mb-6">
 
             {/* Term progress stats */}
             {tp && (

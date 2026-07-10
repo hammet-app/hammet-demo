@@ -120,7 +120,7 @@ export default function PerformancePage() {
       rounded={true}
     >
       {/* ── Filters ── */}
-      <div className="flex flex-wrap gap-6 mb-6 py-6">
+      <div className="flex flex-wrap gap-6 mb-6">
         {/* Term filter */}
         <div className="flex flex-col gap-1.5">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted">

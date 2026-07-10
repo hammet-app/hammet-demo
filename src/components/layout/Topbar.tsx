@@ -35,6 +35,9 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
 
   const { theme, toggle } = useTheme();
 
+  console.log(theme);
+  
+
   const metaLine =
     primaryRole === "student" && user.classLevel
       ? [user.classLevel, user.classArm].filter(Boolean).join("")
@@ -76,7 +79,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
       {/* Dark theme */}
       <button
         onClick={toggle}
-        className="flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition-colors"
+        className="flex items-center justify-center w-8 h-8 rounded-full text-white hover:bg-white/10 transition-colors"
         aria-label="Toggle theme"
       >
         {theme === "dark" ? (

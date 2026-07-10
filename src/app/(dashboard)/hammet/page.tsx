@@ -212,7 +212,7 @@ export default function HammetDashboardPage() {
                   key={key}
                   onClick={() => setTierFilter(key)}
                   className={`px-4 py-1.5 rounded-md text-sm text-purple-dark ${tierFilter === key
-                      ? "font-medium bg-[rgba(91,33,182,0.15)] text-[var(--color-purple)]"
+                      ? "font-medium bg-[var(--color-purple-active)] text-[var(--color-purple)]"
                       : "bg-white/60"
                     }`}
                 >

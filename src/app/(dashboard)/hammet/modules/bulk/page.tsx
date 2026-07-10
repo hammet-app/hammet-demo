@@ -167,11 +167,11 @@ export default function BulkModulesPage() {
           <div className="pt-1 border-t border-[var(--color-border)]">
             <p className="text-xs text-[var(--color-text-secondary)]/90 leading-relaxed">
               Each row is one module. Missing optional columns produce no block.{" "}
-              <span className="font-medium text-black/70">video_link</span>{" "}
+              <span className="font-medium text-[var(--color-text-primary)]">video_link</span>{" "}
               and{" "}
-              <span className="font-medium text-black/70">tool_link</span>{" "}
+              <span className="font-medium text-[var(--color-text-primary)]">tool_link</span>{" "}
               both pull from the shared{" "}
-              <span className="font-medium text-black/70">url</span>{" "}
+              <span className="font-medium text-[var(--color-text-primary)]">url</span>{" "}
               column. All modules are published immediately on upload.
             </p>
           </div>

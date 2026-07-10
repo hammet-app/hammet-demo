@@ -51,7 +51,7 @@ export function Sidebar({
             return (
               <p
                 key={i}
-                className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-purple-dark -pb-[20px]"
+                className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-text-primary)] -pb-[20px]"
               >
                 {entry.label}
               </p>
@@ -105,10 +105,10 @@ export function Sidebar({
               className={cn(
                 "flex items-center gap-[10px] rounded-md px-5 py-3 text-sm font-medium transition-all",
                 isActive
-                  ? "bg-[rgba(91,33,182,0.15)] text-purple-dark"
+                  ? "bg-[var(--color-purple-active)] text-[var(--color-text-primary)]"
                   : item.danger
                   ? "bg-white/90 text-red-600 hover:bg-red-100 hover:text-red-700"
-                  : "bg-white/90 text-purple-dark hover:bg-white"
+                  : "bg-[var(--color-button)] text-[purple-dark] hover:bg-white"
               )}
             >
               <Icon size={16} className="shrink-0" />

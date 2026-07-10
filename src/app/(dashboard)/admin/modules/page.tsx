@@ -117,6 +117,7 @@ export default function AdminModulesListPage() {
       <PageShell
         title="Modules"
         description={`${modules.length} total across ${levels.length} levels`}
+        rounded
       >
         {isLoading ? (
           <ListSkeleton rows={6} />

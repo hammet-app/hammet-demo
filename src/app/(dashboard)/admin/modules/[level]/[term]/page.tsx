@@ -49,6 +49,7 @@ export default function AdminModulesListPage() {
           modules.length === 1 ? "module" : "modules"
         }`}
         backHref={`/admin/modules/${level}`}
+        rounded
       >
         {isLoading ? (
           <ListSkeleton rows={6} />

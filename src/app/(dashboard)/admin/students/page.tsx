@@ -13,6 +13,19 @@ import { ApiError } from "@/lib/api/api-client";
 import { resendCode } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import type { AdminStudent } from "@/lib/api/types";
+import {
+  Mail,
+  BookOpen,
+  Key,
+  Copy,
+  Check,
+  Trash2,
+  Edit,
+  Send,
+  RefreshCw,
+  FileText,
+  Table,
+} from "lucide-react";
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -54,6 +67,7 @@ function StudentRow({
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRevoke, setConfirmRevoke] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const busy = inFlight?.studentId === student.studentId;
   const busyAction = busy ? inFlight!.action : null;
@@ -65,57 +79,93 @@ function StudentRow({
 
   const isPending = student.status === "pending";
 
+  const initials = student.fullName
+    ? student.fullName
+        .split(" ")
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join("")
+        .toUpperCase()
+    : "S";
+
   return (
-    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-4 flex flex-col gap-3">
-      {/* Top row */}
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold truncate">{student.fullName}</p>
-            <span className="text-xs px-2 py-0.5 rounded-full">
-              {student.status}
-            </span>
+    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] hover:border-[var(--color-purple)]/60 rounded-2xl p-5 flex flex-col gap-4 transition-all duration-200 hover:shadow-sm">
+      {/* Top Profile / Info Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Left: Avatar & Text details */}
+        <div className="flex items-center gap-3.5 min-w-0">
+          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[var(--color-purple-mid)] to-[var(--color-purple)] text-white font-semibold text-sm flex items-center justify-center shadow-sm shrink-0">
+            {initials}
           </div>
-          <p className="text-sm mt-0.5 truncate">{student.email}</p>
-          <p className="text-xs mt-0.5">{classLabel}</p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-semibold text-base text-[var(--color-text-primary)] leading-tight truncate">
+                {student.fullName}
+              </p>
+              <span
+                className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                  isPending
+                    ? "bg-[var(--color-warning-light)] text-[var(--color-warning-dark)] border-[var(--color-warning-dark)]/10"
+                    : "bg-[var(--color-success-light)] text-[var(--color-success-dark)] border-[var(--color-success-dark)]/10"
+                }`}
+              >
+                {student.status.charAt(0).toUpperCase() + student.status.slice(1)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 text-sm text-[var(--color-text-secondary)] min-w-0">
+              <Mail size={13} className="text-[var(--color-text-muted)] shrink-0" />
+              <p className="truncate">{student.email}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Class label / details */}
+        <div className="flex items-center gap-2 shrink-0 sm:self-start">
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-[var(--color-purple-light)] text-[var(--color-purple)] border border-[var(--color-purple)]/10 flex items-center gap-1">
+            <BookOpen size={12} className="text-[var(--color-purple)]" />
+            <span>Class {classLabel}</span>
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 flex-wrap pt-1 border-t">
-        {/* Parent link section */}
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          {hasLink ? (
-            <>
-              <span className="text-xs">
-                {student.parentLinkSentAt
-                  ? `Link sent ${timeAgo(student.parentLinkSentAt)}`
-                  : "Link sent 0d ago"}
-              </span>
+      {/* Divider */}
+      <div className="h-[1px] bg-[var(--color-border)]" />
 
+      {/* Bottom Row: Actions & Status */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {/* Parent Link Status / Action */}
+        <div className="flex items-center gap-2 flex-wrap text-xs text-[var(--color-text-secondary)]">
+          {hasLink ? (
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="flex items-center gap-1 text-[var(--color-text-primary)] font-medium">
+                <Send size={12} className="text-[var(--color-success)]" />
+                <span>
+                  {student.parentLinkSentAt
+                    ? `Link sent ${timeAgo(student.parentLinkSentAt)}`
+                    : "Link sent 0d ago"}
+                </span>
+              </span>
+              <span className="text-[var(--color-text-muted)]">·</span>
               <button
                 onClick={() =>
                   onAction({ type: "send-link", studentId: student.studentId })
                 }
                 disabled={busy}
-                className="text-xs hover:underline"
+                className="text-xs font-semibold text-[var(--color-purple)] hover:text-[var(--color-purple-hover)] hover:underline disabled:opacity-50 flex items-center gap-1 cursor-pointer"
               >
-                {busyAction === "send-link" ? "Sending…" : "Resend"}
+                {busyAction === "send-link" ? (
+                  <>
+                    <RefreshCw size={11} className="animate-spin" />
+                    <span>Sending…</span>
+                  </>
+                ) : (
+                  <span>Resend link</span>
+                )}
               </button>
-
-              <button
-                onClick={() =>
-                  router.push(`/admin/students/${student.studentId}/edit`)
-                }
-                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-purple)]"
-              >
-                Update
-              </button>
-
-              <span>·</span>
-
+              <span className="text-[var(--color-text-muted)]">·</span>
               {confirmRevoke ? (
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs">Revoke?</span>
+                <div className="flex items-center gap-2 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded border border-red-200/40">
+                  <span className="text-red-600 font-medium">Revoke?</span>
                   <button
                     onClick={() => {
                       onAction({
@@ -125,70 +175,150 @@ function StudentRow({
                       setConfirmRevoke(false);
                     }}
                     disabled={busy}
-                    className="text-xs text-red-600"
+                    className="text-xs font-bold text-red-600 hover:text-red-700 cursor-pointer"
                   >
                     {busyAction === "revoke-link" ? "Revoking…" : "Confirm"}
                   </button>
-                  <button onClick={() => setConfirmRevoke(false)}>
+                  <button
+                    onClick={() => setConfirmRevoke(false)}
+                    className="text-xs font-semibold text-[var(--color-text-secondary)] cursor-pointer"
+                  >
                     Cancel
                   </button>
                 </div>
               ) : (
-                <button onClick={() => setConfirmRevoke(true)}>Revoke</button>
+                <button
+                  onClick={() => setConfirmRevoke(true)}
+                  className="text-xs font-semibold text-red-600 hover:text-red-700 hover:underline cursor-pointer"
+                >
+                  Revoke link
+                </button>
               )}
-            </>
+            </div>
           ) : (
             <button
               onClick={() =>
                 onAction({ type: "send-link", studentId: student.studentId })
               }
               disabled={busy}
-              className="text-xs hover:underline"
+              className="text-xs font-semibold text-[var(--color-purple)] hover:text-[var(--color-purple-hover)] bg-[var(--color-purple-light)] hover:bg-[var(--color-purple-light)]/80 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
             >
-              {busyAction === "send-link" ? "Sending…" : "Send parent link"}
+              {busyAction === "send-link" ? (
+                <>
+                  <RefreshCw size={12} className="animate-spin" />
+                  <span>Sending parent link…</span>
+                </>
+              ) : (
+                <>
+                  <Send size={12} />
+                  <span>Send parent link</span>
+                </>
+              )}
             </button>
           )}
         </div>
 
-        {/* Resend code (pending) / Reset password (active) */}
-        <button
-          onClick={() =>
-            onAction({ type: "resend-code", studentId: student.studentId })
-          }
-          disabled={busy}
-          className="text-xs text-[var(--color-purple)] hover:underline"
-        >
-          {busyAction === "resend-code"
-            ? isPending ? "Sending…" : "Resetting…"
-            : isPending ? "Resend code" : "Reset password"}
-        </button>
+        {/* Right Side: Account Actions */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Update / Edit */}
+          <button
+            onClick={() =>
+              router.push(`/admin/students/${student.studentId}/edit`)
+            }
+            className="text-xs font-semibold text-[var(--color-text-secondary)] hover:text-[var(--color-purple)] bg-[var(--color-bg-page)] hover:bg-[var(--color-purple-light)] border border-[var(--color-border)] hover:border-[var(--color-purple)]/25 px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer"
+          >
+            <Edit size={12} />
+            <span>Update</span>
+          </button>
 
-        {confirmDelete ? (
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs">Delete student?</span>
+          {/* Reset password or Resend code */}
+          <button
+            onClick={() =>
+              onAction({ type: "resend-code", studentId: student.studentId })
+            }
+            disabled={busy}
+            className="text-xs font-semibold text-[var(--color-purple)] hover:text-white bg-[var(--color-purple-light)] hover:bg-[var(--color-purple)] px-3 py-1.5 rounded-lg transition-all disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+          >
+            {busyAction === "resend-code" ? (
+              <>
+                <RefreshCw size={12} className="animate-spin" />
+                <span>{isPending ? "Sending code…" : "Resetting password…"}</span>
+              </>
+            ) : (
+              <>
+                <Key size={12} />
+                <span>{isPending ? "Resend code" : "Reset password"}</span>
+              </>
+            )}
+          </button>
+
+          {/* Delete student */}
+          {confirmDelete ? (
+            <div className="flex items-center gap-1.5 bg-red-50 dark:bg-red-950/20 px-2.5 py-1 rounded-lg border border-red-200/40 text-xs">
+              <span className="text-red-600 font-semibold">Delete?</span>
+              <button
+                onClick={() => {
+                  onAction({ type: "delete", studentId: student.studentId });
+                  setConfirmDelete(false);
+                }}
+                disabled={busy}
+                className="font-bold text-red-600 hover:text-red-700 cursor-pointer"
+              >
+                {busyAction === "delete" ? "Deleting…" : "Confirm"}
+              </button>
+              <button
+                onClick={() => setConfirmDelete(false)}
+                className="font-semibold text-[var(--color-text-secondary)] cursor-pointer"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
             <button
-              onClick={() => {
-                onAction({ type: "delete", studentId: student.studentId });
-                setConfirmDelete(false);
-              }}
-              disabled={busy}
-              className="text-xs text-red-600"
+              onClick={() => setConfirmDelete(true)}
+              className="text-xs font-semibold text-red-600 hover:text-white hover:bg-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-200/40 hover:border-red-600 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              {busyAction === "delete" ? "Deleting…" : "Confirm"}
+              <Trash2 size={12} />
+              <span>Delete</span>
             </button>
-            <button onClick={() => setConfirmDelete(false)}>Cancel</button>
-          </div>
-        ) : (
-          <button onClick={() => setConfirmDelete(true)}>Delete</button>
-        )}
+          )}
+        </div>
+      </div>
 
-        {created && (
-          <div className="mt-3 p-3 rounded-xl border bg-[var(--color-bg-page)] w-full">
-            <p className="text-xs text-[var(--color-text-muted)]">
-              {isPending ? "Verification code" : "New password"}
-            </p>
-            <p className="text-sm font-mono mt-1">{created.code}</p>
-            <div className="flex gap-2 mt-2">
+      {/* Credentials display box */}
+      {created && (
+        <div className="mt-1 p-4 rounded-xl border border-[var(--color-purple)]/25 bg-gradient-to-br from-[var(--color-bg-page)] to-[var(--color-bg-card)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 text-xs text-[var(--color-text-secondary)] font-semibold">
+              <Key size={14} className="text-[var(--color-purple)] shrink-0" />
+              <span>{isPending ? "Verification Code" : "Temporary Password"}</span>
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <code className="text-sm font-mono font-bold bg-[var(--color-purple-light)]/40 text-[var(--color-purple-dark)] px-2.5 py-1 rounded-md border border-[var(--color-purple)]/10 select-all tracking-wider shadow-sm">
+                {created.code}
+              </code>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(created.code);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                title="Copy code"
+                className="p-1.5 rounded-md hover:bg-[var(--color-purple-light)] text-[var(--color-text-secondary)] hover:text-[var(--color-purple)] transition-colors border border-[var(--color-border)] cursor-pointer bg-white"
+              >
+                {copied ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+              </button>
+              {copied && (
+                <span className="text-[10px] text-emerald-600 font-semibold animate-pulse">Copied!</span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1.5 items-start md:items-end shrink-0">
+            <span className="text-[10px] uppercase tracking-wider text-[var(--color-text-muted)] font-bold">
+              Export Credentials
+            </span>
+            <div className="flex gap-2">
               <button
                 onClick={() => {
                   const label = isPending ? "Code" : "Password";
@@ -200,9 +330,10 @@ function StudentRow({
                   a.download = `${created.fullName}.txt`;
                   a.click();
                 }}
-                className="text-xs underline"
+                className="text-xs font-semibold px-2.5 py-1.5 border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:text-[var(--color-purple)] hover:border-[var(--color-purple)] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
               >
-                TXT
+                <FileText size={12} />
+                <span>TXT</span>
               </button>
               <button
                 onClick={() => {
@@ -215,14 +346,15 @@ function StudentRow({
                   a.download = `student.csv`;
                   a.click();
                 }}
-                className="text-xs underline"
+                className="text-xs font-semibold px-2.5 py-1.5 border border-[var(--color-border)] bg-white text-[var(--color-text-secondary)] hover:text-[var(--color-purple)] hover:border-[var(--color-purple)] rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
               >
-                CSV
+                <Table size={12} />
+                <span>CSV</span>
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -363,18 +495,18 @@ export default function AdminStudentsPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {/* Filter bar */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap bg-[var(--color-purple-light)] p-6 rounded-b-lg">
             <input
               type="text"
               placeholder="Search by name or email…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="flex-1 min-w-0 h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
+              className="flex-1 min-w-0 h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
             />
             <select
               value={classFilter}
               onChange={(e) => setClassFilter(e.target.value)}
-              className="h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
+              className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
             >
               <option value="">All classes</option>
               {CLASS_LEVELS.map((c) => (
@@ -384,7 +516,7 @@ export default function AdminStudentsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
+              className="h-9 rounded-md border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
             >
               <option value="">All statuses</option>
               {STATUSES.map((s) => (

@@ -8,9 +8,9 @@ import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
 import type { SchoolProfile, UpdateTerm } from "@/lib/api/types";
 
 const TIER_STYLE: Record<string, { bg: string; text: string }> = {
-  pilot:     { bg: "bg-cyan-50",     text: "text-cyan-700" },
-  annual:    { bg: "bg-emerald-50",  text: "text-emerald-700" },
-  suspended: { bg: "bg-red-50",      text: "text-red-600" },
+  pilot: { bg: "bg-cyan-50", text: "text-cyan-700" },
+  annual: { bg: "bg-emerald-50", text: "text-emerald-700" },
+  suspended: { bg: "bg-red-50", text: "text-red-600" },
 };
 
 const sessions = Array.from(
@@ -282,7 +282,7 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <PageShell title="Dashboard">
+    <PageShell title={!profile ? "Dashboard" : profile.name}>
       {isLoading ? (
         <ListSkeleton rows={4} />
       ) : error ? (
@@ -296,11 +296,20 @@ export default function AdminDashboardPage() {
       ) : (
         <div className="flex flex-col gap-8">
           {/* Header */}
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
-                {profile.name}
-              </h2>
+          <div className="w-full p-6 rounded-b-xl bg-[var(--color-purple-light)]">
+            <div className="flex items-center gap-6">
+              {/* <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+                  {profile.name}
+                </h2>
+
+              </div> */}
+
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                Term {profile.term}
+                {profile.availableArms && profile.availableArms.length > 0 &&
+                  ` · Arms: ${profile.availableArms.join(", ")}`}
+              </p>
 
               {tier && (
                 <span className={`text-xs px-2.5 py-0.5 rounded-full ${tier.bg} ${tier.text}`}>
@@ -309,23 +318,17 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              Term {profile.term}
-              {profile.availableArms && profile.availableArms.length > 0 &&
-                ` · Arms: ${profile.availableArms.join(", ")}`}
-            </p>
-          </div>
+            {/* Stats */}
+            <div>
+              <p className="text-xs uppercase mb-3 text-[var(--color-text-muted)]">
+                Overview
+              </p>
 
-          {/* Stats */}
-          <div>
-            <p className="text-xs uppercase mb-3 text-[var(--color-text-muted)]">
-              Overview
-            </p>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <StatCard label="Total students" value={profile.stats.totalStudents} />
-              <StatCard label="Active students" value={profile.stats.activeStudents} />
-              <StatCard label="Pending students" value={profile.stats.pendingStudents} />
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <StatCard label="Total students" value={profile.stats.totalStudents} />
+                <StatCard label="Active students" value={profile.stats.activeStudents} />
+                <StatCard label="Pending students" value={profile.stats.pendingStudents} />
+              </div>
             </div>
           </div>
 

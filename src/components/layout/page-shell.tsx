@@ -26,7 +26,7 @@ export function PageShell({
     <div className={cn("flex flex-col w-full min-h-full px-4 sm:px-6 lg:px-8 py-6", className)}>
       
       {/* Header */}
-      <div className={`px-4 sm:px-6 lg:px-8 pt-6 pb-5 border-b border-border rounded-t-[20px] bg-purple-light ${ rounded && "rounded-b-[20px] mb-6"}`}>
+      <div className={`px-4 sm:px-6 lg:px-8 pt-6 pb-5 border-b border-border rounded-t-[20px] bg-[var(--color-purple-light)] ${ rounded && "rounded-b-[20px] mb-6"}`}>
         {backHref && (
           <a
             href={backHref}

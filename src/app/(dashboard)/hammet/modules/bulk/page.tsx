@@ -79,7 +79,7 @@ export default function BulkModulesPage() {
       form.append("file", file);
 
       await apiClient.postForm<true>(
-        "/admin/modules",
+        "/hammet/modules",
         form,
         accessToken,
         { onRefresh: refreshToken }

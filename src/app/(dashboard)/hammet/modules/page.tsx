@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getAdminModules } from "@/lib/api/hammet";
+import { getHammetModules } from "@/lib/api/hammet";
 import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { CurriculumModule } from "@/lib/api/types";
 import { Upload, Pencil } from "lucide-react"
@@ -84,7 +84,7 @@ export default function HammetModulesPage() {
   useEffect(() => {
     if (!accessToken) return;
 
-    getAdminModules(accessToken, refreshToken)
+    getHammetModules(accessToken, refreshToken)
       .then((res) => setModules(res.modules))
       .catch(() => setError("Failed to load modules."))
       .finally(() => setIsLoading(false));

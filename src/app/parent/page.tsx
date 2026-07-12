@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import ParentPortalClient from "@/components/layout/parent-portal";
+import ParentPortalClient from "@/components/pages/ParentPortal";
 
 export default function Page() {
   return (

@@ -67,8 +67,7 @@ export async function createClaimedUser(
     name: 'Activate account' 
   }).click();
 
-  // Wait for authenticated state
-  await expect(page).toHaveURL(/student|admin/);
+  await expect(page).toHaveURL(/\/student|\/admin/);
 
   return {
     email,

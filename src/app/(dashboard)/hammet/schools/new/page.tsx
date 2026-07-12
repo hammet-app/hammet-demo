@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { registerSchool } from "@/lib/api/hammet";
-import { PageShell } from "@/components/layout/page-shell";
+import { PageShell } from "@/components/layout/PageShell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { ApiError } from "@/lib/api/api-client";
 
@@ -87,6 +87,7 @@ export default function NewSchoolPage() {
     e.preventDefault();
 
     const finalPhone = `${countryCode}${phone}`;
+    console.log(finalPhone)
 
     const finalRoles: UserRole[] = isTeacher
       ? ["school_admin"]
@@ -98,6 +99,8 @@ export default function NewSchoolPage() {
       roles: finalRoles,
       arms: parseArms(armsInput),
     };
+
+    console.log(payload)
 
     const validationErrors = validate(payload);
     if (Object.keys(validationErrors).length > 0) {
@@ -206,8 +209,8 @@ export default function NewSchoolPage() {
 
             <AuthInput 
               id="contact"
-              value={form.phoneNumber}
-              onChange={(e) => set("phoneNumber", e)}
+              value={phone}
+              onChange={(e) => setPhone(e)}
               label=""
               placeholder="Phone number"
               type="number"

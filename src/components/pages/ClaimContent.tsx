@@ -9,7 +9,7 @@ import {
   AuthHeading,
   AuthAlert,
 } from "@/components/ui/auth-shell";
-import { LoadingState } from "@/components/layout/parent-portal";
+import { LoadingState } from "@/components/pages/ParentPortal";
 import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";

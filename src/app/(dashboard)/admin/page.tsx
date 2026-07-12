@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSchoolProfile, updateTerm } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { SchoolProfile, UpdateTerm } from "@/lib/api/types";
 
 const TIER_STYLE: Record<string, { bg: string; text: string }> = {
@@ -106,23 +106,23 @@ function TermModal({
               onChange={(e) => setTermEnd(e.target.value)}
               className="h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
             />
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs text-[var(--color-text-secondary)]">
-                Session
-              </label>
-              <select
-                value={session}
-                onChange={(e) => setSession(e.target.value)}
-              >
-                <option value="">Select session</option>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-[var(--color-text-secondary)]">
+              Session
+            </label>
+            <select
+              value={session}
+              onChange={(e) => setSession(e.target.value)}
+            >
+              <option value="">Select session</option>
 
-                {sessions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-            </div>
+              {sessions.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -324,7 +324,7 @@ export default function AdminDashboardPage() {
                 Overview
               </p>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                 <StatCard label="Total students" value={profile.stats.totalStudents} />
                 <StatCard label="Active students" value={profile.stats.activeStudents} />
                 <StatCard label="Pending students" value={profile.stats.pendingStudents} />

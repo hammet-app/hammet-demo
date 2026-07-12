@@ -1,17 +1,5 @@
 "use client";
 
-/**
- * AuthInput
- *
- * Styled form input for auth pages.
- * - Focus: purple ring + animated underline trace
- * - Password: toggle visibility + live strength meter (opt-in via showStrength)
- * - Error: red ring + inline FieldError
- *
- * File location: src/components/ui/auth-input.tsx
- * Props contract is IDENTICAL to the original — no changes needed in page files.
- */
-
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils/utils";

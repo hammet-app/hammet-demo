@@ -26,22 +26,20 @@ test("school admin can update student", async ({ page }) => {
   );
 
   await page.getByRole('textbox', { 
-    name: 'Enter email' 
+    name: 'Student email' 
   }).fill(faker.internet.email());
 
   await page.locator('input[type="date"]').fill('2024-06-18');
 
-  await page.getByRole('textbox', { 
-    name: 'SSS1, SSS2...' 
-  }).fill('JSS3');
+  await page.getByRole('combobox').selectOption('SSS1');
 
   await page.getByRole('textbox', { 
-    name: 'Enter Parent Email' 
+    name: 'Parent Email' 
   }).fill(faker.internet.email());
 
   
   await page.getByRole('textbox', { 
-    name: 'Enter Parent phone' 
+    name: 'Parent phone' 
   }).fill('09091234567');
 
   

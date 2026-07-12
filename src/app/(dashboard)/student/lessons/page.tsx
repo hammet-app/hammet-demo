@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import { ModuleCard } from "@/components/cards/module-card";
 import { StatCard } from "@/components/cards/stat-card";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";

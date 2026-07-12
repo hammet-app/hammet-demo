@@ -1,8 +1,3 @@
-/**
- * (auth) group layout — login, claim, check-email, reset-password
- * Owns the full-page animated Adire canvas background.
- * File location: src/app/(auth)/layout.tsx
- */
 import { AdireBackground } from "@/components/ui/adire-background";
 
 export default function AuthLayout({

@@ -36,9 +36,9 @@ test("hammet admin can register a school", async ({ page, request }) => {
     name: "Website (optional)",
   }).fill(school.schoolWebsite);
 
-  await page.getByRole("textbox", {
-    name: "Phone number",
-  }).fill(school.phoneNumber);
+  await page.getByPlaceholder('+').fill("+234")
+
+  await page.getByPlaceholder('Phone number').fill(school.phoneNumber);
 
   await page.getByRole("textbox", {
     name: "Full name",

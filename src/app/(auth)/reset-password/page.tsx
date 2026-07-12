@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import ResetContent from "@/components/layout/reset-content";
+import ResetContent from "@/components/pages/ResetContent";
 
 
 export default function ResetPassword() {

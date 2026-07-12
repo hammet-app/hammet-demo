@@ -1,12 +1,5 @@
 "use client";
 
-/**
- * Login page
- * File location: src/app/(auth)/login/page.tsx
- *
- * CHANGED: button className + footer link styles only. All logic identical.
- */
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import ClaimContent from "@/components/layout/claim-content";
+import ClaimContent from "@/components/pages/ClaimContent";
 
 
 export default function ClaimPage() {

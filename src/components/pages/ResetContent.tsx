@@ -1,16 +1,5 @@
 "use client";
 
-/**
- * Reset password page
- * File location: src/app/(auth)/reset-password/page.tsx
- *
- * CHANGED:
- *  - Button className: gradient + lift treatment
- *  - showStrength on new password field
- *  - Removed unused Pin import
- *  - All logic, validation, state, API calls identical
- */
-
 import { cn } from "@/lib/utils/utils";
 import { useEffect, useState } from "react";
 import { Loader2, MailCheck } from "lucide-react";
@@ -18,7 +7,7 @@ import { ResetPasswordRequest } from "@/lib/api/types";
 import { AuthInput } from "@/components/ui/auth-input";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { LoadingState } from "@/components/layout/parent-portal";
+import { LoadingState } from "@/components/pages/ParentPortal";
 import { validatePassword as checkPassword } from "@/utils/password";
 import { AuthShell, AuthHeading, AuthAlert } from "@/components/ui/auth-shell";
 import { forgotPasswordResponseDto, toForgotPasswordResponse } from "@/lib/api/types";

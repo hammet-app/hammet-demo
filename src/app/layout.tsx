@@ -1,5 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { CookieNoticeBanner } from "@/components/layout/CookieNoticeBanner";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Nunito, Atkinson_Hyperlegible } from "next/font/google";
 
@@ -19,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${nunito.variable} ${atkinson.variable}`}>
-      <body><AuthProvider>{children}</AuthProvider></body>
+      <body><AuthProvider>{children}</AuthProvider><CookieNoticeBanner /></body>
     </html>
   );
 }

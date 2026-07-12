@@ -20,6 +20,8 @@ export type LoginResponse = {
     email: string;
     roles: UserRole[];
     schoolId: string;
+    cookieConsent: boolean;
+    cookiePolicyVersion: string;
     classLevel: string | null; // null for non-students
     classArm: string | null;
     term: number | null;
@@ -62,6 +64,8 @@ export type RefreshResponse = {
     email: string;
     roles: UserRole[];
     schoolId: string;
+    cookieConsent: boolean;
+    cookiePolicyVersion: string;
     classLevel: string | null; // null for non-students
     classArm: string | null;
     term: number | null;

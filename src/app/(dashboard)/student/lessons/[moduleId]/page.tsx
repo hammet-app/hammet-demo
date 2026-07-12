@@ -26,7 +26,7 @@ import {
   clearPendingProgress,
   hasPendingSubmission,
 } from "@/lib/db";
-import { PageShell } from "@/components/layout/page-shell";
+import { PageShell } from "@/components/layout/PageShell";
 import { StatusPill } from "@/components/ui/status-pill";
 import {
   Loader2,

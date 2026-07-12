@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { bulkRegisterStudents } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api/api-client";
-import { PageShell } from "@/components/layout/page-shell";
+import { PageShell } from "@/components/layout/PageShell";
 import { BulkRegisterRequest, BulkRegisterResponse } from "@/lib/api/types";
 import { cn } from "@/lib/utils/utils";
 

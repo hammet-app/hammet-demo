@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { studentApi } from "@/lib/api/student";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { PortfolioEntry } from "@/lib/api/types";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import { ChevronDown, ChevronUp, FileText, ExternalLink, Award } from "lucide-react";
 
 export default function PortfolioPage() {

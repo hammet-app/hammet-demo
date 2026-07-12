@@ -44,6 +44,13 @@ import {
 // SCHOOL
 // ------------------------------------------------------------
 
+export async function consent(
+  token:string,
+  onRefresh: () => Promise<string | null>
+): Promise<boolean> {
+  return await apiClient.post("/admin/consent", null, token, { onRefresh });
+}
+
 export async function getSchoolProfile(
   token: string,
   onRefresh: () => Promise<string | null>

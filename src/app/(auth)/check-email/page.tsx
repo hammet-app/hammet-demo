@@ -1,11 +1,3 @@
-/**
- * /auth/check-email
- * File location: src/app/(auth)/check-email/page.tsx
- *
- * CHANGED: icon container, step pills, card background — styling only.
- * No logic to change (this page has none).
- */
-
 import { Mail } from "lucide-react";
 import { AuthShell } from "@/components/ui/auth-shell";
 

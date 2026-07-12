@@ -46,6 +46,8 @@ function toUser(dto: UserDto): User {
         email: dto.email,
         roles: dto.roles,
         schoolId: dto.school_id,
+        cookieConsent: dto.cookie_consent,
+        cookiePolicyVersion: dto.cookie_policy_version,
         classLevel: dto.class_level,
         classArm: dto.class_arm,
         term: dto.term

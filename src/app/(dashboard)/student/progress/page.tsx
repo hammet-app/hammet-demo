@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { PageShell, StatsSkeleton, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, StatsSkeleton, ListSkeleton } from "@/components/layout/PageShell";
 import { StatCard } from "@/components/cards/stat-card";
 import { StatusPill } from "@/components/ui/status-pill";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";

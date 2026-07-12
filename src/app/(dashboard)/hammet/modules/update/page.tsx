@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-import { PageShell } from "@/components/layout/page-shell";
+import { PageShell } from "@/components/layout/PageShell";
 import { apiClient } from "@/lib/api/api-client";
 
 // ── Types ────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSchools, deactivateSchool } from "@/lib/api/hammet";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { SchoolListItem } from "@/lib/api/types";
 import { Plus } from "lucide-react";
 

@@ -9,6 +9,8 @@ export interface AuthUser {
   email: string;
   roles: UserRole[];
   schoolId: string;
+  cookieConsent: boolean;
+  cookiePolicyVersion: string;
   classLevel: string | null;
   classArm: string | null;
   term: number | null;

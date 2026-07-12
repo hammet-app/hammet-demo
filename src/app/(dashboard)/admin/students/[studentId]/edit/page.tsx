@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import { useAuth } from "@/lib/auth/auth-context";
 import { UserUpdateRequest } from "@/lib/api/types";
 import { updateStudent, getSchoolProfile, getAdminStudents } from "@/lib/api/admin";
 import { AuthInput } from "@/components/ui/auth-input";
+import { CookieConsentModal } from "@/components/layout/CookieConsentModal";
 import { RefreshCw } from "lucide-react";
 
 const LEVELS = ["JSS1", "JSS2", "JSS3", "SSS1", "SSS2", "SSS3"] as const;

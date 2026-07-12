@@ -1,18 +1,5 @@
 "use client";
 
-/**
- * AdireBackground
- *
- * Full-viewport canvas that draws animated Adire-inspired geometric patterns
- * (hexagons, diamonds, cross-points) that breathe on their own and drift
- * subtly toward the user's cursor.
- *
- * File location: src/components/ui/adire-background.tsx
- *
- * Usage: Mount once in (auth)/layout.tsx. Position absolute, z-0.
- * Children sit above it at z-10.
- */
-
 import { useEffect, useRef } from "react";
 
 interface Pattern {

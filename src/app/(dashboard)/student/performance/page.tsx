@@ -1,6 +1,6 @@
 "use client";
 
-import { PageShell, CardSkeleton } from "@/components/layout/page-shell";
+import { PageShell, CardSkeleton } from "@/components/layout/PageShell";
 import { PerformanceChart } from "@/components/cards/performance-chart";
 import type { PerformancePoint } from "@/lib/api/types";
 import { performanceApi } from "@/lib/api/performance";

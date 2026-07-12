@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import { SubmissionCard } from "@/components/cards/submission-card";
 import type { Submission } from "@/lib/api/types";
 

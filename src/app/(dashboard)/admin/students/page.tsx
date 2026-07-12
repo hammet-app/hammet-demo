@@ -11,7 +11,7 @@ import {
 } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api/api-client";
 import { resendCode } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { AdminStudent } from "@/lib/api/types";
 import {
   Mail,

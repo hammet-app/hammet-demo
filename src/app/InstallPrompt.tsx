@@ -1,18 +1,5 @@
 'use client'
 
-// components/pwa/InstallPrompt.tsx
-//
-// Handles the "Add to Home Screen" experience on both platforms:
-//
-// Android: The browser fires a `beforeinstallprompt` event.
-//          We intercept it, hide the default banner, and show our own
-//          branded prompt at the right moment (after the student has
-//          loaded their first lesson).
-//
-// iOS Safari: Does not fire beforeinstallprompt — ever.
-//             We detect iOS and show manual instructions instead.
-//             "Tap the Share button, then Add to Home Screen."
-
 import { useEffect, useState } from 'react'
 import styles from './InstallPrompt.module.css'
 

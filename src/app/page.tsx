@@ -66,7 +66,7 @@ function Nav() {
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
             src="/favicon.ico"
-            alt="HammetLabs"
+            alt="Hammet"
             width={140}
             height={36}
             className="h-8 w-auto"
@@ -358,7 +358,7 @@ function ProblemStatement() {
           The State of AI in Education — Globally
         </h2>
         <p className="text-gray-400 text-lg mb-12 max-w-xl">
-          HammetLabs intends to get your school on the global AI education map.
+          Hammet intends to get your school on the global AI education map.
         </p>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden mb-8">
@@ -527,7 +527,7 @@ function HowItWorks() {
     {
       num: "03",
       title: "Admin Registers Your School",
-      body: "School Admin assigns teachers and afterwards registers individual students into the software database.",
+      body: "School Admin assigns registers individual students into the software database.",
     },
     {
       num: "04",
@@ -598,16 +598,12 @@ function Features() {
       body: "A gamified, verifiable competency record. Students unlock higher-tier AI tools as they advance — creating a school-wide culture of progression.",
     },
     {
-      title: "Teacher Delivery Framework",
-      body: "No AI background required from your staff. Each term comes with structured lesson guides, modules, and facilitation notes.",
-    },
-    {
       title: "Admin Dashboard",
       body: "School leadership gets full visibility into programme performance — by class, by student, by term.",
     },
     {
       title: "Dedicated School Support",
-      body: "A HammetLabs contact is assigned to your school. Setup, troubleshooting, and content updates are handled on our end.",
+      body: "A Hammet contact is assigned to your school. Setup, troubleshooting, and content updates are handled on our end.",
     },
   ];
 
@@ -693,7 +689,7 @@ function CallbackForm() {
     "30-student pilot — no commitment required",
     "Onboarding completed in under 2 hours",
     "No AI expertise needed from your staff",
-    "Dedicated HammetLabs contact for your school",
+    "Dedicated Hammet contact for your school",
     "Curriculum delivered term-by-term",
   ];
 
@@ -825,7 +821,7 @@ function CallbackForm() {
                 </button>
 
                 <p className="text-purple-300 text-xs text-center leading-relaxed">
-                  By submitting, you agree to be contacted by the HammetLabs team about your school&apos;s needs.
+                  By submitting, you agree to be contacted by the Hammet team about your school&apos;s needs.
                 </p>
               </form>
             )}
@@ -838,7 +834,7 @@ function CallbackForm() {
 
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
-function Footer() {
+function FooterOld() {
   const footerLinks = [
     { label: "How It Works", href: "#how-it-works" },
     { label: "Features", href: "#features" },
@@ -851,9 +847,61 @@ function Footer() {
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-2">
+            
+          </div>
+
+          <div>
+            <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">Product</h4>
+            <div className="flex flex-col gap-3">
+              {footerLinks.map((link) => (
+                <Link
+                  key={link.href + link.label}
+                  href={link.href}
+                  className="text-sm text-gray-500 hover:text-white transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+
+          
+
+        <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-gray-600 text-sm">© 2026 Hammet. All rights reserved.</p>
+          <Link href="/login" className="text-sm text-gray-500 hover:text-white transition-colors font-medium">
+            Login →
+          </Link>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+
+function Footer() {
+  const footerLinks = [
+    { label: "How It Works", href: "#how-it-works" },
+    { label: "Features", href: "#features" },
+    { label: "For Schools", href: "#callback" },
+    { label: "Request to Test the Software", href: "#callback" },
+  ];
+
+  const legalLinks = [
+    { label: "Privacy Policy", href: "/privacy-policy" },
+    { label: "Terms of Service", href: "/terms-of-service" },
+    { label: "Cookie Policy", href: "/cookie-policy" },
+  ];
+
+  return (
+    <footer id="footer" className="bg-[#0F0A1A] text-white px-6 py-16">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-4 gap-12 mb-12">
+          <div className="md:col-span-1">
             <Image
               src="/favicon.ico"
-              alt="HammetLabs"
+              alt="Hammet"
               width={130}
               height={34}
               className="h-8 w-auto mb-4"
@@ -862,7 +910,7 @@ function Footer() {
               AI Curriculum Infrastructure for Nigerian Secondary Schools.
             </p>
             <p className="text-gray-500 text-sm leading-relaxed max-w-sm">
-              HammetLabs designs and delivers structured AI literacy programmes for private secondary schools in Nigeria. We handle curriculum, delivery frameworks, and school support — so institutions can lead on AI education without building it from scratch.
+              Hammet designs and delivers structured AI literacy programmes for private secondary schools in Nigeria. We handle curriculum, delivery frameworks, and school support — so institutions can lead on AI education without building it from scratch.
             </p>
           </div>
 
@@ -872,6 +920,21 @@ function Footer() {
               {footerLinks.map((link) => (
                 <Link
                   key={link.href + link.label}
+                  href={link.href}
+                  className="text-sm text-gray-500 hover:text-white transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-xs font-bold tracking-widest uppercase text-gray-400 mb-5">Legal</h4>
+            <div className="flex flex-col gap-3">
+              {legalLinks.map((link) => (
+                <Link
+                  key={link.href}
                   href={link.href}
                   className="text-sm text-gray-500 hover:text-white transition-colors"
                 >
@@ -892,7 +955,7 @@ function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-gray-600 text-sm">© 2026 HammetLabs. All rights reserved.</p>
+          <p className="text-gray-600 text-sm">© 2026 Hammet. All rights reserved.</p>
           <Link href="/login" className="text-sm text-gray-500 hover:text-white transition-colors font-medium">
             Login →
           </Link>
@@ -901,7 +964,6 @@ function Footer() {
     </footer>
   );
 }
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HomePage() {

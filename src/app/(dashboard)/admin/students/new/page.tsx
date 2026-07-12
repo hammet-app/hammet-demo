@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ApiError } from "@/lib/api/api-client";
 import { getSchoolProfile, registerStudent } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { FieldError } from "@/components/ui/auth-shell";
 import { RegisterStudentResponse } from "@/lib/api/types";

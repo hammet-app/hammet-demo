@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/hammet";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { CurriculumModule } from "@/lib/api/types";
+import { Upload, Pencil } from "lucide-react"
 
 const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SSS1", "SSS2", "SSS3"];
 
@@ -95,45 +96,22 @@ export default function HammetModulesPage() {
     <PageShell
       title="Modules"
       description={`${modules.length} total across ${levels.length} levels`}
+      rounded={true}
       actions={
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/hammet/modules/bulk")}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
+            className="inline-flex items-center px-4 py-2 rounded-md bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+            <Upload size={16} className="mr-2 shrink-0" />
             Upload CSV
           </button>
 
           <button
             onClick={() => router.push("/hammet/modules/update")}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
+            className="inline-flex items-center px-4 py-2 rounded-md bg-white/80 text-purple text-sm font-medium hover:opacity-90 transition"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+            <Pencil size={16} className="mr-2 shrink-0" />
             Update Modules
           </button>
         </div>

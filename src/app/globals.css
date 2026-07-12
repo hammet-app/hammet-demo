@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/*
+ * Binds Tailwind's `dark:` prefix to the .dark class your theme toggle
+ * sets on <html>. Without this, `dark:` falls back to
+ * @media (prefers-color-scheme: dark) and ignores the toggle entirely —
+ * which is why the card looked dark regardless of the in-app setting.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* ── Brand colours ── */
   --color-purple-dark:   #3B0764;
@@ -7,6 +15,8 @@
   --color-purple-mid:    #7C3AED;
   --color-purple-light:  #EDE9FE;
   --color-purple-hover:  #4C1D95;
+  --color-purple-active: #5b21b626;
+  --color-button:        #ffffffe6;
   --color-cyan:          #06B6D4;
   --color-cyan-light:    #CFFAFE;
   --color-cyan-dark:     #0891B2;
@@ -25,7 +35,7 @@
   /* ── Surfaces ── */
   --color-bg-page:       #F5F3FF;
   --color-bg-card:       #FFFFFF;
-  --color-bg-sidebar:    #3B0764;
+  --color-bg-sidebar:    #EDE9FE;
   --color-border:        #E5E7EB;
 
   /* ── Text ── */
@@ -47,6 +57,45 @@
   /* ── Sidebar / topbar dimensions ── */
   --sidebar-width: 240px;
   --topbar-height: 56px;
+}
+
+.dark {
+  /* ── Surfaces ── */
+  --color-bg-page:       #09090b; /* Zinc-950 (very dark greyscale black) */
+  --color-bg-card:       #18181b; /* Zinc-900 (neutral dark card background) */
+  --color-bg-sidebar:    #121214; /* Neutral dark sidebar background */
+  --color-border:        #27272a; /* Zinc-800 (neutral dark border) */
+
+  /* ── Text ── */
+  --color-text-primary:   #f4f4f5; /* Zinc-100 (clean off-white) */
+  --color-text-secondary: #c3c3cd; /* Zinc-400 (medium grey) */
+  --color-text-muted:     #71717a; /* Zinc-500 (muted grey) */
+
+  /* ── Brand Colors ── */
+  --color-purple-dark:    #22033c; /* Topbar background in dark mode (neutral dark) */
+  /* --color-purple:         #8b5cf6; Brighter violet accent for dark mode primary states */
+  --color-purple-mid:     #a78bfa; /* Vibrant lavender for accents */
+  --color-purple-light:   #27272a; /* Muted neutral dark for subtle backgrounds */
+  --color-purple-hover:   #7c3aed; /* Purple hover state */
+  --color-purple-active:  #8b5cf6;
+  --color-button:         #d0d0d0;
+  
+  --color-cyan:           #06b6d4; /* Clean Cyan */
+  --color-cyan-light:     #164e63; /* Dark cyan background */
+  --color-cyan-dark:      #22d3ee; /* Bright cyan text/accent */
+
+  /* ── Semantic Colors ── */
+  --color-success:        #10b981;
+  --color-success-light:  #052e16; /* Dark green background */
+  --color-success-dark:   #34d399; /* Bright green text */
+  
+  --color-warning:        #fbbf24;
+  --color-warning-light:  #451a03; /* Dark amber background */
+  --color-warning-dark:   #fbbf24; /* Bright amber text */
+  
+  --color-danger:         #ef4444;
+  --color-danger-light:   #450a0a; /* Dark red background */
+  --color-danger-dark:    #f87171; /* Bright red text */
 }
 
 /* ── Driver.js tour popover — Hammet brand theme ── */

@@ -4,13 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { CurriculumModule } from "@/lib/api/types";
 
 
 export default function AdminModulesListPage() {
   const { accessToken, refreshToken } = useAuth();
-    const router = useRouter();
     const params = useParams<{ level: string; term: string }>();
   
     const level = decodeURIComponent(params.level);
@@ -50,6 +49,7 @@ export default function AdminModulesListPage() {
           modules.length === 1 ? "module" : "modules"
         }`}
         backHref={`/admin/modules/${level}`}
+        rounded
       >
         {isLoading ? (
           <ListSkeleton rows={6} />

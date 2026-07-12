@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { ApiError } from "@/lib/api/api-client";
 import { getSchoolProfile, registerStudent } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { FieldError } from "@/components/ui/auth-shell";
 import { RegisterStudentResponse } from "@/lib/api/types";
+import { cn } from "@/lib/utils/utils";
 
 const LEVELS = ["JSS1", "JSS2", "JSS3", "SSS1", "SSS2", "SSS3"];
 
@@ -125,7 +126,7 @@ export default function NewStudentPage() {
           setError(`Invalid data. ${err.message}`);
         } else if (err.status === 500) {
           setError("Server error. Please try again.");
-        }else {
+        } else {
           setError(err.message);
         }
       } else if (err instanceof Error) {
@@ -165,13 +166,13 @@ export default function NewStudentPage() {
   }
 
   return (
-    <PageShell title="Register Student">
+    <PageShell title="Register Student" rounded>
       {isLoading ? (
         <ListSkeleton rows={4} />
       ) : (
         <div className="max-w-md flex flex-col gap-6">
 
-          <div className="border rounded-2xl p-6 flex flex-col gap-4">
+          <div className="bg-[var(--color-bg-card)] rounded-2xl p-6 flex flex-col gap-4">
 
             <div>
               <AuthInput
@@ -236,14 +237,24 @@ export default function NewStudentPage() {
                 <input
                   value={countryCode}
                   onChange={(e) => setCountryCode(e.target.value)}
-                  className="w-24 px-3 py-3 rounded-xl border"
+                  className={cn("w-24 h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
+                    "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
+                    "transition-all duration-200",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                    "border-border hover:border-purple/30 focus:border-purple focus:ring-2 focus:ring-purple/8",
+                    "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10")}
                 />
 
                 <input
                   placeholder="Phone number"
                   value={form.parentPhone}
                   onChange={(e) => set("parentPhone", e.target.value)}
-                  className="flex-1 px-4 py-3 rounded-xl border"
+                  className={cn("w-74 h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
+                    "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
+                    "transition-all duration-200",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                    "border-border hover:border-purple/30 focus:border-purple focus:ring-2 focus:ring-purple/8",
+                    "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10")}
                 />
               </div>
               <FieldError message={errors.parentPhone} />
@@ -258,7 +269,12 @@ export default function NewStudentPage() {
                 type="date"
                 value={form.dateOfBirth}
                 onChange={(e) => set("dateOfBirth", e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border"
+                className={cn("w-full h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
+                    "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
+                    "transition-all duration-200",
+                    "disabled:opacity-50 disabled:cursor-not-allowed",
+                    "border-border hover:border-purple/30 focus:border-purple focus:ring-2 focus:ring-purple/8",
+                    "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10")}
               />
 
               <FieldError message={errors.dateOfBirth} />
@@ -267,7 +283,7 @@ export default function NewStudentPage() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="bg-purple-600 text-white py-3 rounded-xl"
+              className="bg-purple-600 text-white py-3 rounded-md"
             >
               {submitting ? "Registering..." : "Register student"}
             </button>

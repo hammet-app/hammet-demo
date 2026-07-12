@@ -171,6 +171,13 @@ interface ApiErrorResponse {
 }
 
 
+export type ApiErrorDetails =
+  | string
+  | Record<string, unknown>
+  | Record<string, unknown>[]
+  | null;
+
+
 export class ApiError<T = ApiErrorResponse> extends Error {
   constructor(
     public readonly status: number,
@@ -182,8 +189,9 @@ export class ApiError<T = ApiErrorResponse> extends Error {
     this.name = "ApiError";
   }
 
-  get details() {
-    return (this.data as ApiErrorResponse)?.error?.detail;
+  get details(): ApiErrorDetails {
+    return ((this.data as ApiErrorResponse)?.error?.detail ??
+      null) as ApiErrorDetails;
   }
 
   get code() {

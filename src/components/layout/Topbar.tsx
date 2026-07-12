@@ -1,9 +1,11 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import Link from "next/link";
 import { cn } from "@/lib/utils/utils";
-import { type AuthUser, getPrimaryRole, getRoleLabel, getInitials } from "@/lib/utils/roles";
+import { useTheme } from "@/lib/use-theme";
+import { Menu, Sun, Moon } from "lucide-react";
 import type { UserRole } from "@/lib/utils/roles";
+import { type AuthUser, getRoleLabel, getInitials } from "@/lib/utils/roles";
 
 interface TopbarProps {
   user: AuthUser;
@@ -31,6 +33,11 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
   const primaryRole = activeRole;
   const roleLabel = getRoleLabel(primaryRole);
 
+  const { theme, toggle } = useTheme();
+
+  console.log(theme);
+  
+
   const metaLine =
     primaryRole === "student" && user.classLevel
       ? [user.classLevel, user.classArm].filter(Boolean).join("")
@@ -53,7 +60,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
       </button>
 
       {/* Logo */}
-      <a href="/favicon.ico" className="flex items-center gap-2 shrink-0 no-underline">
+      <Link href="/favicon.ico" className="flex items-center gap-2 shrink-0 no-underline">
         <div className="w-7 h-7 rounded-[7px] bg-cyan flex items-center justify-center">
           <LogoMark />
         </div>
@@ -66,9 +73,21 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
           </span>
           <span className="text-[11px] text-white/40 font-normal">AI Studies</span>
         </div>
-      </a>
+      </Link>
 
       <div className="flex-1" />
+      {/* Dark theme */}
+      <button
+        onClick={toggle}
+        className="flex items-center justify-center w-8 h-8 rounded-full text-white hover:bg-white/10 transition-colors"
+        aria-label="Toggle theme"
+      >
+        {theme === "dark" ? (
+          <Sun size={16} />
+        ) : (
+          <Moon size={16} />
+        )}
+      </button>
 
       {/* Role badge */}
       <span

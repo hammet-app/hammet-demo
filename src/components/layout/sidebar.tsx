@@ -13,7 +13,6 @@ import { getDashboardRoute } from "@/lib/auth/routes";
 interface SidebarProps {
   roles: UserRole[];
   activeRole: UserRole;
-  setActiveRole: (role: UserRole) => void;
   activePath: string;
   onNavigate?: () => void;
   className?: string;
@@ -22,7 +21,6 @@ interface SidebarProps {
 export function Sidebar({
   roles,
   activeRole,
-  setActiveRole,
   activePath,
   onNavigate,
   className,
@@ -43,42 +41,17 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        "flex min-h-screen w-[300px] flex-col bg-[#4B0081] px-5 py-[15px] text-white",
+        "flex min-h-screen w-[300px] flex-col bg-[var(--color-bg-sidebar)] px-5 py-[22px] text-purple-dark",
         className
       )}
     >
-      {roles.length > 1 && (
-        <div className="mb-8">
-          <select
-            value={activeRole}
-            onChange={(e) => {
-              const newRole = e.target.value as UserRole;
-
-              setActiveRole(newRole);
-              router.push(getDashboardRoute(newRole));
-            }}
-            className="w-full rounded-md bg-white/10 px-3 py-2 text-sm text-white outline-none"
-          >
-            {roles.map((role) => (
-              <option
-                key={role}
-                value={role}
-                className="bg-[#4B0081] text-white"
-              >
-                {formatRole(role)}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       <nav className="flex flex-1 flex-col gap-[25px]">
         {entries.map((entry, i) => {
           if (entry.type === "section") {
             return (
               <p
                 key={i}
-                className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40"
+                className="px-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-text-primary)] -pb-[20px]"
               >
                 {entry.label}
               </p>
@@ -110,13 +83,13 @@ export function Sidebar({
                   router.push("/login");
                 }}
                 className={cn(
-                  "h-auto w-full justify-start rounded-md bg-white px-5 py-2",
-                  "text-[#D80004] hover:bg-white/90 hover:text-[#D80004]"
+                  "h-auto w-full justify-start rounded-md bg-[var(--color-purple)] px-5 py-3 text-white shadow-sm",
+                  "hover:bg-[var(--color-purple-hover)]"
                 )}
               >
                 <Icon size={16} className="mr-2 shrink-0" />
 
-                <span className="text-xs font-medium leading-none">
+                <span className="text-sm font-medium leading-none">
                   {item.label}
                 </span>
               </Button>
@@ -130,12 +103,12 @@ export function Sidebar({
               onClick={onNavigate}
               {...(item.tourId ? { 'data-tour': item.tourId } : {})}
               className={cn(
-                "flex items-center gap-[10px] rounded-md px-5 py-2 text-xs transition-all",
+                "flex items-center gap-[10px] rounded-md px-5 py-3 text-sm font-medium transition-all",
                 isActive
-                  ? "bg-[rgba(127,128,255,0.5)] text-white"
+                  ? "bg-[var(--color-purple-active)] text-[var(--color-text-primary)]"
                   : item.danger
-                  ? "text-red-300 hover:bg-red-500/10 hover:text-red-200"
-                  : "bg-[rgba(127,128,255,0.25)] text-white hover:bg-[rgba(127,128,255,0.5)]"
+                  ? "bg-white/90 text-red-600 hover:bg-red-100 hover:text-red-700"
+                  : "bg-[var(--color-button)] text-[purple-dark] hover:bg-white"
               )}
             >
               <Icon size={16} className="shrink-0" />

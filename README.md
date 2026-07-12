@@ -64,9 +64,9 @@ NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_client_id
 
 ```bash
 npm run dev        # Development server
+npm run lint       # Run linting
 npm run build      # Production build
 npm run start      # Start production server
-npm run lint       # Run linting
 ```
 
 ---

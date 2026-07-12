@@ -1,4 +1,3 @@
-// components/onboarding/help-button.tsx
 'use client'
 
 import { CircleHelp } from 'lucide-react'

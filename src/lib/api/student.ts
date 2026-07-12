@@ -32,7 +32,8 @@ import {
   fromSectionProgress,
   fromCreateSubmissionRequest,
   toCreateSubmissionResponse, 
-  fromResubmission
+  fromResubmission,
+  ModuleSummary
 } from "@/lib/api/types";
 
 export const studentApi = {
@@ -53,13 +54,14 @@ export const studentApi = {
     term: number,
     level: string,
     token: string,
-    onRefresh: () => Promise<string | null>
+    onRefresh: () => Promise<string | null>,
+    onFresh?: (modules: ModuleSummary[]) => void
   ): Promise<ModulesResponse> => {
 
     // 1. Try cache first
     const cached = await getCachedModuleSummaries(term, level)
 
-    if (cached) {
+    if (cached.length > 0) {
       // Background refresh (optional)
       void apiClient
         .get<ModulesResponseDto>(
@@ -70,6 +72,7 @@ export const studentApi = {
         .then(async (fresh) => {
           const freshed = toModuleResponse(fresh)
           await cacheModuleSummaries(freshed.modules)
+          onFresh?.(freshed.modules)
         })
         .catch(console.error)
 
@@ -124,11 +127,11 @@ export const studentApi = {
       token,
       { onRefresh }
     )
-    const module = toCurriculumModule(fresh)
+    const lessonModule = toCurriculumModule(fresh)
     // 3. Cache
-    await cacheModule(module)
+    await cacheModule(lessonModule)
 
-    return module
+    return lessonModule
   },
 
   saveProgress: (

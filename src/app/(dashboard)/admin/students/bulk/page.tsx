@@ -4,11 +4,12 @@ import { useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { bulkRegisterStudents } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api/api-client";
-import { PageShell } from "@/components/layout/page-shell";
+import { PageShell } from "@/components/layout/PageShell";
 import { BulkRegisterRequest, BulkRegisterResponse } from "@/lib/api/types";
+import { cn } from "@/lib/utils/utils";
 
 const PLACEHOLDER = `Chisom Obi,chisom@school.edu.ng,SSS1,A,parent@email.com,+2348001234567,2011-01-09
-Motilola Lambo,moti@school.edu.ng,JS2,B,dad@email.com,+2347012345678,2014-04-10
+Motilola Lambo,moti@school.edu.ng,JSS2,B,dad@email.com,+2347012345678,2014-04-10
 Aisha Bello,aisha@school.edu.ng,SSS3,,mum@email.com,+2348098765432,2010-09-21`;
 
 export default function BulkImportPage() {
@@ -32,7 +33,7 @@ export default function BulkImportPage() {
     setResult(null);
 
     try {
-      const res = await bulkRegisterStudents({csvText: csvText } satisfies BulkRegisterRequest, accessToken, refreshToken);
+      const res = await bulkRegisterStudents({ csvText: csvText } satisfies BulkRegisterRequest, accessToken, refreshToken);
       setResult(res);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -45,13 +46,19 @@ export default function BulkImportPage() {
         } else if (err.status === 409) {
           setServerError("Some records already exist or conflict with existing data.");
         } else if (err.status === 400 || err.status === 422) {
-          setServerError(
-            `Invalid data. ${
-              Array.isArray(err.details)
-                ? err.details.map((e: any) => e.message).join(", ")
-                : err.message
-            }`
-          );
+          if (Array.isArray(err.details)) {
+            setServerError(
+              err.details
+                .map((item) =>
+                  typeof item === "object" &&
+                    item !== null &&
+                    "row" in item
+                    ? `Row ${item.row}`
+                    : JSON.stringify(item)
+                )
+                .join(", ")
+            );
+          }
         } else if (err.status === 500) {
           setServerError("Server error. Please try again.");
         } else {
@@ -85,7 +92,7 @@ export default function BulkImportPage() {
   }
 
   return (
-    <PageShell title="Bulk Import Students">
+    <PageShell title="Bulk Import Students" rounded>
       <div className="max-w-2xl flex flex-col gap-6">
 
         {/* RESULT */}
@@ -126,13 +133,18 @@ export default function BulkImportPage() {
               onChange={(e) => setCsvText(e.target.value)}
               rows={12}
               placeholder={PLACEHOLDER}
-              className="w-full border rounded-xl p-3 font-mono"
+              className={cn("w-full px-3 rounded-lg border text-[13.5px] text-text-primary",
+                "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
+                "transition-all duration-200",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                "border-border hover:border-purple/30 focus:border-purple focus:ring-2 focus:ring-purple/8",
+                "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10")}
             />
 
             <button
               onClick={handleSubmit}
               disabled={submitting || rowCount === 0}
-              className="bg-purple-600 text-white py-3 rounded-xl"
+              className="bg-purple-600 text-white py-3 rounded-lg"
             >
               {submitting
                 ? "Importing..."

@@ -1,15 +1,6 @@
 import { AuthGuard } from "@/components/layout/auth-guard";
-import { DashboardLayoutInner } from "@/components/layout/dashboard-layout-inner";
+import { DashboardLayoutInner } from "@/components/layout/DashboardLayoutInner";
 
-/**
- * (dashboard) group layout.
- *
- * Every page under app/(dashboard)/ is automatically:
- * 1. Protected by AuthGuard (skeleton → redirect if no session)
- * 2. Wrapped in DashboardLayoutInner (Topbar + Sidebar + Sheet drawer)
- *
- * File location: src/app/(dashboard)/layout.tsx
- */
 export default function DashboardLayout({
   children,
 }: {

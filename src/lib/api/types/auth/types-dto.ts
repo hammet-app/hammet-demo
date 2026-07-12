@@ -26,6 +26,8 @@ export type LoginResponseDto = {
     email: string;
     roles: UserRole[];
     school_id: string;
+    cookie_consent: boolean;
+    cookie_policy_version: string;
     class_level: string | null; // null for non-students
     class_arm: string | null;
     term: number | null;
@@ -52,6 +54,8 @@ export type RefreshResponseDto = {
     email: string;
     roles: UserRole[];
     school_id: string;
+    cookie_consent: boolean;
+    cookie_policy_version: string;
     class_level: string | null; // null for non-students
     class_arm: string | null;
     term: number | null;
@@ -77,7 +81,7 @@ export type RegisterSchoolRequestDto = {
 export type RegisterSchoolResponseDto = {
   school_id: string;
   admin_id: string;
-  message: string;              // invite email sent to admin
+  message: boolean;              // invite email sent to admin
 };
 
 
@@ -104,3 +108,7 @@ export type BulkRegisterResponseDto = {
   total: number;
   codes: RegisterStudentResponseDto[];
 };
+
+export type forgotPasswordResponseDto = {
+  is_admin: boolean;
+}

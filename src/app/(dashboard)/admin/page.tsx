@@ -4,14 +4,22 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getSchoolProfile, updateTerm } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { SchoolProfile, UpdateTerm } from "@/lib/api/types";
 
 const TIER_STYLE: Record<string, { bg: string; text: string }> = {
-  pilot:     { bg: "bg-cyan-50",     text: "text-cyan-700" },
-  annual:    { bg: "bg-emerald-50",  text: "text-emerald-700" },
-  suspended: { bg: "bg-red-50",      text: "text-red-600" },
+  pilot: { bg: "bg-cyan-50", text: "text-cyan-700" },
+  annual: { bg: "bg-emerald-50", text: "text-emerald-700" },
+  suspended: { bg: "bg-red-50", text: "text-red-600" },
 };
+
+const sessions = Array.from(
+  { length: 10 },
+  (_, i) => {
+    const year = 2023 + i;
+    return `${year}-${year + 1}`;
+  }
+);
 
 // ── Term modal ────────────────────────────────────────────────────────────────
 
@@ -22,18 +30,19 @@ function TermModal({
 }: {
   profile: SchoolProfile;
   onClose: () => void;
-  onSaved: (start: string, end: string) => void;
+  onSaved: (start: string, end: string, session: string) => void;
 }) {
   const { accessToken, refreshToken } = useAuth();
 
   const [termStart, setTermStart] = useState(profile.termStart ?? "");
   const [termEnd, setTermEnd] = useState(profile.termEnd ?? "");
+  const [session, setSession] = useState(profile.session ?? "")
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSave() {
-    if (!termStart || !termEnd) {
-      setError("Both dates are required.");
+    if (!termStart || !termEnd || !session.trim()) {
+      setError("Both dates and session are required.");
       return;
     }
     if (termEnd <= termStart) {
@@ -45,8 +54,8 @@ function TermModal({
     setError(null);
 
     try {
-      await updateTerm({ termStart, termEnd } satisfies UpdateTerm, accessToken!, refreshToken);
-      onSaved(termStart, termEnd);
+      await updateTerm({ termStart, termEnd, session } satisfies UpdateTerm, accessToken!, refreshToken);
+      onSaved(termStart, termEnd, session);
     } catch {
       setError("Failed to save. Please try again.");
     } finally {
@@ -97,6 +106,23 @@ function TermModal({
               onChange={(e) => setTermEnd(e.target.value)}
               className="h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
             />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-[var(--color-text-secondary)]">
+              Session
+            </label>
+            <select
+              value={session}
+              onChange={(e) => setSession(e.target.value)}
+            >
+              <option value="">Select session</option>
+
+              {sessions.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
@@ -256,7 +282,7 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <PageShell title="Dashboard">
+    <PageShell title={!profile ? "Dashboard" : profile.name}>
       {isLoading ? (
         <ListSkeleton rows={4} />
       ) : error ? (
@@ -270,11 +296,20 @@ export default function AdminDashboardPage() {
       ) : (
         <div className="flex flex-col gap-8">
           {/* Header */}
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
-                {profile.name}
-              </h2>
+          <div className="w-full p-6 rounded-b-xl bg-[var(--color-purple-light)]">
+            <div className="flex items-center gap-6">
+              {/* <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+                  {profile.name}
+                </h2>
+
+              </div> */}
+
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                Term {profile.term}
+                {profile.availableArms && profile.availableArms.length > 0 &&
+                  ` · Arms: ${profile.availableArms.join(", ")}`}
+              </p>
 
               {tier && (
                 <span className={`text-xs px-2.5 py-0.5 rounded-full ${tier.bg} ${tier.text}`}>
@@ -283,23 +318,17 @@ export default function AdminDashboardPage() {
               )}
             </div>
 
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              Term {profile.term}
-              {profile.availableArms && profile.availableArms.length > 0 &&
-                ` · Arms: ${profile.availableArms.join(", ")}`}
-            </p>
-          </div>
+            {/* Stats */}
+            <div>
+              <p className="text-xs uppercase mb-3 text-[var(--color-text-muted)]">
+                Overview
+              </p>
 
-          {/* Stats */}
-          <div>
-            <p className="text-xs uppercase mb-3 text-[var(--color-text-muted)]">
-              Overview
-            </p>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-              <StatCard label="Total students" value={profile.stats.totalStudents} />
-              <StatCard label="Active students" value={profile.stats.activeStudents} />
-              <StatCard label="Pending students" value={profile.stats.pendingStudents} />
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                <StatCard label="Total students" value={profile.stats.totalStudents} />
+                <StatCard label="Active students" value={profile.stats.activeStudents} />
+                <StatCard label="Pending students" value={profile.stats.pendingStudents} />
+              </div>
             </div>
           </div>
 
@@ -323,9 +352,9 @@ export default function AdminDashboardPage() {
         <TermModal
           profile={profile}
           onClose={() => setTermModalOpen(false)}
-          onSaved={(start, end) => {
+          onSaved={(start, end, session) => {
             setProfile((prev) =>
-              prev ? { ...prev, termStart: start, termEnd: end } : prev
+              prev ? { ...prev, termStart: start, termEnd: end, session: session } : prev
             );
             setTermModalOpen(false);
           }}

@@ -2,6 +2,7 @@ import {
     BulkRegisterResponseDto,
     ClaimAccountRequestDto,
     ClaimAccountResponseDto,
+    forgotPasswordResponseDto,
     InviteInfoDto,
     LoginResponseDto,
     RefreshResponseDto,
@@ -45,6 +46,8 @@ function toUser(dto: UserDto): User {
         email: dto.email,
         roles: dto.roles,
         schoolId: dto.school_id,
+        cookieConsent: dto.cookie_consent,
+        cookiePolicyVersion: dto.cookie_policy_version,
         classLevel: dto.class_level,
         classArm: dto.class_arm,
         term: dto.term
@@ -75,6 +78,7 @@ export function fromClaimAccountRequest(model: ClaimAccountRequest): ClaimAccoun
         }
     }
     return {
+        email: model.email,
         token: model.token,
         claim_code: model.claimCode,
         password: model.password,
@@ -144,5 +148,10 @@ export function toBulkRegisterResponse(dto: BulkRegisterResponseDto): BulkRegist
     return {
         total: dto.total,
         codes: dto.codes.map(toRegisterStudentResponse)
+    }
+}
+export function toForgotPasswordResponse(dto: forgotPasswordResponseDto) {
+    return {
+        isAdmin: dto.is_admin
     }
 }

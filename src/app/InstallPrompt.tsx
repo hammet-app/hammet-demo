@@ -1,18 +1,5 @@
 'use client'
 
-// components/pwa/InstallPrompt.tsx
-//
-// Handles the "Add to Home Screen" experience on both platforms:
-//
-// Android: The browser fires a `beforeinstallprompt` event.
-//          We intercept it, hide the default banner, and show our own
-//          branded prompt at the right moment (after the student has
-//          loaded their first lesson).
-//
-// iOS Safari: Does not fire beforeinstallprompt — ever.
-//             We detect iOS and show manual instructions instead.
-//             "Tap the Share button, then Add to Home Screen."
-
 import { useEffect, useState } from 'react'
 import styles from './InstallPrompt.module.css'
 
@@ -40,10 +27,9 @@ function isInStandaloneMode(): boolean {
 }
 
 export default function InstallPrompt() {
-  const [platform, setPlatform] = useState<Platform>('other')
+  const [platform] = useState<Platform>(() => detectPlatform())
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [showPrompt, setShowPrompt] = useState(false)
-  const [showIOSInstructions, setShowIOSInstructions] = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
@@ -54,7 +40,6 @@ export default function InstallPrompt() {
     if (localStorage.getItem('pwa-install-dismissed') === 'true') return
 
     const p = detectPlatform()
-    setPlatform(p)
 
     if (p === 'android') {
       // Intercept the native install prompt

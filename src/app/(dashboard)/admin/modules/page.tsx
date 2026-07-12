@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { CurriculumModule } from "@/lib/api/types";
 
 const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SS1", "SS2", "SS3"];
@@ -117,6 +117,7 @@ export default function AdminModulesListPage() {
       <PageShell
         title="Modules"
         description={`${modules.length} total across ${levels.length} levels`}
+        rounded
       >
         {isLoading ? (
           <ListSkeleton rows={6} />

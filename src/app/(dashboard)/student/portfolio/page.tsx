@@ -1,12 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
-import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { PageShell, ListSkeleton } from "@/components/layout/page-shell";
-import { ChevronDown, ChevronUp, FileText, ExternalLink, Award } from "lucide-react";
+import { useAuth } from "@/lib/auth/auth-context";
 import type { PortfolioEntry } from "@/lib/api/types";
-import { cn } from "@/lib/utils/utils";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
+import { ChevronDown, ChevronUp, FileText, ExternalLink, Award } from "lucide-react";
 
 export default function PortfolioPage() {
   const { accessToken, refreshToken, user } = useAuth();
@@ -27,6 +27,7 @@ export default function PortfolioPage() {
     <PageShell
       title="My Portfolio"
       description="Approved work that showcases your AI literacy journey"
+      rounded={true}
     >
       {isLoading ? (
         <ListSkeleton rows={4} />
@@ -130,7 +131,7 @@ function PortfolioEntryCard({ entry }: { entry: PortfolioEntry }) {
                   Attachment
                 </div>
 
-                <a
+                <Link
                   href={fileUrl}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -138,7 +139,7 @@ function PortfolioEntryCard({ entry }: { entry: PortfolioEntry }) {
                 >
                   <ExternalLink size={13} />
                   View uploaded file {index + 1}
-                </a>
+                </Link>
               </div>
             ) : null
           )}
@@ -170,12 +171,12 @@ function EmptyPortfolio() {
           and get it approved by your teacher to get started.
         </p>
       </div>
-      <a
+      <Link
         href="/student/lessons"
         className="mt-2 text-[13px] font-semibold text-purple-mid hover:text-purple transition-colors no-underline"
       >
         Go to My Lessons
-      </a>
+      </Link>
     </div>
   );
 }

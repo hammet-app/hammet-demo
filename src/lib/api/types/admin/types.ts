@@ -21,12 +21,14 @@ export type SchoolProfile = {
   stats: SchoolStats;
   termStart: string;
   termEnd: string;
+  session: string|null;
 };
 
 // POST /admin/update-term
 export type UpdateTerm = {
   termStart: string;
   termEnd: string;
+  session: string;
 }
 
 
@@ -63,7 +65,7 @@ export type UserUpdateResponse = {
 
 // DELETE /admin/students/[id] — reuses DeleteResponse
 export type DeleteResponse = {
-  message: string;
+  message: boolean;
 };
 
 // POST /admin/parent-links/[studentId]/send

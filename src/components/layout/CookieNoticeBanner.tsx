@@ -10,13 +10,12 @@ export function CookieNoticeBanner() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // sessionStorage on purpose — devices are shared, this must
-    // reappear for the next person once this tab/session ends.
     const dismissed = sessionStorage.getItem(DISMISS_KEY);
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!dismissed) {
-      setVisible(true);
+      queueMicrotask(() => {
+        setVisible(true);
+      });
     }
   }, []);
 

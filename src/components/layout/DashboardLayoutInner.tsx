@@ -57,7 +57,7 @@ export function DashboardLayoutInner({
         {showPolicyUpdateBanner && (
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between gap-4">
             <p className="text-xs text-amber-800">
-              We've updated our Cookie Policy. Continued use of Hammet confirms your school's acceptance of the updated terms.{" "}
+              We&apos;ve updated our Cookie Policy. Continued use of Hammet confirms your school&apos;s acceptance of the updated terms.{" "}
               <a href="/cookie-policy" className="underline underline-offset-2 font-medium">
                 Review changes
               </a>

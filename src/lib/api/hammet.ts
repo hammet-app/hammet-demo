@@ -29,7 +29,7 @@ export async function getSchools(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<SchoolsListResponse> {
-  const response = await apiClient.get<SchoolsListResponseDto>("/admin/schools", token, {
+  const response = await apiClient.get<SchoolsListResponseDto>("/hammet/schools", token, {
     onRefresh,
   });
 
@@ -58,7 +58,7 @@ export async function deactivateSchool(
   onRefresh: () => Promise<string | null>
 ): Promise<DeactivateSchoolResponse> {
   const response = await apiClient.post<DeactivateSchoolResponseDto>(
-    `/admin/schools/${schoolId}/deactivate`,
+    `/hammet/schools/${schoolId}/deactivate`,
     {},
     token,
     { onRefresh }
@@ -73,7 +73,7 @@ export async function createModule(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<CurriculumModule> {
-  const response = await apiClient.post<CurriculumModuleDto>("/admin/modules", body, token, {
+  const response = await apiClient.post<CurriculumModuleDto>("/hammet/modules", body, token, {
     onRefresh,
   });
 
@@ -86,7 +86,7 @@ export async function updateModule(
   onRefresh: () => Promise<string | null>
 ): Promise<UpdateModuleResponse> {
   return apiClient.put<UpdateModuleResponse>(
-    `/admin/modules`,
+    `/hammet/modules`,
     body,
     token,
     { onRefresh }
@@ -98,11 +98,11 @@ export async function updateModule(
 // MODULES
 // ------------------------------------------------------------
 
-export async function getAdminModules(
+export async function getHammetModules(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<AdminModulesResponse> {
-  const response = await apiClient.get<AdminModulesResponseDto>("/admin/modules", token, {
+  const response = await apiClient.get<AdminModulesResponseDto>("/hammet/modules", token, {
     onRefresh,
   });
 

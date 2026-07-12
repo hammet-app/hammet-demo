@@ -110,8 +110,6 @@ export default function ClaimPage() {
           deviceId: getDeviceId(),
         };
 
-      console.log(fromClaimAccountRequest(payload))
-
       const raw_data = await apiClient.post<ClaimAccountResponseDto>(
         "/auth/claim",
         fromClaimAccountRequest(payload)

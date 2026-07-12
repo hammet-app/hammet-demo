@@ -33,10 +33,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
   const primaryRole = activeRole;
   const roleLabel = getRoleLabel(primaryRole);
 
-  const { theme, toggle } = useTheme();
-
-  console.log(theme);
-  
+  const { theme, toggle } = useTheme();  
 
   const metaLine =
     primaryRole === "student" && user.classLevel

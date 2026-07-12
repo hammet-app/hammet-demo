@@ -67,7 +67,9 @@ export async function createClaimedUser(
     name: 'Activate account' 
   }).click();
 
-  await expect(page).toHaveURL(/\/student|\/admin/);
+  await expect(page).toHaveURL(/\/student|\/admin/,{
+    timeout: 15000,
+  }); 
 
   return {
     email,

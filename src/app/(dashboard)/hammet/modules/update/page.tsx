@@ -2,9 +2,10 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { apiClient } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { PageShell } from "@/components/layout/PageShell";
-import { apiClient } from "@/lib/api/api-client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Types ────────────────────────────────────────────────────
 type UploadState =
@@ -37,10 +38,11 @@ const OPTIONAL_COLUMNS = [
 const ALL_COLUMNS = [...REQUIRED_COLUMNS, ...OPTIONAL_COLUMNS];
 
 // ── Component ────────────────────────────────────────────────
-export default function BulkModulesPage() {
+export default function UpdateModulesPage() {
   const { accessToken, refreshToken } = useAuth();
   const router = useRouter();
 
+  const [tier, setTier] = useState("")
   const [file, setFile] = useState<File | null>(null);
   const [uploadState, setUploadState] = useState<UploadState>({ status: "idle" });
   const [isDragging, setIsDragging] = useState(false);
@@ -79,7 +81,7 @@ export default function BulkModulesPage() {
       form.append("file", file);
 
       await apiClient.putForm<true>(
-        "/hammet/modules",
+        `/hammet/modules/${tier}`,
         form,
         accessToken,
         { onRefresh: refreshToken }
@@ -110,8 +112,9 @@ export default function BulkModulesPage() {
 
   return (
     <PageShell
-      title="Bulk Module Update"
+      title="Bulk Module Upload"
       backHref="/hammet/modules"
+      rounded={false}
       actions={
         uploadState.status === "success" ? (
           <button
@@ -123,68 +126,268 @@ export default function BulkModulesPage() {
         ) : undefined
       }
     >
-      <div className="w-full flex flex-col gap-6">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        
+      {/* Header */}
+      <div>
+        <h2 className="text-2xl font-semibold text-[var(--color-text-primary)]">
+          Upload lesson modules
+        </h2>
 
-        {/* CSV column reference */}
-        <div className="w-full bg-purple-light/50 border border-[var(--color-border)] rounded-b-2xl p-6 flex flex-col gap-4">
-          <p className="text-xs font-medium text-[var(--color-text-muted)] uppercase tracking-wider">
-            CSV column reference
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--color-text-secondary)]">
+          Upload a CSV containing lesson
+          modules. Select the subscription
+          tier first, then upload your file.
+          Every successfully imported module
+          is published immediately.
+        </p>
+      </div>
+
+      {/* Upload Settings */}
+      <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] p-6 shadow-sm">
+
+        <div className="mb-6">
+          <h3 className="text-base font-semibold text-[var(--color-text-primary)]">
+            Upload Settings
+          </h3>
+
+          <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+            Choose the subscription tier these
+            modules belong to.
+          </p>
+        </div>
+
+        <div className="max-w-sm">
+
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            Tier
+          </label>
+
+          <Select
+            value={tier}
+            onValueChange={(value) => setTier(value ?? "")}
+          >
+            <SelectTrigger className="h-11 w-full bg-white border-[var(--color-border)]">
+
+              <SelectValue placeholder="Select a subscription tier" />
+
+            </SelectTrigger>
+
+            <SelectContent>
+
+              <SelectItem value="pilot">
+                Pilot
+              </SelectItem>
+
+              <SelectItem value="summer">
+                Summer
+              </SelectItem>
+
+              <SelectItem value="spark">
+                Spark
+              </SelectItem>
+
+              <SelectItem value="academy">
+                Academy
+              </SelectItem>
+
+              <SelectItem value="premier">
+                Premier
+              </SelectItem>
+
+              <SelectItem value="global">
+                Global
+              </SelectItem>
+
+            </SelectContent>
+          </Select>
+
+          <p className="mt-3 text-xs text-[var(--color-text-muted)]">
+            The uploaded modules will only be
+            available for this tier.
           </p>
 
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">
-              Required
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {REQUIRED_COLUMNS.map((col) => (
-                <span
-                  key={col}
-                  className="px-2.5 py-1 pt-1.5 rounded-sm bg-purple/10 text-[var(--color-purple)] text-xs font-mono font-medium"
-                >
-                  {col}
-                </span>
-              ))}
-            </div>
-          </div>
+        </div>
 
-          <div className="flex flex-col gap-2">
-            <p className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wide">
-              Optional
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {OPTIONAL_COLUMNS.map((col) => (
-                <span
-                  key={col}
-                  className="px-2.5 py-1 pt-1.5 rounded-sm bg-white/50 border border-[var(--color-border)] text-[var(--color-text-secondary)] text-xs font-mono"
-                >
-                  {col}
-                </span>
-              ))}
-            </div>
-          </div>
+      </section>
 
-          <div className="pt-1 border-t border-[var(--color-border)]">
-            <p className="text-xs text-[var(--color-text-secondary)]/90 leading-relaxed">
-              Each row is one module. Missing optional columns produce no block.{" "}
-              <span className="font-medium text-black/70">video_link</span>{" "}
-              and{" "}
-              <span className="font-medium text-black/70">tool_link</span>{" "}
-              both pull from the shared{" "}
-              <span className="font-medium text-black/70">url</span>{" "}
-              column. All modules are published immediately on upload.
+      {/* CSV Reference */}
+      <section className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-card)] shadow-sm overflow-hidden">
+
+        {/* Header */}
+        <div className="flex items-start justify-between gap-6 border-b border-[var(--color-border)] px-6 py-5">
+          <div>
+            <h3 className="text-base font-semibold text-[var(--color-text-primary)]">
+              CSV Template Reference
+            </h3>
+
+            <p className="mt-1 text-sm text-[var(--color-text-secondary)] max-w-2xl">
+              Your CSV must contain the required columns below.
+              Optional columns are only needed when a module includes
+              additional resources or activities.
             </p>
           </div>
 
           <button
             onClick={downloadTemplate}
-            className="self-start flex items-center gap-1.5 text-xs text-[var(--color-cyan)] font-medium hover:underline cursor-pointer"
+            className="
+              shrink-0
+              rounded-lg
+              border
+              border-[var(--color-border)]
+              bg-white
+              px-4
+              py-2
+              text-sm
+              font-medium
+              text-[var(--color-purple)]
+              transition
+              hover:border-[var(--color-purple)]
+              hover:bg-[var(--color-purple-light)]
+            "
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
-            </svg>
-            Download blank template
+            Download Template
           </button>
         </div>
+
+        <div className="grid gap-8 p-6 lg:grid-cols-2">
+
+          {/* Required */}
+          <div>
+            <div className="mb-3 flex items-center gap-2">
+
+              <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+
+              <h4 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                Required Columns
+              </h4>
+
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+
+              {REQUIRED_COLUMNS.map((column) => (
+                <span
+                  key={column}
+                  className="
+                    rounded-lg
+                    bg-[var(--color-purple-light)]
+                    px-3
+                    py-1.5
+                    font-mono
+                    text-xs
+                    font-medium
+                    text-[var(--color-purple)]
+                  "
+                >
+                  {column}
+                </span>
+              ))}
+
+            </div>
+
+            <p className="mt-4 text-xs leading-6 text-[var(--color-text-muted)]">
+              Every row must contain values for each required column.
+              Missing values will cause that row to fail validation.
+            </p>
+
+          </div>
+
+          {/* Optional */}
+          <div>
+
+            <div className="mb-3 flex items-center gap-2">
+
+              <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+
+              <h4 className="text-sm font-semibold text-[var(--color-text-primary)]">
+                Optional Columns
+              </h4>
+
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+
+              {OPTIONAL_COLUMNS.map((column) => (
+                <span
+                  key={column}
+                  className="
+                    rounded-lg
+                    border
+                    border-[var(--color-border)]
+                    bg-white
+                    px-3
+                    py-1.5
+                    font-mono
+                    text-xs
+                    text-[var(--color-text-secondary)]
+                  "
+                >
+                  {column}
+                </span>
+              ))}
+
+            </div>
+
+            <p className="mt-4 text-xs leading-6 text-[var(--color-text-muted)]">
+              Leave these columns blank if they don't apply.
+              Empty optional fields won't create empty lesson blocks.
+            </p>
+
+          </div>
+
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-[var(--color-border)] bg-[var(--color-bg-page)] px-6 py-4">
+
+          <div className="flex items-start gap-3">
+
+            <div className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-purple-light)]">
+              <svg
+                className="h-3.5 w-3.5 text-[var(--color-purple)]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M13 16h-1v-4h-1m1-4h.01"
+                />
+              </svg>
+            </div>
+
+            <div className="text-sm leading-6 text-[var(--color-text-secondary)]">
+
+              <p>
+                <strong>Tip:</strong> Both{" "}
+                <span className="font-mono text-[var(--color-text-primary)]">
+                  video_link
+                </span>{" "}
+                and{" "}
+                <span className="font-mono text-[var(--color-text-primary)]">
+                  tool_link
+                </span>{" "}
+                read from the shared{" "}
+                <span className="font-mono text-[var(--color-text-primary)]">
+                  url
+                </span>{" "}
+                column.
+              </p>
+
+              <p className="mt-1">
+                Successfully imported modules are published immediately.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
 
         {/* Drop zone */}
         {uploadState.status !== "success" && (

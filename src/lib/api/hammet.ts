@@ -99,10 +99,11 @@ export async function updateModule(
 // ------------------------------------------------------------
 
 export async function getHammetModules(
+  tier:string,
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<AdminModulesResponse> {
-  const response = await apiClient.get<AdminModulesResponseDto>("/hammet/modules", token, {
+  const response = await apiClient.get<AdminModulesResponseDto>(`/hammet/modules/${tier}`, token, {
     onRefresh,
   });
 

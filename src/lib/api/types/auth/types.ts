@@ -79,10 +79,10 @@ export type LogoutResponse = {
 
 
 
-// POST /auth/register/school — HammetLabs only
+// POST /auth/register/school — Hammet only
 export type RegisterSchoolRequest = {
   name: string;
-  tier: "pilot" | "annual";
+  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global";
   schoolEmail: string;
   phoneNumber: string;
   schoolAddress: string;

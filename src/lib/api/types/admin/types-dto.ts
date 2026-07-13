@@ -73,7 +73,7 @@ export type ParentLinkSendResponseDto = {
 // POST /admin/parent-links/[studentId]/revoke — reuses DeleteResponse
 
 
-// HammetLabs only — guarded by school registration role
+// Hammet only — guarded by school registration role
 // GET /admin/modules
 export type AdminModulesResponseDto = {
   modules: CurriculumModuleDto[];

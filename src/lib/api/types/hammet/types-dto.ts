@@ -1,18 +1,9 @@
-// ============================================================
-// HammetLabs — AI Studies
-// Hammet Admin API Types (addendum to api-types.ts)
-// ============================================================
-
-// ------------------------------------------------------------
-// HAMMET ADMIN — SCHOOL MANAGEMENT
-// ------------------------------------------------------------
-
 // GET /hammet/schools
 // Full list of all registered schools — hammet_admin only
 export type SchoolListItemDto = {
   id: string;
   name: string;
-  tier: "pilot" | "annual" | "suspended";
+  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
   term: number;
   stats: {
     total_students: number;

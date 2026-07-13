@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getHammetModules } from "@/lib/api/hammet";
-import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
 import type { CurriculumModule } from "@/lib/api/types";
-import { Upload, Pencil } from "lucide-react"
+import { Upload, Pencil } from "lucide-react";
+import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SSS1", "SSS2", "SSS3"];
 
@@ -78,19 +79,78 @@ export default function HammetModulesPage() {
   const router = useRouter();
 
   const [modules, setModules] = useState<CurriculumModule[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [tier, setTier] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!accessToken) return;
+    if (!tier) return;
+    setIsLoading(true);
 
-    getHammetModules(accessToken, refreshToken)
+    getHammetModules(tier, accessToken, refreshToken)
       .then((res) => setModules(res.modules))
       .catch(() => setError("Failed to load modules."))
       .finally(() => setIsLoading(false));
-  }, [accessToken, refreshToken]);
+  }, [tier, accessToken, refreshToken]);
 
   const levels = sortLevels([...new Set(modules.map((m) => m.level))]);
+
+  if (!tier) {
+        return (
+          <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg-card)] p-12 text-center">
+            <p className="text-lg font-semibold">
+              View Modules
+            </p>
+              <div className="max-w-sm">
+
+                <Select
+                  value={tier}
+                  onValueChange={(value) => setTier(value ?? "")}
+                >
+                  <SelectTrigger className="h-11 w-full bg-white border-[var(--color-border)]">
+
+                    <SelectValue placeholder="Select a subscription tier" />
+
+                  </SelectTrigger>
+
+                  <SelectContent>
+
+                    <SelectItem value="pilot">
+                      Pilot
+                    </SelectItem>
+
+                    <SelectItem value="summer">
+                      Summer
+                    </SelectItem>
+
+                    <SelectItem value="spark">
+                      Spark
+                    </SelectItem>
+
+                    <SelectItem value="academy">
+                      Academy
+                    </SelectItem>
+
+                    <SelectItem value="premier">
+                      Premier
+                    </SelectItem>
+
+                    <SelectItem value="global">
+                      Global
+                    </SelectItem>
+
+                  </SelectContent>
+                </Select>
+
+              </div>
+
+            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+              Choose a tier above to view its curriculum modules.
+            </p>
+          </div>
+        );
+      }
 
   return (
     <PageShell
@@ -116,7 +176,7 @@ export default function HammetModulesPage() {
           </button>
         </div>
       }
-    >
+    >      
       {isLoading ? (
         <ListSkeleton rows={6} />
       ) : error ? (

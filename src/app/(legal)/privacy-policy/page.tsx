@@ -4,15 +4,15 @@ export const metadata = { title: "Privacy Policy | Hammet" };
 
 const content = `
 # General
-At HammetLTD, we care about your personal information, so we have prepared this Privacy Policy to explain how we collect, use, and share it. This Privacy Policy applies to the Hammet Platform and all related services ('Platform'). By using the Platform, you agree with HammetLTD' collection, use, and sharing of your personal information in accordance with the terms of this Privacy Policy.
-HammetLTD serves schools, teachers, and students across Nigeria. Because of this, some of the ways we handle personal data are slightly different from a typical consumer app — for example, schools create student accounts on behalf of their students, and schools are responsible for ensuring that appropriate consent has been obtained. We explain all of this in detail below.
-HammetLTD is committed to compliance with the Nigeria Data Protection Act 2023 (NDPA) and the Nigeria Data Protection Regulation (NDPR). We take these obligations seriously. If you have any questions about this Privacy Policy, please contact us at admin@hammetlabs.com.
+At Hammet Ltd, we care about your personal information, so we have prepared this Privacy Policy to explain how we collect, use, and share it. This Privacy Policy applies to the Hammet Platform and all related services ('Platform'). By using the Platform, you agree with Hammet Ltd's collection, use, and sharing of your personal information in accordance with the terms of this Privacy Policy.
+Hammet Ltd serves schools, teachers, and students across Nigeria. Because of this, some of the ways we handle personal data are slightly different from a typical consumer app — for example, schools create student accounts on behalf of their students, and schools are responsible for ensuring that appropriate consent has been obtained. We explain all of this in detail below.
+Hammet Ltd is committed to compliance with the Nigeria Data Protection Act 2023 (NDPA) and the Nigeria Data Protection Regulation (NDPR). We take these obligations seriously. If you have any questions about this Privacy Policy, please contact us at admin@hammetlabs.com.
 
 # Who We Are and What We Do
-Hammet Ltd (together, 'HammetLTD', 'we', 'us', or 'our') operate the Hammet Platform, an AI literacy learning platform designed for secondary school students in Nigeria. We partner with schools to deliver structured learning programmes through which students build foundational skills in understanding and using artificial intelligence tools responsibly.
-Under data protection law, HammetLTD plays two different roles depending on whose data we are handling:
+Hammet Ltd (together, 'Hammet Ltd', 'we', 'us', or 'our') operate the Hammet Platform, an AI literacy learning platform designed for secondary school students in Nigeria. We partner with schools to deliver structured learning programmes through which students build foundational skills in understanding and using artificial intelligence tools responsibly.
+Under data protection law, Hammet Ltd plays two different roles depending on whose data we are handling:
 - As a data controller: When we collect and use data from School Administrators and Teachers, we decide why and how that data is used. That makes us the data controller for their data.
-- As a data processor: When we handle student data, we do so on behalf of the School, which has enrolled the student and set up the account. In this case, the School is the data controller, and HammetLTD processes the data only according to the School's instructions and the terms of our agreement with them.
+- As a data processor: When we handle student data, we do so on behalf of the School, which has enrolled the student and set up the account. In this case, the School is the data controller, and Hammet Ltd processes the data only according to the School's instructions and the terms of our agreement with them.
 
 # Information We Collect
 The information we collect depends on who you are and how you use the Platform. Here is a breakdown:
@@ -38,10 +38,10 @@ In some cases, Schools may have to provide us with parent or guardian email addr
 Like most web platforms, when you access the Hammet Platform, our systems automatically collect some basic technical information to keep things running smoothly. This includes your browser type, operating system, and session logs (a record of activity during a login session). We use this data only to maintain the Platform, diagnose technical problems, and improve performance. This technical data is not linked to individual student profiles and is not used to identify or track individual users.
 
 # How We Use Your Information
-HammetLTD processes your personal information according to the following legal bases: to provide the services you or your school has requested, to fulfil our legitimate interests in running and improving the Platform, to comply with legal obligations under Nigerian and applicable international law, and where required, with your consent.
+Hammet Ltd processes your personal information according to the following legal bases: to provide the services you or your school has requested, to fulfil our legitimate interests in running and improving the Platform, to comply with legal obligations under Nigerian and applicable international law, and where required, with your consent.
 In particular, we use your information in the following ways:
 ## a. Providing and Improving the Platform
-We use the information we collect to run the Platform and deliver the services that Schools have contracted us to provide. This includes creating and managing user accounts, storing and displaying student work and Digital Passport entries, tracking learning progress, issuing the HammetLTD Digital Foundations Credential upon programme completion, and providing technical support to Administrators and Teachers.
+We use the information we collect to run the Platform and deliver the services that Schools have contracted us to provide. This includes creating and managing user accounts, storing and displaying student work and Digital Passport entries, tracking learning progress, issuing the Hammet Ltd Digital Foundations Credential upon programme completion, and providing technical support to Administrators and Teachers.
 
 We also use aggregated, anonymised data — meaning data that cannot be linked back to any individual — to understand how the Platform is being used and to improve its content and functionality over time. For example, we might look at which lesson types students engage with most, or where students tend to get stuck, so that we can make improvements.
 ## b. Communicating With You
@@ -56,29 +56,29 @@ For parents and guardians whose contact details have been shared by the School, 
 
 We do not send marketing emails to students, parents, or guardians.
 ## c. Complying With Law and Preventing Harmful Activities
-We may process and share personal information when we are required to do so by law — for example, in response to a valid legal request from a government authority or court. We may also share information when we genuinely believe it is necessary to protect the safety of our users, prevent fraud, or protect HammetLTD' legal rights. In these cases, we will share only the minimum information necessary and will always act in accordance with applicable Nigerian and international law.
+We may process and share personal information when we are required to do so by law — for example, in response to a valid legal request from a government authority or court. We may also share information when we genuinely believe it is necessary to protect the safety of our users, prevent fraud, or protect Hammet Ltd' legal rights. In these cases, we will share only the minimum information necessary and will always act in accordance with applicable Nigerian and international law.
 ## d. We Do Not Use Student Data for Advertising
-We want to say this plainly: HammetLTD does not use student data for advertising or commercial profiling of any kind. We do not sell student data. We do not share student data with advertisers. The Platform does not show advertisements to students. Student data is used only to operate and improve the Platform.
+We want to say this plainly: Hammet Ltd does not use student data for advertising or commercial profiling of any kind. We do not sell student data. We do not share student data with advertisers. The Platform does not show advertisements to students. Student data is used only to operate and improve the Platform.
 
 # Third-Party AI Tools Used in the Curriculum
-Part of the HammetLTD curriculum involves students practising with real-world AI tools such as ChatGPT, Gemini, Perplexity, and others, and in some cases these tools are in controlled sandbox environments. This hands-on experience is central to the programme — students learn how to use AI tools effectively and responsibly by actually using them.
+Part of the Hammet Ltd curriculum involves students practising with real-world AI tools such as ChatGPT, Gemini, Perplexity, and others, and in some cases these tools are in controlled sandbox environments. This hands-on experience is central to the programme — students learn how to use AI tools effectively and responsibly by actually using them.
 
-The only data HammetLTD collects in connection with these activities is what students submit through our own Platform forms — such as which tool they used, what the task was, the prompts they entered, and their reflection on the experience. This is collected through HammetLTD' own systems and is used solely for educational and programme improvement purposes.
+The only data Hammet Ltd collects in connection with these activities is what students submit through our own Platform forms — such as which tool they used, what the task was, the prompts they entered, and their reflection on the experience. This is collected through Hammet Ltd's own systems and is used solely for educational and programme improvement purposes.
 
 # Data Storage and International Transfers
 ## a. Where Your Data Is Stored
 All Platform data — including student work, Digital Passport entries, and account information — is stored on infrastructure provided by Supabase, hosted in the European Union (EU) region. Supabase uses Amazon Web Services (AWS) data centres for this storage. This means your data sits on EU-based servers that are subject to robust data protection standards.
 ## b. How We Keep Your Data Safe
-We take data security seriously. HammetLTD uses the following measures to protect personal data:
+We take data security seriously. Hammet Ltd uses the following measures to protect personal data:
 - All data transmitted between your browser and our Platform is encrypted using industry-standard protocols (HTTPS/TLS).
-- Access to personal data within HammetLTD is restricted to staff members who genuinely need it to do their jobs. We operate on a need-to-know basis.
+- Access to personal data within Hammet Ltd is restricted to staff members who genuinely need it to do their jobs. We operate on a need-to-know basis.
 - We regularly review the security of our systems and the third-party providers we work with.
 
 That said, no system connected to the internet can be guaranteed to be 100% secure. If we ever experience a data breach that affects student data, we commit to notifying the affected Schools and the relevant Nigerian data protection authority within the timeframes required by law.
 
 # Third-Party Service Providers
-HammetLTD shares personal data with the following third-party service provider in connection with the Platform:
-- Supabase: Our database and backend infrastructure provider. Supabase processes data on behalf of HammetLTD under a formal data processing agreement. They are not permitted to use Platform data for their own purposes.
+Hammet Ltd shares personal data with the following third-party service provider in connection with the Platform:
+- Supabase: Our database and backend infrastructure provider. Supabase processes data on behalf of Hammet Ltd under a formal data processing agreement. They are not permitted to use Platform data for their own purposes.
 
 We do not share personal data with any other third parties for commercial purposes. We do not sell, rent, or trade personal data.
 
@@ -90,30 +90,30 @@ We only keep personal data for as long as we need it. Here is how long we retain
 - Platform usage and technical logs: We retain these for up to 12 months, after which they are deleted. We use them only for security monitoring and performance improvements.
 
 # Children's Data
-The HammetLTD Platform is designed for secondary school students, which means most of our student users are under the age of 18. We take the protection of children's data very seriously and apply heightened care to how we handle it.
+The Hammet Ltd Platform is designed for secondary school students, which means most of our student users are under the age of 18. We take the protection of children's data very seriously and apply heightened care to how we handle it.
 Here is how we approach children's data specifically:
 - Students enrolled in a school do not create their own accounts. All student accounts are set up by the School Administrator.
-- The School, as the party that has contracted with HammetLTD and enrolled its students, provides institutional consent for student data to be processed as part of the programme. Schools are responsible for ensuring they have obtained any additional consent required under Nigerian law — for example, parental consent for students who are minors.
-- HammetLTD does not ask students to provide any personal information beyond what the School has already supplied during enrolment.
+- The School, as the party that has contracted with Hammet Ltd and enrolled its students, provides institutional consent for student data to be processed as part of the programme. Schools are responsible for ensuring they have obtained any additional consent required under Nigerian law — for example, parental consent for students who are minors.
+- Hammet Ltd does not ask students to provide any personal information beyond what the School has already supplied during enrolment.
 - Student data is not used for advertising.
 - The Platform does not show advertisements to students.
 
-If a parent or guardian has concerns about how their child's data is being handled on the Platform, they should contact their child's school directly. The school is the data controller for student data and is responsible for handling such requests. The school will involve HammetLTD as needed.
+If a parent or guardian has concerns about how their child's data is being handled on the Platform, they should contact their child's school directly. The school is the data controller for student data and is responsible for handling such requests. The school will involve Hammet Ltd as needed.
 
 # The Digital Passport and Credential
 ## a. Who Can See the Digital Passport
-The Digital Passport is a student's personal learning portfolio on the Platform. It is accessible to the student themselves and the School Administrator. Parents may also view their child's passport if the School grants them access through the parent portal. HammetLTD staff may access passport data only when necessary for platform support and maintenance, and only to the minimum extent needed.
+The Digital Passport is a student's personal learning portfolio on the Platform. It is accessible to the student themselves and the School Administrator. Parents may also view their child's passport if the School grants them access through the parent portal. Hammet Ltd staff may access passport data only when necessary for platform support and maintenance, and only to the minimum extent needed.
 ## b. Sharing the Digital Foundations Credential
-Upon completing the programme, students receive the HammetLTD Digital Foundations Credential. This credential is designed to be shared — for example, with universities, scholarship bodies, or prospective employers. However, sharing is always the student's choice. HammetLTD operates the verification mechanism that allows third parties to confirm the credential's authenticity, but we do not proactively share credential data with anyone. Only the student can initiate sharing.
+Upon completing the programme, students receive the Hammet Ltd Digital Foundations Credential. This credential is designed to be shared — for example, with universities, scholarship bodies, or prospective employers. However, sharing is always the student's choice. Hammet Ltd operates the verification mechanism that allows third parties to confirm the credential's authenticity, but we do not proactively share credential data with anyone. Only the student can initiate sharing.
 
 # Cookies and Tracking
 The Platform uses session cookies, which are small pieces of data stored on your browser, to keep you logged in while you are using the Platform. These cookies are essential for the Platform to function properly. Without them, you would be logged out every time you navigated to a new page.
 
-HammetLTD does not use advertising cookies, third-party tracking cookies, or any behavioural analytics tools that track individual users across websites. We may use aggregate, anonymised analytics to understand overall patterns of Platform usage — for example, how long a typical session lasts, or which features are most used — but this data cannot be linked back to any individual user.
+Hammet Ltd does not use advertising cookies, third-party tracking cookies, or any behavioural analytics tools that track individual users across websites. We may use aggregate, anonymised analytics to understand overall patterns of Platform usage — for example, how long a typical session lasts, or which features are most used — but this data cannot be linked back to any individual user.
 
 # Your Data Subject Rights
 Under the NDPA 2023, you have a number of rights in relation to the personal information we hold about you. These rights are listed below. Because of the way the Platform works — with schools acting as data controllers for student data — the way you exercise these rights depends on who you are:
-- If you are a Student or Parent/Guardian: Please direct any data-related requests to your school. The school, as data controller for student data, is responsible for handling these requests and will coordinate with HammetLTD where needed.
+- If you are a Student or Parent/Guardian: Please direct any data-related requests to your school. The school, as data controller for student data, is responsible for handling these requests and will coordinate with Hammet Ltd where needed.
 - If you are a School Administrator or Teacher: You can exercise your rights directly with us by emailing admin@hammetlabs.com.
 
 Your rights include:

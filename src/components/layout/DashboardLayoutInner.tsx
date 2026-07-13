@@ -112,7 +112,6 @@ export function DashboardLayoutInner({
           open={needsInitialConsent}
           onAccept={async () => {
             const saved = await consent(accessToken!, refreshToken);
-            console.log(saved)
             if (saved) {
               await refreshToken();
             }

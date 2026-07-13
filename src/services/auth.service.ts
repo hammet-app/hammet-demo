@@ -41,7 +41,6 @@ export const registerTutor = async(
 
     if (!response.ok) {
         const error = await response.json()
-        console.log("Error,",error)
         throw new Error(`Registration failed: ${error.message}` || "Unknown error")
     }
     return response.json()

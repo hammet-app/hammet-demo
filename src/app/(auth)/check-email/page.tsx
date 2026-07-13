@@ -30,7 +30,7 @@ export default function CheckEmailPage() {
 
         {/* Steps */}
         <div className="w-full rounded-xl p-4 text-left flex flex-col gap-3 border border-border bg-bg-page/60 dark:bg-black/15">
-          <Step number={1} text="Open the email from HammetLabs" />
+          <Step number={1} text="Open the email from Hammet" />
           <Step number={2} text="Click the activation link inside" />
           <Step number={3} text="Set your password and you're in" />
         </div>

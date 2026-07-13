@@ -301,11 +301,9 @@ export async function deleteUploadedFile(
  
   if (navigator.onLine && accessToken) {
     try {
-      console.log(path)
       await apiClient.delete('/submissions/upload', {path: path}, accessToken)
       return
     } catch {
-      // Fall through to queue
     }
   }
  

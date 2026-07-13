@@ -330,25 +330,18 @@ function PortalView({
 // ---------------------------------------------------------------------------
 
 export default function ParentPortalPage() {
-  console.log("ParentPortalPage mounted");
   const params = useSearchParams();
   const linkToken = params.get("token");
-
-
-  console.log("TOKEN:", linkToken);
 
   const [stage, setStage] = useState<Stage>({ type: "loading" });
 
   // Step 1 — validate link token, get challenge
   useEffect(() => {
-    console.log("EFFECT RUNNING");
 
     if (!linkToken) {
-      console.log("NO TOKEN");
       return;
     }
 
-    console.log("CALLING API");
     parentApi
       .getChallenge(linkToken)
       .then((data) => {

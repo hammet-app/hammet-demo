@@ -97,7 +97,7 @@ export function LegalPageLayout({ title, lastUpdated, content }: LegalPageLayout
       </main>
 
       <footer className="mx-auto max-w-3xl px-6 pb-10 text-center text-xs text-neutral-400">
-        © {new Date().getFullYear()} HammetLabs. All rights reserved.
+        © {new Date().getFullYear()} Hammet. All rights reserved.
       </footer>
     </div>
   );

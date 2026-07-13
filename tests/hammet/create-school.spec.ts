@@ -2,6 +2,19 @@ import { test, expect } from "@playwright/test";
 import { generateSchoolData } from "../helpers/test-data";
 import { login } from "../helpers/auth";
 
+function randomItem(array: string[]) {
+  return array[Math.floor(Math.random() * array.length)];
+}
+
+const tier = randomItem([
+  "pilot",
+  "summer",
+  "spark",
+  "academy",
+  "premier",
+  "global",
+]);
+
 test("hammet admin can register a school", async ({ page, request }) => {
   const school = (generateSchoolData());
 
@@ -14,11 +27,6 @@ test("hammet admin can register a school", async ({ page, request }) => {
   await page.getByRole('button', { 
     name: 'Close' 
   }).click();
-
-  
-  page.on("pageerror", (err) => {
-    console.log("PAGE ERROR:", err);
-  });
 
   await page.getByRole("textbox", {
     name: "School name",
@@ -49,9 +57,7 @@ test("hammet admin can register a school", async ({ page, request }) => {
     exact: true,
   }).fill(school.adminEmail);
 
-  await page.getByRole('button', { 
-    name: school.tier.toUpperCase()
-    }).click();
+  await page.getByLabel('Tier').selectOption(tier);
 
   await page.getByRole("button", {
     name: "Register school",

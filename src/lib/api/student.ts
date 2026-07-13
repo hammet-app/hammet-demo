@@ -158,7 +158,6 @@ export const studentApi = {
     const response = toCreateSubmissionResponse(res)
 
     await markSubmissionSynced(response.localId)
-    console.log(response.localId)
     await clearPendingProgress(studentId)
     await clearSyncedSubmissions()
 
@@ -176,7 +175,6 @@ export const studentApi = {
     const response = toCreateSubmissionResponse(res)
 
     await markSubmissionSynced(response.localId)
-    console.log(response.localId)
     await clearPendingProgress(studentId)
     await clearSyncedSubmissions()
 

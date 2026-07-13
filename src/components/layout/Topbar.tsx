@@ -66,7 +66,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
             className="text-[15px] font-bold text-white"
             style={{ fontFamily: "var(--font-head)" }}
           >
-            Hammet<span className="text-cyan">Labs</span>
+            Hammet<span className="text-cyan">Ltd</span>
           </span>
           <span className="text-[11px] text-white/40 font-normal">AI Studies</span>
         </div>

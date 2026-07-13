@@ -8,7 +8,7 @@ import { FieldError } from "@/components/ui/auth-shell";
 interface AuthInputProps {
   id: string;
   label: string;
-  type?: "text" | "number" | "email" | "password";
+  type?: "text" | "number" | "email" | "password" | "tel";
   value: string;
   onChange: (v: string) => void;
   style?: string;

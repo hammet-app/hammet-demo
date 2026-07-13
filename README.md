@@ -26,7 +26,7 @@ Clone the repository:
 
 ```bash
 git clone <repo-url>
-cd hammetlabs-frontend
+cd hammet-frontend
 ```
 
 Install dependencies:

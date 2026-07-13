@@ -15,7 +15,7 @@ export type SchoolStats = {
 export type SchoolProfile = {
   id: string;
   name: string;
-  tier: "pilot" | "annual" | "suspended";
+  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
   term: number;
   availableArms?: string[];
   stats: SchoolStats;
@@ -81,7 +81,7 @@ export type ParentLinkSendResponse = {
 // POST /admin/parent-links/[studentId]/revoke — reuses DeleteResponse
 
 
-// HammetLabs only — guarded by school registration role
+// Hammet only — guarded by school registration role
 // GET /admin/modules
 export type AdminModulesResponse = {
   modules: CurriculumModule[];

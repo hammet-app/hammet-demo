@@ -66,7 +66,7 @@ function Nav() {
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
             src="/favicon.ico"
-            alt="Hammet"
+            alt="HammetLtd"
             width={140}
             height={36}
             className="h-8 w-auto"
@@ -358,7 +358,7 @@ function ProblemStatement() {
           The State of AI in Education — Globally
         </h2>
         <p className="text-gray-400 text-lg mb-12 max-w-xl">
-          Hammet intends to get your school on the global AI education map.
+          HammetLtd intends to get your school on the global AI education map.
         </p>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden mb-8">
@@ -603,7 +603,7 @@ function Features() {
     },
     {
       title: "Dedicated School Support",
-      body: "A Hammet contact is assigned to your school. Setup, troubleshooting, and content updates are handled on our end.",
+      body: "A Hammet Ltd contact is assigned to your school. Setup, troubleshooting, and content updates are handled on our end.",
     },
   ];
 
@@ -678,7 +678,6 @@ function CallbackForm() {
         setSubmitted(true);
       }
     } catch (err) {
-      // optionally handle error (toast, console, etc.)
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -689,7 +688,7 @@ function CallbackForm() {
     "30-student pilot — no commitment required",
     "Onboarding completed in under 2 hours",
     "No AI expertise needed from your staff",
-    "Dedicated Hammet contact for your school",
+    "Dedicated Hammet Ltd contact for your school",
     "Curriculum delivered term-by-term",
   ];
 
@@ -821,7 +820,7 @@ function CallbackForm() {
                 </button>
 
                 <p className="text-purple-300 text-xs text-center leading-relaxed">
-                  By submitting, you agree to be contacted by the Hammet team about your school&apos;s needs.
+                  By submitting, you agree to be contacted by the Hammet Ltd team about your school&apos;s needs.
                 </p>
               </form>
             )}
@@ -869,7 +868,7 @@ function FooterOld() {
           
 
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-gray-600 text-sm">© 2026 Hammet. All rights reserved.</p>
+          <p className="text-gray-600 text-sm">© 2026 Hammet Ltd. All rights reserved.</p>
           <Link href="/login" className="text-sm text-gray-500 hover:text-white transition-colors font-medium">
             Login →
           </Link>
@@ -955,7 +954,7 @@ function Footer() {
         </div>
 
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-gray-600 text-sm">© 2026 Hammet. All rights reserved.</p>
+          <p className="text-gray-600 text-sm">© 2026 Hammet Ltd. All rights reserved.</p>
           <Link href="/login" className="text-sm text-gray-500 hover:text-white transition-colors font-medium">
             Login →
           </Link>

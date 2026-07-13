@@ -24,7 +24,7 @@ export function SidebarUI({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 bg-white rounded-sm" />
-            <span className="font-semibold text-sm">hammetLABS</span>
+            <span className="font-semibold text-sm">Hammet</span>
           </div>
 
           <div className="flex items-center gap-3">

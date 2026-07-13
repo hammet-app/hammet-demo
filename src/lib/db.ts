@@ -128,7 +128,7 @@ type SyncRegistration = ServiceWorkerRegistration & {
 
 // ── Database ─────────────────────────────────────────────────────────────────
 
-class HammetLabsDB extends Dexie {
+class HammetDB extends Dexie {
   submissions!:      Table<LocalSubmission>
   portfolioEntries!: Table<LocalPortfolioEntry>
   modules!:          Table<CachedModule>
@@ -138,7 +138,7 @@ class HammetLabsDB extends Dexie {
   pendingProgress!:  Table<PendingProgress>
 
   constructor() {
-    super('hammetlabs-db')
+    super('hammet-db')
 
     this.version(1).stores({
       submissions:      'localId, studentId, moduleId, syncStatus',
@@ -199,7 +199,7 @@ class HammetLabsDB extends Dexie {
   }
 }
 
-export const db = new HammetLabsDB()
+export const db = new HammetDB()
 
 // ── Session cache helpers ─────────────────────────────────────────────────────
 

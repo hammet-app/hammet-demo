@@ -16,7 +16,7 @@ export type SchoolStatsDto = {
 export type SchoolProfileDto = {
   id: string;
   name: string;
-  tier: "pilot" | "annual" | "suspended";
+  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
   term: number;
   available_arms?: string[];
   stats: SchoolStatsDto;
@@ -73,7 +73,7 @@ export type ParentLinkSendResponseDto = {
 // POST /admin/parent-links/[studentId]/revoke — reuses DeleteResponse
 
 
-// HammetLabs only — guarded by school registration role
+// Hammet only — guarded by school registration role
 // GET /admin/modules
 export type AdminModulesResponseDto = {
   modules: CurriculumModuleDto[];

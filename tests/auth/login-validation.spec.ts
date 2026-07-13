@@ -14,7 +14,7 @@ test("shows error for invalid credentials", async ({ page }) => {
   }).click();
 
   await expect(
-    page.getByText(/User Not Found/i)
+    page.getByText(/Invalid password or email/i)
   ).toBeVisible();
 });
 

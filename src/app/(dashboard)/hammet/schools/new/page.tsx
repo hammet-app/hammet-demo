@@ -86,6 +86,8 @@ export default function NewSchoolPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    console.log(form.tier)
+
     const finalPhone = `${countryCode}${phone}`;
 
     const finalRoles: UserRole[] = isTeacher

@@ -103,7 +103,7 @@ export async function getHammetModules(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<AdminModulesResponse> {
-  const response = await apiClient.get<AdminModulesResponseDto>(`/hammet/modules/${tier}`, token, {
+  const response = await apiClient.get<AdminModulesResponseDto>(`/hammet/modules?tier=${tier}`, token, {
     onRefresh,
   });
 

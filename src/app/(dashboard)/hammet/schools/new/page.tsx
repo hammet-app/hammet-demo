@@ -243,7 +243,6 @@ export default function NewSchoolPage() {
 
         {/* CONFIG */}
         <div className="flex flex-col gap-4">
-          <p className="text-xs uppercase text-muted">Tier</p>
 
           {/* Tier */}
           <div className="flex flex-col gap-4">

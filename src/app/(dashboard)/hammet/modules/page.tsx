@@ -83,16 +83,27 @@ export default function HammetModulesPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadModules = async (selectedTier: string) => {
     if (!accessToken) return;
-    if (!tier) return;
-    setIsLoading(true);
 
-    getHammetModules(tier, accessToken, refreshToken)
-      .then((res) => setModules(res.modules))
-      .catch(() => setError("Failed to load modules."))
-      .finally(() => setIsLoading(false));
-  }, [tier, accessToken, refreshToken]);
+    setTier(selectedTier);
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const res = await getHammetModules(
+        selectedTier,
+        accessToken,
+        refreshToken
+      );
+
+      setModules(res.modules);
+    } catch {
+      setError("Failed to load modules.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const levels = sortLevels([...new Set(modules.map((m) => m.level))]);
 
@@ -106,7 +117,11 @@ export default function HammetModulesPage() {
 
                 <Select
                   value={tier}
-                  onValueChange={(value) => setTier(value ?? "")}
+                  onValueChange={(value) => {
+                    if (value) {
+                      loadModules(value);
+                    }}
+                  }
                 >
                   <SelectTrigger className="h-11 w-full bg-white border-[var(--color-border)]">
 

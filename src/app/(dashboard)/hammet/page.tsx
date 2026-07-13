@@ -11,21 +11,70 @@ import { Plus } from "lucide-react";
 type TierFilter =
   | "all"
   | "pilot"
-  | "annual"
+  | "summer"
+  | "spark"
+  | "academy"
+  | "premier"
+  | "global"
   | "suspended";
 
 function tierLabel(tier: SchoolListItem["tier"]) {
   switch (tier) {
     case "pilot":
-      return { label: "Pilot", bg: "bg-cyan-50", text: "text-cyan-700" };
-    case "annual":
       return {
-        label: "Annual",
+        label: "Pilot",
+        bg: "bg-cyan-50",
+        text: "text-cyan-700",
+      };
+
+    case "summer":
+      return {
+        label: "Summer",
+        bg: "bg-amber-50",
+        text: "text-amber-700",
+      };
+
+    case "spark":
+      return {
+        label: "Spark",
+        bg: "bg-orange-50",
+        text: "text-orange-700",
+      };
+
+    case "academy":
+      return {
+        label: "Academy",
+        bg: "bg-violet-50",
+        text: "text-violet-700",
+      };
+
+    case "premier":
+      return {
+        label: "Premier",
         bg: "bg-emerald-50",
         text: "text-emerald-700",
       };
+
+    case "global":
+      return {
+        label: "Global",
+        bg: "bg-fuchsia-50",
+        text: "text-fuchsia-700",
+      };
+
     case "suspended":
-      return { label: "Suspended", bg: "bg-red-50", text: "text-red-600" };
+      return {
+        label: "Suspended",
+        bg: "bg-red-50",
+        text: "text-red-700",
+      };
+
+    default:
+      return {
+        label: "Unknown",
+        bg: "bg-gray-100",
+        text: "text-gray-700",
+      };
   }
 }
 
@@ -171,7 +220,11 @@ export default function HammetDashboardPage() {
   const tierCounts = {
     all: schools.length,
     pilot: schools.filter((s) => s.tier === "pilot").length,
-    annual: schools.filter((s) => s.tier === "annual").length,
+    summer: schools.filter((s) => s.tier == "summer").length,
+    spark: schools.filter((s) => s.tier === "spark").length,
+    academy: schools.filter((s) => s.tier == "academy").length,
+    premier: schools.filter((s) => s.tier == "premier").length,
+    global: schools.filter((s) => s.tier == "global").length,
     suspended: schools.filter((s) => s.tier === "suspended").length,
   };
 
@@ -206,7 +259,7 @@ export default function HammetDashboardPage() {
           {schools.length > 0 && (
             <div className="flex gap-6 mb-6 p-6 pb-2 rounded-b-xl w-full bg-[var(--color-purple-light)]">
               {(
-                ["all", "pilot", "annual", "suspended"] as const
+                ["all", "pilot", "summer", "spark", "academy", "premier", "global", "suspended"] as const
               ).map((key) => (
                 <button
                   key={key}

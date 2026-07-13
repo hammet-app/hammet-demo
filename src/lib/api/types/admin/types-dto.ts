@@ -16,7 +16,7 @@ export type SchoolStatsDto = {
 export type SchoolProfileDto = {
   id: string;
   name: string;
-  tier: "pilot" | "annual" | "suspended";
+  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
   term: number;
   available_arms?: string[];
   stats: SchoolStatsDto;

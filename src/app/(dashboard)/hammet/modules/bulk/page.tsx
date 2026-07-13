@@ -330,8 +330,8 @@ export default function BulkModulesPage() {
             </div>
 
             <p className="mt-4 text-xs leading-6 text-[var(--color-text-muted)]">
-              Leave these columns blank if they don't apply.
-              Empty optional fields won't create empty lesson blocks.
+              Leave these columns blank if they don&apos;t apply.
+              Empty optional fields won&apos;t create empty lesson blocks.
             </p>
 
           </div>

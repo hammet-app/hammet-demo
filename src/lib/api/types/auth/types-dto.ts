@@ -66,7 +66,7 @@ export type RefreshResponseDto = {
 // POST /auth/register/school — HammetLabs only
 export type RegisterSchoolRequestDto = {
   name: string;
-  tier: "pilot" | "annual";
+  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global";
   school_email: string;
   phone_number: string;
   school_address: string;

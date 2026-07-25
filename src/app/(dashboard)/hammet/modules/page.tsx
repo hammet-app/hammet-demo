@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "motion/react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getHammetModules } from "@/lib/api/hammet";
 import type { CurriculumModule } from "@/lib/api/types";
-import { Upload, Pencil } from "lucide-react";
-import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Upload, Pencil, LibraryBig } from "lucide-react";
+import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
+import { SelectField, TIER_OPTIONS } from "@/components/forms";
+import { Alert } from "@/components/ui";
+import { ApiError } from "@/lib/api/api-client";
 
-const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SSS1", "SSS2", "SSS3"];
+const LEVEL_ORDER = ["JSS1", "JSS2", "JSS3", "SSS1", "SSS2", "SSS3"];
 
 function sortLevels(levels: string[]): string[] {
   return [...levels].sort((a, b) => {
@@ -98,8 +101,16 @@ export default function HammetModulesPage() {
       );
 
       setModules(res.modules);
-    } catch {
-      setError("Failed to load modules.");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.notFound) {
+          setModules([])
+        } else {
+          setError(err.message)
+        }
+      } else {
+        setError("Failed to load modules.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -107,70 +118,14 @@ export default function HammetModulesPage() {
 
   const levels = sortLevels([...new Set(modules.map((m) => m.level))]);
 
-  if (!tier) {
-        return (
-          <div className="rounded-2xl border border-dashed border-[var(--color-border)] bg-[var(--color-bg-card)] p-12 text-center">
-            <p className="text-lg font-semibold">
-              View Modules
-            </p>
-              <div className="max-w-sm">
-
-                <Select
-                  value={tier}
-                  onValueChange={(value) => {
-                    if (value) {
-                      loadModules(value);
-                    }}
-                  }
-                >
-                  <SelectTrigger className="h-11 w-full bg-white border-[var(--color-border)]">
-
-                    <SelectValue placeholder="Select a subscription tier" />
-
-                  </SelectTrigger>
-
-                  <SelectContent>
-
-                    <SelectItem value="pilot">
-                      Pilot
-                    </SelectItem>
-
-                    <SelectItem value="summer">
-                      Summer
-                    </SelectItem>
-
-                    <SelectItem value="spark">
-                      Spark
-                    </SelectItem>
-
-                    <SelectItem value="academy">
-                      Academy
-                    </SelectItem>
-
-                    <SelectItem value="premier">
-                      Premier
-                    </SelectItem>
-
-                    <SelectItem value="global">
-                      Global
-                    </SelectItem>
-
-                  </SelectContent>
-                </Select>
-
-              </div>
-
-            <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-              Choose a tier above to view its curriculum modules.
-            </p>
-          </div>
-        );
-      }
-
   return (
     <PageShell
       title="Modules"
-      description={`${modules.length} total across ${levels.length} levels`}
+      description={
+        tier
+        ? `${modules.length} total across ${levels.length} levels`
+        : ""
+      }
       rounded={true}
       actions={
         <div className="flex items-center gap-3">
@@ -191,14 +146,44 @@ export default function HammetModulesPage() {
           </button>
         </div>
       }
-    >      
+    >  
+      <div className="rounded-xl border border-dashed border-border bg-bg-card p-4 mb-6">
+        <p className="text-base font-semibold">
+          Module Filters
+        </p>
+          <div className="max-w-sm">
+            <SelectField
+              id="tier"
+              label=""
+              placeholder="Select Tier"
+              value={tier}
+              options={TIER_OPTIONS}
+              onChange={loadModules}
+            />
+          </div>
+
+        <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
+          Choose the subscription tier you'd like to browse.
+        </p>
+      </div>
       {isLoading ? (
         <ListSkeleton rows={6} />
       ) : error ? (
-        <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+        <Alert title="Modules Loading" variant="error">
           {error}
+        </Alert>
+      ) : !tier ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--color-purple-light)] flex items-center justify-center mb-4">
+            <LibraryBig size={18} />
+          </div>
+
+          <p className="font-semibold mb-1">Select a subscription tier</p>
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Choose a subscription tier above to view its curriculum levels and modules.
+          </p>
         </div>
-      ) : levels.length === 0 ? (
+      ): levels.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-14 h-14 rounded-2xl bg-[var(--color-purple-light)] flex items-center justify-center mb-4">
             <svg
@@ -216,64 +201,106 @@ export default function HammetModulesPage() {
             </svg>
           </div>
 
-          <p className="font-semibold mb-1">No modules yet</p>
+          <p className="font-semibold mb-1">No modules found</p>
           <p className="text-sm text-[var(--color-text-secondary)]">
-            Create your first module to get started.
+            There are no curriculum modules available for this subscription tier yet.
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {levels.map((level) => {
+        <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {levels.map((level, index) => {
             const stats = getLevelStats(modules, level);
             const accent = getAccent(level);
 
             return (
-              <button
+              <motion.div
                 key={level}
-                onClick={() =>
-                  router.push(`/hammet/modules/${level}`)
-                }
-                className="group w-full text-left bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6 hover:border-[var(--color-purple)] hover:shadow-md transition-all"
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y:0 }}
+                transition={{ type: "spring", stiffness: 120, damping: 18, delay: index * 0.1 }}
               >
-                <div
-                  className={`w-12 h-12 rounded-xl ${accent.bg} border ${accent.border} flex items-center justify-center mb-4`}
+                <motion.button
+                  onClick={() =>
+                    router.push(`/hammet/modules/${tier}/${level}`)
+                  }
+                  className="group w-full text-left bg-bg-card border border-border rounded-2xl p-6 hover:border-border"
+                  initial="rest"
+                  whileHover="hover"
+                  whileTap={{ scale: 0.98 }}
+                  variants={{
+                    rest: {
+                      y: 0,
+                    },
+                    hover: {
+                      y: -2,
+                      transition: {
+                        type: "spring",
+                        stiffness: 400,
+                        damping: 25,
+                      }
+                    }
+                  }}
+                  
                 >
-                  <span className={`text-sm font-bold ${accent.text}`}>
-                    {level}
-                  </span>
-                </div>
+                  <motion.div
+                    className={`w-12 h-12 rounded-xl ${accent.bg} border ${accent.border} flex items-center justify-center mb-4`}
+                    variants={{
+                      hover: {
+                        scale: 1.05
+                      }
+                    }}
+                    transition={{
+                      type:"spring",
+                      stiffness: 450,
+                      damping: 18
+                    }}
+                  >
+                    <span className={`text-sm font-bold ${accent.text}`}>
+                      {level}
+                    </span>
+                  </motion.div>
 
-                <p className="font-semibold text-lg mb-1">{level}</p>
+                  <p className="font-semibold text-lg mb-1">{level}</p>
 
-                <div className="flex flex-col gap-1 mb-4">
-                  <p className="text-sm text-[var(--color-text-secondary)]">
-                    {stats.terms} terms · {stats.total} modules
-                  </p>
+                  <div className="flex flex-col gap-1 mb-4">
+                    <p className="text-sm text-[var(--color-text-secondary)]">
+                      {stats.terms} terms · {stats.total} modules
+                    </p>
 
-                  <p className="text-sm text-[var(--color-text-muted)]">
-                    {stats.published} published ·{" "}
-                    {stats.total - stats.published} draft
-                  </p>
-                </div>
-
-                {stats.total > 0 && (
-                  <div className="h-1.5 rounded-full bg-[var(--color-purple-light)] overflow-hidden">
-                    <div
-                      className="h-full bg-[var(--color-cyan)]"
-                      style={{
-                        width: `${(stats.published / stats.total) * 100}%`,
-                      }}
-                    />
+                    <p className="text-sm text-[var(--color-text-muted)]">
+                      {stats.published} published ·{" "}
+                      {stats.total - stats.published} draft
+                    </p>
                   </div>
-                )}
 
-                <div className="mt-4 text-sm text-[var(--color-purple)] opacity-0 group-hover:opacity-100 transition">
-                  View terms →
-                </div>
-              </button>
+                  {stats.total > 0 && (
+                    <div className="h-1.5 rounded-full bg-[var(--color-purple-light)] overflow-hidden">
+                      <motion.div
+                        className="h-full bg-purple-dark"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(stats.published / stats.total) * 100}%`}}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-1 mt-4 text-sm text-purple">
+                    <span>View terms</span> 
+                    <motion.p
+                      variants={{ 
+                        rest: {opacity: 0, x: 0}, 
+                        hover: { opacity: 1, x: 4} 
+                      }}
+                      transition={{ duration: 0.2, ease: "easeIn"}}
+                    >
+                      →
+                    </motion.p>
+                  </div>
+                </motion.button>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       )}
     </PageShell>
   );

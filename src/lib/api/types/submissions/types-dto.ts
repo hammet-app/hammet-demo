@@ -1,3 +1,5 @@
+import { PreviewLinkDto } from "../student";
+
 type SubmissionStatus = "submitted" | "approved" | "flagged";
 
 type AiFormNoReason =
@@ -35,7 +37,9 @@ export type CreateSubmissionRequestDto = {
   module_id: string;
   activity_text: string;
   reflection_text: string | null;
-  file_urls: string[] | null;
+  file_urls: PreviewLinkDto[] | null;
+  other_urls: PreviewLinkDto[] | null;
+  ai_form?: AiFormStateDto | null;
   local_id: string;             // client UUID for offline dedup
 };
 
@@ -45,7 +49,8 @@ export type CreateSubmissionResponseDto = {
   module_id: string
   activity_text: string | null
   reflection_text: string
-  file_urls: string[]| null
+  file_urls: PreviewLinkDto[]| null
+  other_urls: PreviewLinkDto[] | null;
   ai_form: AiFormStateDto|null
   status: SubmissionStatus
   teacher_note: string | null
@@ -60,7 +65,8 @@ export type ResubmissionDto = {
   id: string;
   activity_text: string;
   reflection_text: string | null;
-  file_urls: string[] | null;
+  file_urls: PreviewLinkDto[] | null;
+  other_urls: PreviewLinkDto[] | null;
   ai_form: AiFormStateDto | null;
   local_id: string;
 }
@@ -78,6 +84,7 @@ export type SyncSubmissionItemDto = {
   module_id: string;
   reflection_text: string | null;
   file_urls: string[] | null;
+  other_urls: string[] | null;
   local_id: string;
 };
 

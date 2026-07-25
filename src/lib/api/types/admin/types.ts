@@ -51,6 +51,7 @@ export type AdminStudentsResponse = {
 
 // PATCH /admin/students/[id]
 export type UserUpdateRequest = {
+  fullName?: string;
   email?: string;
   dateOfBirth?: string;
   classLevel?: string;

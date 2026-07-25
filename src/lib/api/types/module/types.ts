@@ -39,7 +39,7 @@ export type CurriculumModuleBlock = {
 };
 
 export interface CurriculumSection {
-  id?: string | null;
+  id: string
   heading?: string | null;
   blocks: CurriculumModuleBlock[];
 }
@@ -53,6 +53,8 @@ export interface CurriculumModule {
   id: string;
   title: string;
   description?: string;
+  outcome: string;
+  tier?: string;
   term: number;
   weekNumber: number;
   level: string;

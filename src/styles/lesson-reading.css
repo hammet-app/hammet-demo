@@ -1,0 +1,56 @@
+.lesson-reading {
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+@media (min-width: 640px) {
+  .lesson-reading {
+    font-size: 18px;
+  }
+}
+
+.lesson-reading p {
+  margin: 0;
+}
+
+.lesson-reading p + p {
+  margin-top: 1.25rem;
+}
+
+.lesson-reading strong {
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.lesson-reading em {
+  font-style: italic;
+}
+
+.lesson-reading ul,
+.lesson-reading ol {
+  margin: 1.25rem 0;
+  padding-left: 1.5rem;
+}
+
+.lesson-reading li + li {
+  margin-top: 0.5rem;
+}
+
+.lesson-reading li::marker {
+  color: var(--color-purple);
+}
+
+.lesson-reading > *:first-child {
+  margin-top: 0;
+}
+
+.lesson-reading > *:last-child {
+  margin-bottom: 0;
+}
+
+.lesson-reading ::selection {
+  background: var(--color-purple-light);
+  color: var(--color-text-primary);
+}

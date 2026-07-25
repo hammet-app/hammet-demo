@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ApiError } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
+import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
 import type { CurriculumModule } from "@/lib/api/types";
 
 const LEVEL_ORDER = ["JS1", "JS2", "JS3", "SS1", "SS2", "SS3"];
@@ -144,9 +144,7 @@ export default function AdminModulesListPage() {
             </div>
   
             <p className="font-semibold mb-1">No modules yet</p>
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              Create your first module to get started.
-            </p>
+
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

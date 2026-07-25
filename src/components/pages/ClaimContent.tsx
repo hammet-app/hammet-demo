@@ -126,7 +126,7 @@ export default function ClaimPage() {
         else if (err.status === 409) setError("This account has already been claimed");
         else if (err.status === 400 || err.status === 422) setError(`Invalid input. ${err.message}`);
         else if (err.status === 500) setError("Server error. Please try again.");
-        else setError(err.message || err.data?.details);
+        else setError(err.message);
       } else if (err instanceof Error) {
         setError(`Unable to connect. ${err.message}`);
       }

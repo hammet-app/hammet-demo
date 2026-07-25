@@ -1,4 +1,4 @@
-import { LegalPageLayout } from "@/components/layout/LegalPageLayout";
+import { LegalPageLayout } from "@/components/layout/legal/LegalPageLayout";
 
 export const metadata = { title: "Privacy Policy | Hammet" };
 

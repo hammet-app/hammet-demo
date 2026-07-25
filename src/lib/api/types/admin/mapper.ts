@@ -85,6 +85,7 @@ export function toAdminStudentResponse(dto: AdminStudentsResponseDto): AdminStud
 
 export function fromUpdateUserRequest(model: UserUpdateRequest): UserUpdateRequestDto {
     return {
+        full_name: model.fullName,
         email: model.email,
         date_of_birth: model.dateOfBirth,
         class_level: model.classLevel,

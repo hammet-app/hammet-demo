@@ -13,12 +13,23 @@ import {
   type AdminModulesResponseDto,
   type SchoolsListResponse,
   type DeactivateSchoolResponse,
+  type SchoolDetailsItemDto,
+  type SchoolDetailsItem,
   toSchoolListResponse,
   toRegisterSchoolResponse,
   toDeactivateSchoolResponse,
   toCurriculumModule,
   toAdminModulesResponse,
   fromRegisterSchoolRequest,
+  toSchoolDetailsItem,
+  RegisterAdminRequest,
+  fromRegisterAdminRequest,
+  fromCurriculumModule,
+  Disputes,
+  DisputesDto,
+  toDisputes,
+  DisputeReviewPayload,
+  fromDisputeReviewPayload,
 } from "@/lib/api/types";
 
 // ------------------------------------------------------------
@@ -35,6 +46,16 @@ export async function getSchools(
 
   return toSchoolListResponse(response)
 }
+export async function getSchool(
+  schoolId: string,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<SchoolDetailsItem> {
+  const response = await apiClient.get<SchoolDetailsItemDto>(`/hammet/schools/${schoolId}`, token, { onRefresh })
+  return toSchoolDetailsItem(response)
+}
+
+
 
 export async function registerSchool(
   body: RegisterSchoolRequest,
@@ -50,6 +71,15 @@ export async function registerSchool(
   );
 
   return toRegisterSchoolResponse(response)
+}
+
+export async function registerAdmin(
+  body: RegisterAdminRequest,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<boolean> {
+  const payload = fromRegisterAdminRequest(body)
+  return await apiClient.post<boolean>("/auth/register/admin", payload, token, { onRefresh })
 }
 
 export async function deactivateSchool(
@@ -108,4 +138,63 @@ export async function getHammetModules(
   });
 
   return toAdminModulesResponse(response)
+}
+
+export async function getModule(
+  tier: string,
+  moduleId: string,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<CurriculumModule> {
+  const lessonModule = await apiClient.get<CurriculumModuleDto>(
+    `/modules/${moduleId}?tier=${tier}`,
+    token,
+    { onRefresh }
+  )
+
+  return toCurriculumModule(lessonModule)
+}
+
+export async function editModule(
+  moduleId: string,
+  body: CurriculumModule,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<boolean> {
+  const payload = fromCurriculumModule(body)
+  return await apiClient.patch<boolean>(
+    `/hammet/modules/${moduleId}`,
+    payload,
+    token,
+    { onRefresh }
+  )
+}
+
+// ------------------------------------------------------------
+// DISPUTES
+// ------------------------------------------------------------
+export async function fetchDisputes(
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<Disputes> {
+  const response = await apiClient.get<DisputesDto>(
+    "/hammet/disputes",
+    token,
+    { onRefresh }
+  )
+  return toDisputes(response)
+}
+
+export async function reviewDispute(
+  review: DisputeReviewPayload,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<boolean> {
+  const payload = fromDisputeReviewPayload(review)
+  return await apiClient.post<boolean>(
+    "/hammet/review-dispute",
+    payload,
+    token,
+    { onRefresh }
+  )
 }

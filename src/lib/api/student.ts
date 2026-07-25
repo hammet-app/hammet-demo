@@ -33,7 +33,9 @@ import {
   fromCreateSubmissionRequest,
   toCreateSubmissionResponse, 
   fromResubmission,
-  ModuleSummary
+  ModuleSummary,
+  DisputeReview,
+  fromDisputeReview
 } from "@/lib/api/types";
 
 export const studentApi = {
@@ -49,6 +51,9 @@ export const studentApi = {
   getPortfolio: async (token: string, onRefresh: () => Promise<string | null>): Promise<StudentPortfolio> =>{
     const portfolio = await apiClient.get<StudentPortfolioDto>("/students/me/portfolio", token, { onRefresh })
     return toStudentPortfolio(portfolio)
+  },
+  getDispute: async (moduleId: string, token: string, onRefresh: () => Promise<string | null>): Promise<boolean> => {
+    return await apiClient.get<boolean>(`/students/me/dispute?module_id=${moduleId}`, token, {onRefresh})
   },
   getModules: async (
     term: number,
@@ -147,6 +152,19 @@ export const studentApi = {
       { onRefresh })
   },
 
+  raiseDispute: (
+    body: DisputeReview,
+    token: string,
+    onRefresh: () => Promise<string | null>
+  ): Promise<boolean> => {
+    const payload = fromDisputeReview(body)
+    console.log(payload)
+
+    return apiClient.post<boolean>(
+      '/submissions/dispute', payload, token, { onRefresh }
+    )
+  },
+
   submitModule: async(
     studentId: string,
     body: CreateSubmissionRequest,
@@ -155,7 +173,7 @@ export const studentApi = {
   ): Promise<CreateSubmissionResponse> =>{
     const payload = fromCreateSubmissionRequest(body)
     const res= await apiClient.post<CreateSubmissionResponseDto>("/submissions", payload, token, { onRefresh })
-    const response = toCreateSubmissionResponse(res)
+    const response = toCreateSubmissionResponse(res)    
 
     await markSubmissionSynced(response.localId)
     await clearPendingProgress(studentId)

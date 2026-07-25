@@ -1,3 +1,5 @@
+import { PreviewLink } from "../student";
+
 export type SubmissionStatus = "submitted" | "approved" | "flagged";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -5,10 +7,15 @@ export type SubmissionStatus = "submitted" | "approved" | "flagged";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type TaskFileEntry = {
+  id: string;
+  /** Id of the task the file is connected to */
+  taskId: string;
   /** Uploaded URL (online path) or null if pending */
   url: string | null;
   /** Local File object — present until uploaded or queued */
   file?: File;
+  fileName: string;
+  type?: string;
   /** Dexie offline queue ID — set when queued offline */
   dexieId?: string;
   /** Upload state */
@@ -16,6 +23,20 @@ export type TaskFileEntry = {
   errorMsg?: string; // set when status === "error"
 };
 
+export type SubmittedAsset = {
+  id: string;
+  name: string;
+  url: string;
+  mimeType?: string;
+  size: number;
+}
+
+export type SubmissionLink = {
+  taskId: string;
+  url: string;
+}
+
+export type TaskLinksState = Record<string, SubmissionLink[]>; // blockId -> entries
 export type TaskFilesState = Record<string, TaskFileEntry[]>; // blockId → entries
 
 export type UploadRequest = {
@@ -74,8 +95,9 @@ export type CreateSubmissionRequest = {
   moduleId: string;
   activityText: string;
   reflectionText: string| null;
-  fileUrls: string[] | null;
-  aiForm: AiFormState | null;
+  fileUrls: PreviewLink[] | null;
+  otherUrls: PreviewLink[] | null;
+  aiForm?: AiFormState | null;
   localId: string;             // client UUID for offline dedup
 };
 
@@ -87,7 +109,8 @@ export type CreateSubmissionResponse = {
   activityText: string | null;
   reflectionText: string | null;
   aiForm: AiFormState | null;
-  fileUrls: string[] | null;
+  fileUrls: PreviewLink[] | null;
+  otherUrls: PreviewLink[] | null;
   submittedAt: string;
   syncedAt: string;
   localId: string;  // echoed back so client can reconcile with Dexie
@@ -104,7 +127,8 @@ export type Resubmission = {
   id: string;
   activityText: string;
   reflectionText: string | null;
-  fileUrls: string[] | null;
+  fileUrls: PreviewLink[] | null;
+  otherUrls: PreviewLink[] | null;
   aiForm: AiFormState | null;
   localId: string;
 }
@@ -118,6 +142,7 @@ export type SyncSubmissionItem = {
   moduleId: string;
   reflectionText: string;
   fileUrls: string[] | null;
+  otherUrls: string[] | null;
   aiForm: AiFormState
   localId: string;
 };

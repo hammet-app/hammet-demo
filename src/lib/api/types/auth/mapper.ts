@@ -1,23 +1,29 @@
 import {
+    BulkRegisterRequestDto,
     BulkRegisterResponseDto,
+    BulkStudentInputDto,
     ClaimAccountRequestDto,
     ClaimAccountResponseDto,
     forgotPasswordResponseDto,
     InviteInfoDto,
     LoginResponseDto,
     RefreshResponseDto,
+    RegisterAdminRequestDto,
     RegisterSchoolRequestDto,
     RegisterSchoolResponseDto,
     RegisterStudentRequestDto,
     RegisterStudentResponseDto
 } from "@/lib/api/types/auth/types-dto";
 import {
+    BulkRegisterRequest,
     BulkRegisterResponse,
+    BulkStudentInput,
     ClaimAccountRequest,
     ClaimAccountResponse,
     InviteInfo,
     LoginResponse,
     RefreshResponse,
+    RegisterAdminRequest,
     RegisterSchoolRequest,
     RegisterSchoolResponse,
     RegisterStudentRequest,
@@ -116,6 +122,15 @@ export function fromRegisterSchoolRequest(model: RegisterSchoolRequest): Registe
     }
 }
 
+export function fromRegisterAdminRequest(model: RegisterAdminRequest): RegisterAdminRequestDto {
+    return {
+        school_id: model.schoolId,
+        email: model.email,
+        full_name: model.fullName,
+        roles: model.roles
+    }
+}
+
 export function toRegisterSchoolResponse(dto: RegisterSchoolResponseDto): RegisterSchoolResponse {
     return {
         schoolId: dto.school_id,
@@ -130,8 +145,8 @@ export function fromRegisterStudentRequest(model: RegisterStudentRequest): Regis
         email: model.email,
         class_level: model.classLevel,
         class_arm: model.classArm,
-        parent_email: model.parentEmail,
-        parent_phone: model.parentPhone,
+        parent_email: model.parentEmail ?? undefined,
+        parent_phone: model.parentPhone ?? undefined,
         date_of_birth: model.dateOfBirth
     }
 }
@@ -141,6 +156,24 @@ export function toRegisterStudentResponse(dto: RegisterStudentResponseDto): Regi
         fullName: dto.full_name,
         email: dto.email,
         code: dto.code
+    }
+}
+
+export function fromBulkStudent(model: BulkStudentInput): BulkStudentInputDto {
+    return {
+        full_name: model.fullName,
+        email: model.email,
+        class_level: model.classLevel,
+        class_arm: model.classArm,
+        parent_email: model.parentEmail ?? undefined,
+        parent_phone: model.parentPhone ?? undefined,
+        date_of_birth: model.dateOfBirth
+    }
+}
+
+export function fromBulkRegisterRequest(model: BulkRegisterRequest): BulkRegisterRequestDto {
+    return {
+        students: model.students.map(fromBulkStudent)
     }
 }
 

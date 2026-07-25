@@ -84,6 +84,14 @@ export type RegisterSchoolResponseDto = {
   message: boolean;              // invite email sent to admin
 };
 
+// POST /auth/register/admin
+export type RegisterAdminRequestDto = {
+  school_id: string;
+  full_name: string;
+  email: string;
+  roles: string[];
+}
+
 
 // POST /auth/register/student — school_admin only
 export type RegisterStudentRequestDto = {
@@ -91,8 +99,8 @@ export type RegisterStudentRequestDto = {
   email: string;
   class_level: string;
   class_arm: string | null;
-  parent_email: string;         // stored on user record, used for parent link
-  parent_phone: string;         // stored on user record, used for parent link
+  parent_email?: string;         // stored on user record, used for parent link
+  parent_phone?: string;         // stored on user record, used for parent link
   date_of_birth: string;
 };
 
@@ -101,6 +109,20 @@ export type RegisterStudentResponseDto = {
   email: string;
   code: string;
 };
+
+export type BulkStudentInputDto = {
+  full_name: string;
+  email: string;
+  class_level: string;
+  class_arm: string;
+  parent_email?: string;
+  parent_phone?: string;
+  date_of_birth: string;
+}
+
+export type BulkRegisterRequestDto = {
+  students: BulkStudentInputDto[];
+}
 
 
 // POST /auth/register/students/bulk — school_admin only (CSV upload)

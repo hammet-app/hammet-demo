@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { forwardRef, HTMLInputTypeAttribute, KeyboardEvent, ReactNode, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { FieldError } from "@/components/ui/auth-shell";
@@ -8,16 +8,19 @@ import { FieldError } from "@/components/ui/auth-shell";
 interface AuthInputProps {
   id: string;
   label: string;
-  type?: "text" | "number" | "email" | "password" | "tel";
+  type?: HTMLInputTypeAttribute;
   value: string;
   onChange: (v: string) => void;
-  style?: string;
+  onEnter?: () => void;
+  className?: string;
   placeholder?: string;
   defaultValue?: string;
   error?: string;
   autoComplete?: string;
   disabled?: boolean;
-  hint?: string;
+  description?: string;
+  required?: boolean;
+  leftIcon?: ReactNode
   /** Opt-in: show live strength bar when the user is creating a password */
   showStrength?: boolean;
 }
@@ -39,21 +42,26 @@ function getStrength(pw: string): { score: number; label: string; color: string 
   return { score, ...levels[Math.min(score, 3)] };
 }
 
-export function AuthInput({
+export const AuthInput = forwardRef<
+  HTMLInputElement,
+  AuthInputProps
+>(function AuthInput({
   id,
   label,
   type,
   value,
-  defaultValue,
+  onEnter,
   onChange,
-  style,
+  className,
   placeholder,
   error,
   autoComplete,
   disabled,
-  hint,
+  description,
+  required,
+  leftIcon,
   showStrength = false,
-}: AuthInputProps) {
+}, ref ) {
   const [showPassword, setShowPassword] = useState(false);
   const [focused, setFocused] = useState(false);
 
@@ -62,17 +70,35 @@ export function AuthInput({
   const strength = isPassword && showStrength && value ? getStrength(value) : null;
   const strengthPct = strength ? [25, 50, 75, 100][Math.min(strength.score, 3)] : 0;
 
+  function handleKeyDown(
+    e: KeyboardEvent<HTMLInputElement>
+  ) {
+    if (e.key === "Enter" &&
+      !e.shiftKey &&
+      !e.nativeEvent.isComposing
+    ){
+      onEnter?.()
+    }
+  }
+
   return (
     <div className="flex flex-col gap-1">
       <label htmlFor={id} className="text-[12.5px] font-medium text-text-secondary">
         {label}
+
+        {required && (
+          <span className="text-danger">
+            *
+          </span>
+        )}
       </label>
 
-      {hint && (
-        <p className="text-[11.5px] text-text-muted -mt-0.5">{hint}</p>
+      {description && (
+        <p className="text-[11.5px] text-text-muted -mt-0.5">{description}</p>
       )}
 
       <div className="relative">
+        {leftIcon}
         <input
           id={id}
           type={inputType}
@@ -97,7 +123,7 @@ export function AuthInput({
                   "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10"
                 ),
             isPassword && "pr-10",
-            style && style
+            className && className
           )}
         />
 
@@ -150,4 +176,4 @@ export function AuthInput({
       <FieldError message={error} />
     </div>
   );
-}
+})

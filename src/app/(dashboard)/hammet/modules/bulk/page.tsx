@@ -4,7 +4,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { apiClient } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
-import { PageShell } from "@/components/layout/PageShell";
+import { PageShell } from "@/components/layout/common/PageShell";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ── Types ────────────────────────────────────────────────────
@@ -230,20 +230,9 @@ export default function BulkModulesPage() {
 
           <button
             onClick={downloadTemplate}
-            className="
-              shrink-0
-              rounded-lg
-              border
-              border-[var(--color-border)]
-              bg-white
-              px-4
-              py-2
-              text-sm
-              font-medium
-              text-[var(--color-purple)]
-              transition
-              hover:border-[var(--color-purple)]
-              hover:bg-[var(--color-purple-light)]
+            className="shrink-0 rounded-lg border border-[var(--color-border)] bg-white
+              px-4 py-2 text-sm font-medium text-[var(--color-purple)] transition
+              hover:border-[var(--color-purple)] hover:bg-[var(--color-purple-light)]
             "
           >
             Download Template
@@ -251,33 +240,21 @@ export default function BulkModulesPage() {
         </div>
 
         <div className="grid gap-8 p-6 lg:grid-cols-2">
-
           {/* Required */}
           <div>
             <div className="mb-3 flex items-center gap-2">
-
               <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
-
               <h4 className="text-sm font-semibold text-[var(--color-text-primary)]">
                 Required Columns
               </h4>
-
             </div>
-
+            
             <div className="flex flex-wrap gap-2">
-
               {REQUIRED_COLUMNS.map((column) => (
                 <span
                   key={column}
-                  className="
-                    rounded-lg
-                    bg-[var(--color-purple-light)]
-                    px-3
-                    py-1.5
-                    font-mono
-                    text-xs
-                    font-medium
-                    text-[var(--color-purple)]
+                  className="rounded-lg bg-[var(--color-purple-light)] px-3
+                    py-1.5 font-mono text-xs font-medium text-[var(--color-purple)]
                   "
                 >
                   {column}
@@ -295,32 +272,19 @@ export default function BulkModulesPage() {
 
           {/* Optional */}
           <div>
-
             <div className="mb-3 flex items-center gap-2">
-
               <div className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-
               <h4 className="text-sm font-semibold text-[var(--color-text-primary)]">
                 Optional Columns
               </h4>
-
             </div>
 
             <div className="flex flex-wrap gap-2">
-
               {OPTIONAL_COLUMNS.map((column) => (
                 <span
                   key={column}
-                  className="
-                    rounded-lg
-                    border
-                    border-[var(--color-border)]
-                    bg-white
-                    px-3
-                    py-1.5
-                    font-mono
-                    text-xs
-                    text-[var(--color-text-secondary)]
+                  className="rounded-lg border border-[var(--color-border)] bg-white
+                    px-3 py-1.5 font-mono text-xs text-[var(--color-text-secondary)]
                   "
                 >
                   {column}
@@ -342,7 +306,6 @@ export default function BulkModulesPage() {
         <div className="border-t border-[var(--color-border)] bg-[var(--color-bg-page)] px-6 py-4">
 
           <div className="flex items-start gap-3">
-
             <div className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-purple-light)]">
               <svg
                 className="h-3.5 w-3.5 text-[var(--color-purple)]"

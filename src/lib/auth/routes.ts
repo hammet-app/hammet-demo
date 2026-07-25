@@ -5,7 +5,7 @@ import type { UserRole } from "@/lib/utils/roles";
  * Each role maps directly to its own top-level route.
  */
 export const ROLE_DEFAULT_ROUTES: Record<UserRole, string> = {
-  student:       "/student/lessons",
+  student:       "/student",
   school_admin:  "/admin",
   hammet_admin:  "/hammet",
 };

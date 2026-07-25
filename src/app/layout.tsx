@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { CookieNoticeBanner } from "@/components/layout/CookieNoticeBanner";
+import { CookieNoticeBanner } from "@/components/layout/legal/CookieNoticeBanner";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { Nunito, Atkinson_Hyperlegible } from "next/font/google";
 

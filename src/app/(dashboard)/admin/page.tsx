@@ -1,17 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
+import { motion, AnimatePresence } from "motion/react";
+import { BookOpen, UserPlus, Upload, CalendarDays, CircleHelp } from "lucide-react";
 import { getSchoolProfile, updateTerm } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
+import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
 import type { SchoolProfile, UpdateTerm } from "@/lib/api/types";
-
-const TIER_STYLE: Record<string, { bg: string; text: string }> = {
-  pilot: { bg: "bg-cyan-50", text: "text-cyan-700" },
-  annual: { bg: "bg-emerald-50", text: "text-emerald-700" },
-  suspended: { bg: "bg-red-50", text: "text-red-600" },
-};
+import { FadeIn } from "@/components/animations/FadeIn";
+import { Section } from "@/components/cards/common";
+import { 
+  AttentionSection, 
+  SchoolHero, 
+  SchoolOverview,
+  containerVariants, 
+  cardVariants 
+} from "@/components/cards/admin/dashboard";
+import { Button } from "@/components/ui";
+import { useOnboardingContext } from "@/components/onboarding/onboarding-provider";
 
 const sessions = Array.from(
   { length: 10 },
@@ -39,6 +46,33 @@ function TermModal({
   const [session, setSession] = useState(profile.session ?? "")
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const startDateRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    startDateRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    function handleKey(
+      e: KeyboardEvent
+    ) {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    }
+
+    window.addEventListener(
+      "keydown",
+      handleKey
+    );
+
+    return () =>
+      window.removeEventListener(
+        "keydown",
+        handleKey
+      )
+  }, [onClose])
 
   async function handleSave() {
     if (!termStart || !termEnd || !session.trim()) {
@@ -69,11 +103,21 @@ function TermModal({
   }
 
   return (
-    <div
+    <motion.div
       onClick={handleBackdrop}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+      initial={{ opacity:0 }}
+      animate={{ opacity:1, }}
+      exit={{ opacity:0, }}
+      transition={{ duration:.2 }}
     >
-      <div className="w-full max-w-sm bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col gap-5">
+      <motion.div 
+        className="w-full max-w-sm bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6 flex flex-col gap-5"
+        initial={{ opacity: 0, scale:.95, y:20 }}
+        animate={{ opacity:1, scale:1, y:0 }}
+        exit={{ opacity:0, scale:.95, y:20, }}
+        transition={{ duration:.25, ease:"easeOut", }}
+      >
         <div>
           <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
             Update term dates
@@ -83,12 +127,36 @@ function TermModal({
           </p>
         </div>
 
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs text-[var(--color-text-secondary)]">
+            Session
+          </label>
+          <select
+            className="h-9 rounded-lg border border-border bg-bg-card px-3 
+              text-sm focus:outline-none focus:ring-2
+              focus:ring-purple-mid
+            "
+            value={session}
+            onChange={(e) => setSession(e.target.value)}
+          >
+            <option value="">Select session</option>
+
+            {sessions.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-[var(--color-text-secondary)]">
+            <label className="flex items-center gap-2 text-xs text-text-secondary">
+              <CalendarDays size={14}/>
               Term start
             </label>
             <input
+              ref={startDateRef}
               type="date"
               value={termStart}
               onChange={(e) => setTermStart(e.target.value)}
@@ -97,7 +165,8 @@ function TermModal({
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-[var(--color-text-secondary)]">
+            <label className="flex items-center gap-2 text-xs text-text-secondary">
+              <CalendarDays size={14}/>
               Term end
             </label>
             <input
@@ -106,23 +175,6 @@ function TermModal({
               onChange={(e) => setTermEnd(e.target.value)}
               className="h-9 rounded-lg border border-[var(--color-border)] bg-[var(--color-bg-card)] px-3 text-sm focus:outline-none focus:ring-1 focus:ring-[var(--color-purple)]"
             />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs text-[var(--color-text-secondary)]">
-              Session
-            </label>
-            <select
-              value={session}
-              onChange={(e) => setSession(e.target.value)}
-            >
-              <option value="">Select session</option>
-
-              {sessions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
@@ -134,44 +186,24 @@ function TermModal({
           <button
             onClick={onClose}
             disabled={saving}
-            className="h-9 px-4 rounded-lg border border-[var(--color-border)] text-sm text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-page)] transition-colors"
+            className=" h-10 px-5 rounded-xl border border-[var(--color-border)] 
+              text-sm font-medium text-[var(--color-text-secondary)] 
+              hover:bg-[var(--color-bg-page)] transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="h-9 px-4 rounded-lg bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-60"
+            className="h-10 px-4 rounded-xl bg-[var(--color-purple)] text-white 
+              text-sm font-semibold hover:opacity-90 transition-all
+              disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {saving ? "Saving…" : "Save changes"}
           </button>
         </div>
-      </div>
-    </div>
-  );
-}
-
-// ── Stat card ─────────────────────────────────────────────────────────────────
-
-function StatCard({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: number;
-  sub?: string;
-}) {
-  return (
-    <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-5">
-      <p className="text-3xl font-bold text-[var(--color-text-primary)]">
-        {value}
-      </p>
-      <p className="text-sm text-[var(--color-text-secondary)] mt-1">{label}</p>
-      {sub && (
-        <p className="text-xs text-[var(--color-text-muted)] mt-0.5">{sub}</p>
-      )}
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -190,24 +222,59 @@ function QuickActionCard({ action }: { action: QuickAction }) {
   const router = useRouter();
 
   return (
-    <button
-      onClick={() => (action.onClick ? action.onClick() : router.push(action.href!))}
-      className="group w-full text-left bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-5 hover:border-[var(--color-purple)] hover:shadow-md transition-all"
+    <motion.button
+      onClick={() =>
+        action.onClick
+          ? action.onClick()
+          : router.push(action.href!)
+      }
+      className="group relative overflow-hidden rounded-2xl border border-border
+        bg-bg-card p-5 text-left transition-all duration-200
+        hover:-translate-y-1 hover:border-purple-mid hover:shadow-lg
+      "
+      variants={cardVariants}
+      initial="rest"
+      transition={{
+        duration: 0.35,
+      }}
+      whileHover="hover"
+      whileTap="tap"
     >
-      <div
-        className={`w-10 h-10 rounded-xl ${action.accent} flex items-center justify-center mb-3 group-hover:scale-105 transition`}
+      {/* icon */}
+
+      <motion.div
+        className={`mb-5 flex h-12 w-12 items-center
+          justify-center rounded-xl transition-transform
+          duration-200 ${action.accent}
+        `}
+        whileHover={{
+          rotate: -5,
+          scale: 1.12,
+        }}
       >
         {action.icon}
-      </div>
+      </motion.div>
 
-      <p className="font-semibold text-sm text-[var(--color-text-primary)]">
+      <h3 className="text-base font-semibold text-text-primary">
         {action.label}
-      </p>
+      </h3>
 
-      <p className="text-xs text-[var(--color-text-muted)] mt-0.5">
+      <p className="mt-2 text-sm text-text-muted leading-6">
         {action.description}
       </p>
-    </button>
+
+      <motion.div
+        className="mt-6 flex items-center text-sm font-medium
+          text-purple-mid opacity-0 transition-all duration-200
+        "
+        variants={{
+          rest: { opacity: 0,  x: -8, },
+          hover: { opacity: 1, x: 0 }
+        }}
+      >
+        Open →
+      </motion.div>
+    </motion.button>
   );
 }
 
@@ -221,6 +288,9 @@ export default function AdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [termModalOpen, setTermModalOpen] = useState(false);
 
+  const router = useRouter();
+  const { startTour } = useOnboardingContext();
+
   useEffect(() => {
     if (!accessToken) return;
 
@@ -230,59 +300,42 @@ export default function AdminDashboardPage() {
       .finally(() => setIsLoading(false));
   }, [accessToken, refreshToken]);
 
-  const tier = profile
-    ? TIER_STYLE[profile.tier] ?? TIER_STYLE.pilot
-    : null;
-
   const quickActions: QuickAction[] = [
     {
       label: "Register student",
       description: "Add a single student to the school roster.",
       href: "/admin/students/new",
       accent: "bg-[var(--color-purple-light)]",
-      icon: (
-        <svg className="w-5 h-5 text-[var(--color-purple)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
-        </svg>
-      ),
+      icon: <UserPlus className="w-5 h-5 text-purple-mid" />
     },
     {
       label: "Bulk import students",
       description: "Paste a list to register multiple students at once.",
       href: "/admin/students/bulk",
-      accent: "bg-cyan-50",
-      icon: (
-        <svg className="w-5 h-5 text-cyan-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
-        </svg>
-      ),
+      accent: "bg-cyan-light",
+      icon: <Upload className="w-5 h-5 text-cyan-dark" />
     },
     {
       label: "View modules",
       description: "Browse curriculum.",
       href: "/admin/modules",
-      accent: "bg-amber-50",
-      icon: (
-        <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-        </svg>
-      ),
+      accent: "bg-purple-light",
+      icon: <BookOpen className="w-5 h-5 text-purple-dark" />
     },
     {
       label: "Manage term",
       description: "Update the current term start and end dates.",
       onClick: () => setTermModalOpen(true),
-      accent: "bg-emerald-50",
-      icon: (
-        <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
-        </svg>
-      ),
+      accent: "bg-success-light",
+      icon: <CalendarDays className="w-5 h-5 text-success-dark" />
     },
   ];
 
+  const studentActions = quickActions.slice(0, 2);
+  const academicActions = quickActions.slice(2);
+
   return (
-    <PageShell title={!profile ? "Dashboard" : profile.name}>
+    <PageShell title={"Dashboard"}>
       {isLoading ? (
         <ListSkeleton rows={4} />
       ) : error ? (
@@ -290,76 +343,140 @@ export default function AdminDashboardPage() {
           {error}
         </div>
       ) : !profile ? (
-        <div className="text-sm text-[var(--color-text-secondary)]">
-          No profile found.
+        <div className="rounded-xl border border-danger bg-danger-light p4">
+          <h3 className="font-semibold text-danger-dark">
+            Unable to load school profile
+          </h3>
+          <p className="mt-1 text-sm text-danger-dark">
+            Your account isn't linked ot a school. Please contact Hammet support
+          </p>
         </div>
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-12">
           {/* Header */}
-          <div className="w-full p-6 rounded-b-xl bg-[var(--color-purple-light)]">
-            <div className="flex items-center gap-6">
-              {/* <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
-                  {profile.name}
-                </h2>
-
-              </div> */}
-
-              <p className="text-sm text-[var(--color-text-secondary)]">
-                Term {profile.term}
-                {profile.availableArms && profile.availableArms.length > 0 &&
-                  ` · Arms: ${profile.availableArms.join(", ")}`}
-              </p>
-
-              {tier && (
-                <span className={`text-xs px-2.5 py-0.5 rounded-full ${tier.bg} ${tier.text}`}>
-                  {profile.tier}
-                </span>
-              )}
+          <FadeIn>
+            <div data-tour="school-hero">
+              <SchoolHero profile={profile} />
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={startTour}
+            >
+              <CircleHelp className="h-4 w-4 mr-2" />
+              Replay Tour
+            </Button>
+          </FadeIn>
 
-            {/* Stats */}
-            <div>
-              <p className="text-xs uppercase mb-3 text-[var(--color-text-muted)]">
-                Overview
-              </p>
+          <FadeIn delay={0.08}>
+            <div data-tour="school-overview">
+              <SchoolOverview 
+                profile={profile}
+                onManageTerm={() => setTermModalOpen(true)}
+              />
+            </div>
+          </FadeIn>
 
-              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                <StatCard label="Total students" value={profile.stats.totalStudents} />
-                <StatCard label="Active students" value={profile.stats.activeStudents} />
-                <StatCard label="Pending students" value={profile.stats.pendingStudents} />
+          <FadeIn delay={0.16}>
+            <Section
+              title="Needs Attention"
+              description="Items that may require action" 
+            >
+              <div data-tour="needs-attention">
+                <AttentionSection
+                  onPendingInvitations={() =>
+                    router.push("/admin/students?status=pending")
+                  }
+
+                  onPendingSubmissions={() =>
+                    router.push("/admin/submissions?status=pending")
+                  }
+
+                  onCapacity={() =>
+                    router.push("/admin/students")
+                  }
+                />
               </div>
-            </div>
-          </div>
+            </Section>
+          </FadeIn>
+          
+          <FadeIn delay={0.32}>
+            <Section
+              title="Quick Actions"
+              description="Frequently used administrative tools"
+            >
+              {/* Quick actions */}
+              <div>
+                <div className="space-y-8">
 
-          {/* Quick actions */}
-          <div>
-            <p className="text-xs uppercase mb-3 text-[var(--color-text-muted)]">
-              Quick actions
-            </p>
+                  <section>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {quickActions.map((action) => (
-                <QuickActionCard key={action.label} action={action} />
-              ))}
-            </div>
-          </div>
+                    <h2
+                      className="mb-4 text-lg font-semibold text-text-primary"
+                      style={{ fontFamily: "var(--font-head)" }}
+                    >
+                      Student Management
+                    </h2>
+
+                    <motion.div 
+                      className="grid gap-3 md:grid-cols-2"
+                      variants={containerVariants}
+                      initial="hidden"
+                      whileInView="show"
+                      viewport={{ once: true, }}
+                      data-tour="student-management"
+                    >
+                      {studentActions.map((action) => (
+                        <QuickActionCard key={action.label} action={action} />
+                      ))}
+                    </motion.div>
+                  </section>
+
+                  <section>
+                    <h2
+                      className="mb-4 text-lg font-semibold text-text-primary"
+                      style={{ fontFamily: "var(--font-head)" }}
+                    >
+                      Academics
+                    </h2>
+
+                    <motion.div 
+                      className="grid gap-3 md:grid-cols-2"
+                      variants={containerVariants}
+                      initial="hidden"
+                      whileInView="show"
+                      viewport={{ once: true, }}
+                      data-tour="school-card"
+                    >
+                      {academicActions.map((action, index) => (
+                        <div key={action.label} >
+                          <QuickActionCard action={action} />
+                        </div>
+                      ))}
+                    </motion.div>
+                  </section>
+                </div>
+              </div>
+            </Section>
+          </FadeIn>
         </div>
       )}
 
       {/* Term modal — rendered outside the scroll container */}
-      {termModalOpen && profile && (
-        <TermModal
-          profile={profile}
-          onClose={() => setTermModalOpen(false)}
-          onSaved={(start, end, session) => {
-            setProfile((prev) =>
-              prev ? { ...prev, termStart: start, termEnd: end, session: session } : prev
-            );
-            setTermModalOpen(false);
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {termModalOpen && profile && (
+          <TermModal
+            profile={profile}
+            onClose={() => setTermModalOpen(false)}
+            onSaved={(start, end, session) => {
+              setProfile((prev) =>
+                prev ? { ...prev, termStart: start, termEnd: end, session: session } : prev
+              );
+              setTermModalOpen(false);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </PageShell>
   );
 }

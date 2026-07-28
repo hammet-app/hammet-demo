@@ -140,7 +140,7 @@ function PortfolioEntryCard({ entry, onOpen }: { entry: PortfolioEntry, onOpen: 
           <StatusPill status={entry.status} />
 
           <span className="text-[11px] text-text-muted">
-            {approvedDate}
+             {entry.approvedAt ? approvedDate : ""}
           </span>
         </div>
       </div>

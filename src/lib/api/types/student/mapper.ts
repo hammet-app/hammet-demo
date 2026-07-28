@@ -1,6 +1,8 @@
 import { 
+    DisputeReviewDto,
     ModuleProgressDto,
     PortfolioEntryDto,
+    PreviewLinkDto,
     StudentPortfolioDto,
     StudentProfileDto, 
     StudentProgressDto, 
@@ -9,8 +11,10 @@ import {
     TermProgressDto
 } from "@/lib/api/types/student/types-dto";
 import { 
+    DisputeReview,
     ModuleProgress,
     PortfolioEntry,
+    PreviewLink,
     StudentPortfolio,
     StudentProfile, 
     StudentProgress, 
@@ -18,6 +22,7 @@ import {
     SubmissionHistory, 
     TermProgress
 } from "@/lib/api/types/student/types";
+import { fromAiFormState, toAiFormState } from "../submissions";
 
 /**
  * Naming convention:
@@ -30,6 +35,24 @@ import {
  * Converts backend DTOs into frontend/domain models
  * (snake_case -> camelCase, API shape -> app shape)
  */
+export function toPreviewLink(dto: PreviewLinkDto): PreviewLink {
+    return {
+        taskId: dto.task_id,
+        url: dto.url,
+        title: dto.title,
+        type: dto.type,
+        faviconUrl: dto.favicon_url
+    }
+}
+
+export function fromPreviewLink(model: PreviewLink): PreviewLinkDto {
+    return {
+        task_id: model.taskId,
+        url: model.url,
+        title: model.title,
+        favicon_url: model.faviconUrl
+    }
+}
 
 export function toStudentProfile(dto: StudentProfileDto): StudentProfile {
     return {
@@ -89,10 +112,11 @@ export function fromSubmission(model: Submission): SubmissionDto {
         module_title: model.moduleTitle,
         term: model.term,
         week_number: model.weekNumber,
-        ai_form: model.aiForm,
+        ai_form: model.aiForm ? fromAiFormState(model.aiForm) : null,
         activity_text: model.activityText,
         reflection_text: model.reflectionText,
-        file_urls: model.fileUrls,
+        file_urls: model.fileUrls?.map(fromPreviewLink) ?? null,
+        other_urls: model.otherUrls?.map(fromPreviewLink) ?? null,
         status: model.status,
         teacher_note: model.teacherNote,
         submitted_at: model.submittedAt,
@@ -108,10 +132,11 @@ export function toSubmission(dto: SubmissionDto): Submission {
         moduleTitle: dto.module_title,
         term: dto.term,
         weekNumber: dto.week_number,
-        aiForm: dto.ai_form,
+        aiForm: dto.ai_form ? toAiFormState(dto.ai_form) : null,
         activityText: dto.activity_text,
         reflectionText: dto.reflection_text,
-        fileUrls: dto.file_urls,
+        fileUrls: dto.file_urls?.map(toPreviewLink)??null,
+        otherUrls: dto.other_urls?.map(toPreviewLink)??null,
         status: dto.status,
         teacherNote: dto.teacher_note,
         submittedAt: dto.submitted_at,
@@ -134,8 +159,10 @@ export function toPortfolioEntry(dto: PortfolioEntryDto): PortfolioEntry {
         moduleTitle: dto.module_title,
         term: dto.term,
         weekNumber: dto.week_number,
+        status: dto.status,
         reflectionText: dto.reflection_text,
-        fileUrls: dto.file_urls,
+        fileUrls: dto.file_urls?.map(toPreviewLink) ?? null,
+        otherUrls: dto.other_urls?.map(toPreviewLink) ?? null,
         approvedAt: dto.approved_at,
         studentName: dto.student_name,
         schoolName: dto.school_name
@@ -146,5 +173,14 @@ export function toStudentPortfolio(dto: StudentPortfolioDto): StudentPortfolio {
     return {
         entries: dto.entries.map(toPortfolioEntry),
         total: dto.total
+    }
+}
+
+
+export function fromDisputeReview(model: DisputeReview): DisputeReviewDto {
+    return {
+        submission_id: model.submissionId,
+        note: model.note,
+        review: model.review
     }
 }

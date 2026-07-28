@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils/utils";
 import { useEffect, useState } from "react";
 import { Loader2, MailCheck } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 import { ResetPasswordRequest } from "@/lib/api/types";
 import { AuthInput } from "@/components/ui/auth-input";
 import { apiClient, ApiError } from "@/lib/api/api-client";
@@ -187,12 +188,16 @@ export default function ResetPassword() {
   }
 
   return (
-    <>
-      {
-        step == 0 ?
-
-          // STEP 0
-          <AuthShell>
+    <AuthShell>
+      <AnimatePresence mode="wait">
+        {step == 0 && (
+            // STEP 0
+          <motion.div
+            key="step-0"
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 16 }}
+          >
             <AuthHeading
               title="Forgot your password?"
               description="Enter the email address you registered with"
@@ -216,13 +221,8 @@ export default function ResetPassword() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={cn(
-                  "mt-2 w-full h-10 rounded-[8px] text-[13.5px] font-semibold",
-                  "bg-purple text-white transition-colors",
-                  "hover:bg-purple-hover",
-                  "disabled:opacity-60 disabled:cursor-not-allowed",
-                  "flex items-center justify-center gap-2"
-                )}
+                className={submitBtnClass}
+                style={submitBtnStyle}
               >
                 {isLoading ? (
                   <>
@@ -245,138 +245,155 @@ export default function ResetPassword() {
                 Sign in
               </a>
             </p>
-          </AuthShell> :
+          </motion.div>
+        )}
+          
+        {step === 1 && (
+          <motion.div
+            key="step-1"
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 16 }}
+          >
+            <AuthHeading
+              title="Reset password"
+              description="Enter the OTP your admin gave you"
+            />
 
-          step === 1 ?
-            <AuthShell>
-              <AuthHeading
-                title="Reset password"
-                description="Enter the OTP your admin gave you"
+            {errors.form && <AuthAlert message={errors.form} />}
+
+            <form onSubmit={handleVerify} noValidate className="flex flex-col gap-4">
+              <AuthInput
+                id="otp"
+                label="OTP"
+                type="text"
+                value={otp}
+                onChange={setOTP}
+                placeholder="Enter OTP"
+                error={errors.otp}
+                disabled={isLoading}
               />
+              <button 
+                type="submit" 
+                disabled={isLoading} 
+                className={submitBtnClass} 
+                style={submitBtnStyle}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    Verifying…
+                  </>
+                ) : (
+                  "Verify"
+                )}
+              </button>
+            </form>
 
-              {errors.form && <AuthAlert message={errors.form} />}
+            <p className="mt-1 text-center text-[12px] text-text-muted leading-relaxed">
+              Remember your password?{" "}
+              <a 
+                href="/login" 
+                className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors"
+              >
+                Sign in
+              </a>
+            </p>
 
-              <form onSubmit={handleVerify} noValidate className="flex flex-col gap-4">
-                <AuthInput
-                  id="otp"
-                  label="OTP"
-                  type="text"
-                  value={otp}
-                  onChange={setOTP}
-                  placeholder="Enter OTP"
-                  error={errors.otp}
-                  disabled={isLoading}
-                />
-                <button 
-                  type="submit" 
-                  disabled={isLoading} 
-                  className={submitBtnClass} 
-                  style={submitBtnStyle}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 size={15} className="animate-spin" />
-                      Verifying…
-                    </>
-                  ) : (
-                    "Verify"
-                  )}
-                </button>
-              </form>
+          </motion.div>
+        )} 
+              
+        {step == 2 && (
+          <motion.div
+            key="step-2"
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 16 }}
+          >
+            <AuthHeading
+              title="New password"
+              description="Choose a strong password for your account"
+            />
 
-              <p className="mt-1 text-center text-[12px] text-text-muted leading-relaxed">
+            {errors.form && <AuthAlert message={errors.form} />}
+
+            <form onSubmit={handleReset} noValidate className="flex flex-col gap-4">
+              <AuthInput
+                id="new_password"
+                label="New password"
+                type="password"
+                value={password}
+                onChange={setPassword}
+                placeholder="Enter new password"
+                error={errors.password}
+                disabled={isLoading}
+                showStrength
+              />
+              <AuthInput
+                id="confirm_password"
+                label="Confirm password"
+                type="password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                placeholder="Confirm new password"
+                autoComplete="new-password"
+                error={errors.confirmPassword}
+                disabled={isLoading}
+              />
+              <button type="submit" disabled={isLoading} className={submitBtnClass} style={submitBtnStyle}>
+                {isLoading ? <><Loader2 size={15} className="animate-spin" />Resetting…</> : "Reset password"}
+              </button>
+            </form>
+
+            <div className="flex flex-col gap-2 mt-1">
+              <p className="text-center text-[12px] text-text-muted leading-relaxed">
                 Remember your password?{" "}
-                <a 
-                  href="/login" 
-                  className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors"
-                >
+                <a href="/login" className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors">
                   Sign in
                 </a>
               </p>
-            </AuthShell> :
+              <p className="text-center text-[12px] text-text-muted leading-relaxed">
+                New student?{" "}
+                <a href="/claim" className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors">
+                  Activate with a claim code
+                </a>
+              </p>
+            </div>
+          </motion.div> 
+        )}
+        {step == 3 && (// STEP 3  
+          <motion.div
+            key="step-1"
+            initial={{ opacity: 0, x: -16 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 16 }}
+          >
+            <div className="bg-[var(--color-bg-card)] rounded-2xl flex flex-col items-center gap-4 text-center">
+              <div className="w-14 h-14 rounded-full bg-[var(--color-success)]/10 flex items-center justify-center">
+                <MailCheck color="green" />
+              </div>
+              <div>
+                <p className="text-base font-semibold text-[var(--color-text-primary)]">
+                  Check your email
+                </p>
+                <p className="text-sm text-[var(--color-text-muted)] mt-1">
+                  A reset link has been sent to your email address. <br /> Please click on the link to reset your password.
+                </p>
+              </div>
 
-            step == 2 ?
-
-              <AuthShell>
-                <AuthHeading
-                  title="New password"
-                  description="Choose a strong password for your account"
-                />
-
-                {errors.form && <AuthAlert message={errors.form} />}
-
-                <form onSubmit={handleReset} noValidate className="flex flex-col gap-4">
-                  <AuthInput
-                    id="new_password"
-                    label="New password"
-                    type="password"
-                    value={password}
-                    onChange={setPassword}
-                    placeholder="Enter new password"
-                    error={errors.password}
-                    disabled={isLoading}
-                    showStrength
-                  />
-                  <AuthInput
-                    id="confirm_password"
-                    label="Confirm password"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={setConfirmPassword}
-                    placeholder="Confirm new password"
-                    autoComplete="new-password"
-                    error={errors.confirmPassword}
-                    disabled={isLoading}
-                  />
-                  <button type="submit" disabled={isLoading} className={submitBtnClass} style={submitBtnStyle}>
-                    {isLoading ? <><Loader2 size={15} className="animate-spin" />Resetting…</> : "Reset password"}
-                  </button>
-                </form>
-
-                <div className="flex flex-col gap-2 mt-1">
-                  <p className="text-center text-[12px] text-text-muted leading-relaxed">
-                    Remember your password?{" "}
-                    <a href="/login" className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors">
-                      Sign in
-                    </a>
-                  </p>
-                  <p className="text-center text-[12px] text-text-muted leading-relaxed">
-                    New student?{" "}
-                    <a href="/claim" className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors">
-                      Activate with a claim code
-                    </a>
-                  </p>
-                </div>
-              </AuthShell> :
-
-            // STEP 3  
-            <AuthShell>
-                <div className="bg-[var(--color-bg-card)] rounded-2xl flex flex-col items-center gap-4 text-center">
-                  <div className="w-14 h-14 rounded-full bg-[var(--color-success)]/10 flex items-center justify-center">
-                    <MailCheck color="green" />
-                  </div>
-                  <div>
-                    <p className="text-base font-semibold text-[var(--color-text-primary)]">
-                      Check your email
-                    </p>
-                    <p className="text-sm text-[var(--color-text-muted)] mt-1">
-                      A reset link has been sent to your email address. <br /> Please click on the link to reset your password.
-                    </p>
-                  </div>
-
-                  <span>
-                    Didn&apos;t get reset email? {" "}
-                    <button
-                      onClick={handleValidateEmail}
-                      className="text-sm text-[var(--color-purple)] font-medium hover:underline"
-                    >
-                      Resend reset link
-                    </button>
-                  </span>
-                </div>
-              </AuthShell>
-
-          }
-    </>
+              <span>
+                Didn&apos;t get reset email? {" "}
+                <button
+                  onClick={handleValidateEmail}
+                  className="text-sm text-[var(--color-purple)] font-medium hover:underline"
+                >
+                  Resend reset link
+                </button>
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </AuthShell>
   );
 }

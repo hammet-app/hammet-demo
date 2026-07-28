@@ -4,9 +4,10 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
+import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
 import { SubmissionCard } from "@/components/cards/submission-card";
 import type { Submission } from "@/lib/api/types";
+import { AnimatePresence } from "motion/react";
 
 type FilterStatus = "all" | "approved" | "submitted" | "flagged";
 
@@ -89,24 +90,26 @@ export default function SubmissionsPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {filtered.map((s) => (
-            <SubmissionCard
-              key={s.id}
-              moduleTitle={s.moduleTitle}
-              weekNumber={s.weekNumber}
-              term={s.term}
-              submittedAt={s.submittedAt}
-              status={s.status}
-              teacherNote={s.teacherNote}
-              onAction={
-                s.status === "flagged"
-                  ? () => router.push(`/student/lessons/${s.moduleId}`)
-                  : s.status === "approved"
-                  ? () => router.push(`/student/portfolio`)
-                  : undefined
-              }
-            />
-          ))}
+          <AnimatePresence>
+            {filtered.map((s) => (
+              <SubmissionCard
+                key={s.id}
+                moduleTitle={s.moduleTitle}
+                weekNumber={s.weekNumber}
+                term={s.term}
+                submittedAt={s.submittedAt}
+                status={s.status}
+                teacherNote={s.teacherNote}
+                onAction={
+                  s.status === "flagged"
+                    ? () => router.push(`/student/lessons/${s.moduleId}`)
+                    : s.status === "approved"
+                    ? () => router.push(`/student/portfolio`)
+                    : undefined
+                }
+              />
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </PageShell>

@@ -3,18 +3,21 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { PageShell, StatsSkeleton, ListSkeleton } from "@/components/layout/PageShell";
+import { PageShell, StatsSkeleton, ListSkeleton } from "@/components/layout/common/PageShell";
 import { StatCard } from "@/components/cards/stat-card";
 import { StatusPill } from "@/components/ui/status-pill";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";
 import type { StudentProgress, ModuleProgress } from "@/lib/api/types";
 import { cn } from "@/lib/utils/utils";
+import { ProgressHero } from "@/components/cards/student/progress";
+import { WeeklyProgressSection } from "@/components/cards/student/progress/WeeklyProgress";
 
 export default function ProgressPage() {
   const { accessToken, refreshToken, user } = useAuth();
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
+  
 
   useEffect(() => {
     if (!accessToken) return;
@@ -42,6 +45,36 @@ export default function ProgressPage() {
     return acc;
   }, {});
 
+  const currentWeek = Math.max(...Object.keys(byWeek).map(Number), 0);
+
+  const summaryStats = tp ? [
+    {
+      label: "Approved",
+      value: tp.approvedModules,
+      icon: CheckCircle2,
+      iconVariant: "green" as const,
+    },
+    {
+      label: "Submitted",
+      value: tp.submittedModules,
+      icon: Clock,
+      iconVariant: "cyan" as const
+    },
+    {
+      label: "Remaining",
+      value: tp.totalModules - tp.approvedModules,
+      icon: BookOpen,
+      iconVariant: "purple" as const,
+    },
+    {
+      label: "Flagged",
+      value: tp.flaggedModules,
+      icon: Flag,
+      iconVariant: tp.flaggedModules>0 ? ("amber" as const) : ("green" as const),
+    },
+  ]
+  : [];
+
   return (
     <PageShell
       title="My Progress"
@@ -62,20 +95,28 @@ export default function ProgressPage() {
         </div>
       ) : (
         <>
-          <div className="relative overflow-hidden bg-purple-light border border-border rounded-b-[20px] p-6 shadow-sm shadow-slate-200/10 mb-6">
+          {tp && (
+            <>
+              <ProgressHero
+                totalModules={tp?.totalModules}
+                approvedModules={tp.approvedModules}
+                submittedModules={tp.submittedModules}
+                currentWeek={currentWeek}
+              />
             
-            <div className="relative">
+              <div className="relative">
 
-              {tp && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-                  <StatCard label="Total modules" value={tp.totalModules} icon={BookOpen} iconVariant="purple" />
-                  <StatCard label="Submitted" value={tp.submittedModules} icon={Clock} iconVariant="cyan" />
-                  <StatCard label="Approved" value={tp.approvedModules} icon={CheckCircle2} iconVariant="green" />
-                  <StatCard label="Flagged" value={tp.flaggedModules} icon={Flag} iconVariant={tp.flaggedModules > 0 ? "amber" : "purple"} />
-                </div>
-              )}
+                {tp && (
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                    {summaryStats.map((stat) => (
+                      <StatCard key={stat.label} {...stat}/>
+                    ))
 
-              {tp && (
+                    }
+                  </div>
+                )}
+
+
                 <div className="bg-bg-page border border-border rounded-[14px] p-4 mb-0 flex flex-col gap-4">
                   <ProgressBar
                     label="Approved"
@@ -90,25 +131,16 @@ export default function ProgressPage() {
                     value={`${tp.submittedModules} / ${tp.totalModules}`}
                   />
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Module breakdown by week */}
-          {Object.entries(byWeek)
-            .sort(([a], [b]) => Number(a) - Number(b))
-            .map(([week, mods]) => (
-              <div key={week} className="mb-5">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2.5">
-                  Week {week}
-                </p>
-                <div className="bg-bg-card border border-border rounded-[10px] overflow-hidden divide-y divide-border">
-                  {mods?.map((m) => (
-                    <ModuleProgressRow key={m.moduleId} module={m} />
-                  ))}
-                </div>
               </div>
-            ))}
+            </>
+          )}
+            
+
+
+          <WeeklyProgressSection
+            weeks={byWeek}
+            currentWeek={currentWeek}
+          />
         </>
       )}
     </PageShell>
@@ -142,26 +174,3 @@ function ProgressBar({
   );
 }
 
-function ModuleProgressRow({ module: m }: { module: ModuleProgress }) {
-  const date = m.submittedAt
-    ? new Date(m.submittedAt).toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-      })
-    : null;
-
-  return (
-    <div className="flex items-center gap-3 px-4 py-3">
-      <div className="w-7 h-7 rounded-[6px] bg-purple-light text-purple flex items-center justify-center text-[11px] font-bold shrink-0">
-        {m.weekNumber}
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-text-primary truncate">{m.title}</p>
-        {date && (
-          <p className="text-[11px] text-text-muted">Submitted {date}</p>
-        )}
-      </div>
-      <StatusPill status={m.submissionStatus} />
-    </div>
-  );
-}

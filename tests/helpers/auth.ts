@@ -17,6 +17,10 @@ export async function login(page: Page, request: APIRequestContext) {
 
   await page.goto("/login");
 
+  expect(page.getByRole('button', {
+      name: 'Sign in'
+    })).toBeVisible()
+
   await page.getByRole('textbox',{name: "Email address"})
     .fill(email);
 
@@ -37,8 +41,10 @@ export async function logout(page: Page) {
     name: "Close",
   }).click();
 
+  await page.getByRole('button', { name: 'Dismiss' }).click();
+
   await page.getByRole("button", {
-    name: "Sign Out",
+    name: "Log Out",
   }).click();
 }
 

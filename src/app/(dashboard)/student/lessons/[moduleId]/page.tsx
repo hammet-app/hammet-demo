@@ -7,10 +7,9 @@ import { studentApi } from "@/lib/api/student";
 import { cn } from "@/lib/utils/utils";
 import {
   LessonStepper,
-  buildPages,
-  isPageBlocked,
   EMPTY_AI_FORM,
-} from "@/components/cards/lesson-stepper";
+} from "@/components/cards/student/lessons/lesson-stepper";
+import { buildPages, isPageBlocked, LessonMode, LessonView } from "@/lib/student/lessons/build";
 import {
   compressAndEnqueue,
   uploadFilesForModule,
@@ -19,15 +18,16 @@ import {
 } from "@/lib/file-pipeline";
 import {
   clearUploadedFilesForModule,
-  submitLesson,
   getDraftForModule,
   saveSubmissionLocally,
   savePendingProgress,
   clearPendingProgress,
   hasPendingSubmission,
+  storeLinks,
+  removeLink,
+  clearLinksForModule,
 } from "@/lib/db";
-import { PageShell } from "@/components/layout/PageShell";
-import { StatusPill } from "@/components/ui/status-pill";
+import { PageShell } from "@/components/layout/common/PageShell";
 import {
   Loader2,
   CheckCircle2,
@@ -35,14 +35,23 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
-import type {
-  CurriculumModule,
-  ModulesResponse,
-  Submission,
-  TaskFilesState,
-  TaskFileEntry,
-  AiFormState,
+import {
+  type Submission,
+  type TaskFilesState,
+  type AiFormState,
+  type TaskLinksState,
+  type PreviewLinkState,
+  DisputeReview,
 } from "@/lib/api/types";
+import { MissionPage } from "@/components/cards/student/lessons";
+import { 
+  useLessonMode, 
+  useModuleLoader, 
+  useResumeLesson 
+} from "@/hooks/student/lessons";
+import { saveOffline } from "@/lib/student/lessons/build";
+import { Alert } from "@/components/ui";
+import { ApiError } from "@/lib/api/api-client";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Font constants
@@ -58,144 +67,84 @@ const FONT_BODY = "var(--font-body)";
 
 const PROGRESS_DWELL_MS = 10_000;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Offline save helper
-// ─────────────────────────────────────────────────────────────────────────────
-
-async function saveOffline(
-  id: string | null,
-  studentId: string,
-  moduleId: string,
-  fileUrls: string[],
-  aiForm: AiFormState | null,
-  syncStatus: "pending" | "synced" | "failed" | "draft",
-  submissionType: "submit" | "resubmit",
-  activityText?: string,
-  reflectionText?: string,
-  accessToken?: string
-): Promise<void> {
-  try {
-    await submitLesson({
-      id,
-      studentId,
-      moduleId,
-      fileUrls,
-      activityText,
-      reflectionText,
-      aiForm,
-      syncStatus,
-      submissionType,
-      accessToken,
-    });
-  } catch {
-    // best-effort — never throw
-  }
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page
 // ─────────────────────────────────────────────────────────────────────────────
 
-type LoadState = "loading" | "error" | "ready";
-
 export default function LessonDetailPage() {
+  
   const { accessToken, refreshToken, user } = useAuth();
   const router = useRouter();
   const params = useParams();
   const moduleId = params.moduleId as string;
 
-  const [loadState, setLoadState] = useState<LoadState>("loading");
-  const [lessonModule, setModule] = useState<CurriculumModule | null>(null);
-  const [allModules, setAllModules] = useState<ModulesResponse["modules"]>([]);
   const [existingSubmission, setExistingSubmission] = useState<Submission | null>(null);
-
   const [reflectionText, setReflectionText] = useState("");
   const [activityText, setActivityText] = useState("");
   const [savedOffline, setSavedOffline] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReviewing, setIsReviewing] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [status, setStatus] = useState<string | null>(null) 
+
+  // Is used for the students' feedback for the teacher's note
+  const [feedback, setFeedback] = useState<"helpful" | "disagree" | null>(null);
+  const [review, setReview] = useState("");
+  const [submitted, setSubmitted] = useState(false); // Is used for the students' feedback
 
   const [taskFiles, setTaskFiles] = useState<TaskFilesState>({});
+  const [taskLinks, setTaskLinks] = useState<TaskLinksState>({});
+  const [previewLinks, setPreviewLinks]  = useState<PreviewLinkState>([])
+  
   const [aiForm, setAiForm] = useState<AiFormState>(EMPTY_AI_FORM);
   const [currentPage, setCurrentPage] = useState(0);
+  const [lessonMode, setLessonMode] = useState<LessonMode>(0);
+  const [lessonView, setLessonView] = useState<LessonView>(0)
 
   // Stable ref so saveSectionProgress inside the dwell effect doesn't
   // need to be in the dependency array and re-create the timer on every render
   const saveSectionProgressRef = useRef<((pageIdx: number) => Promise<void>) | null>(null);
+
+  // ── Load ─────────────────────────────────────────────────────────────────
+  const { 
+    lessonModule, 
+    hasDispute,
+    allModules, 
+    initialData,
+    loadState,
+  } = useModuleLoader({user: user, moduleId: moduleId, accessToken: accessToken, refreshToken: refreshToken})
 
   const pages = useMemo(() => {
     if (!lessonModule) return [];
     return buildPages(lessonModule.contentJson.sections, lessonModule.title);
   }, [lessonModule]);
 
-  // ── Load ─────────────────────────────────────────────────────────────────
+  
   useEffect(() => {
-    if (!user) return;
-    if (!accessToken || !user?.classLevel || !user?.term) return;
+    if (loadState !== "ready") return;
 
-    async function load() {
-      try {
-        if (!user) return;
-        const [mod, list, history] = await Promise.all([
-          studentApi.getModule(moduleId, accessToken!, refreshToken),
-          studentApi.getModules(user!.term!, user!.classLevel!, accessToken!, refreshToken),
-          studentApi.getSubmissions(accessToken!, refreshToken).catch(() => ({ submissions: [] })),
-        ]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setExistingSubmission(initialData.existingSubmission)
+    setReflectionText(initialData.reflectionText)
+    setActivityText(initialData.activityText)
+    setAiForm(initialData.aiForm) 
+    setTaskFiles(initialData.taskFiles)
+    setTaskLinks(initialData.taskLinks)
+    setLessonView(initialData.lessonView)
+    setPreviewLinks(initialData.previewLinks)
+    setStatus(initialData.status)
 
-        setModule(mod);
-        setAllModules(list.modules);
-
-        const existing = history.submissions.find((s) => s.moduleId === moduleId) ?? null;
-        setExistingSubmission(existing);
-
-        const localDraft = await getDraftForModule(user.id, moduleId);
-
-        if (existing?.status === "flagged") {
-          setReflectionText(localDraft?.reflectionText ?? existing.reflectionText ?? "");
-          setActivityText(localDraft?.activityText ?? existing.activityText ?? "");
-          setAiForm(localDraft?.aiForm ?? existing.aiForm ?? EMPTY_AI_FORM);
-        } else {
-          const source = existing ?? localDraft;
-          if (source) {
-            setReflectionText(source.reflectionText ?? "");
-            setActivityText(source.activityText ?? "");
-            setAiForm(source.aiForm ?? EMPTY_AI_FORM);
-          }
-        }
-
-        setLoadState("ready");
-      } catch {
-        setLoadState("error");
-      }
+    if (hasDispute) {
+      
+      setSubmitted(true)
     }
+  }, [loadState, initialData, hasDispute]) 
+  
+  // Setup Lesson Mode
+  useLessonMode({status, lessonModule, setLessonMode})
 
-    load();
-  }, [accessToken, moduleId, user?.classLevel]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // ── Resume at last saved section ──────────────────────────────────────────
-  const hasResumedRef = useRef(false);
-
-  useEffect(() => {
-    if (hasResumedRef.current) return;
-    if (!lessonModule || pages.length === 0) return;
-    if (!lessonModule.stoppedAt) return;
-
-    const resumeIdx = pages.findIndex(
-      (p) =>
-        (p.kind === "content" ||
-          p.kind === "activity" ||
-          p.kind === "reflection") &&
-        p.sectionId === lessonModule.stoppedAt
-    );
-
-    if (resumeIdx !== -1) {
-      hasResumedRef.current = true;
-
-      queueMicrotask(() => {
-        setCurrentPage(resumeIdx);
-      });
-    }
-  }, [lessonModule, pages]); // eslint-disable-line react-hooks/exhaustive-deps
+  useResumeLesson({lessonModule, pages, setCurrentPage})
 
   // ── Auto-save text drafts ─────────────────────────────────────────────────
   useEffect(() => {
@@ -207,6 +156,7 @@ export default function LessonDetailPage() {
         existingSubmission?.id ?? null,
         user.id,
         moduleId,
+        [],
         [],
         aiForm,
         "draft",
@@ -233,6 +183,7 @@ export default function LessonDetailPage() {
       )
         return;
       if (!page.sectionId) return;
+      if (lessonMode !== LessonMode.PROGRESS) return;
 
       const sectionId = page.sectionId;
 
@@ -252,7 +203,7 @@ export default function LessonDetailPage() {
         }
       }
     },
-    [pages, moduleId, accessToken, refreshToken, user]
+    [pages, lessonMode, moduleId, accessToken, refreshToken, user]
   );
 
   // Keep the ref in sync so the dwell timer always calls the latest version
@@ -273,26 +224,58 @@ export default function LessonDetailPage() {
     return () => clearTimeout(timer);
   }, [currentPage]); // only re-arm when the page changes
 
+  const handleHelpful = async () => {
+    if (!existingSubmission?.id) return;
+    await studentApi.raiseDispute({
+      submissionId: existingSubmission?.id,
+      note: undefined,
+      review: "helpful"
+    } satisfies DisputeReview,
+    accessToken!,
+    refreshToken)
+
+    setFeedback("helpful")
+    setSubmitted(true);
+  }
+
+  const handleDisagree = async () => {
+    if (!existingSubmission?.id) return;
+    if (review.trim().length < 10) return;
+
+    await studentApi.raiseDispute({
+      submissionId: existingSubmission?.id,
+      note: review,
+      review: "disagree"
+    },
+    accessToken!,
+    refreshToken)
+
+    setSubmitted(true)
+  }
+
   // ── Task file handlers ────────────────────────────────────────────────────
   const handleTaskFilesSelected = useCallback(
     async (blockId: string, files: FileList) => {
       if (!user) return;
 
       const incoming = Array.from(files);
+      const placeholders = incoming.map(file => ({
+          id: crypto.randomUUID(),
+          taskId: blockId,
+          url: null,
+          file,
+          fileName: file.name,
+          status: "uploading" as const,
+        }))
 
       setTaskFiles((prev) => {
         const existing = prev[blockId] ?? [];
-        const placeholders: TaskFileEntry[] = incoming.map((file) => ({
-          url: null,
-          file,
-          status: "uploading",
-        }));
         return { ...prev, [blockId]: [...existing, ...placeholders] };
       });
 
       for (let i = 0; i < incoming.length; i++) {
+        const placeholder = placeholders[i];
         const file = incoming[i];
-        const entryIdx = (taskFiles[blockId]?.length ?? 0) + i;
 
         const enqueueResult = await compressAndEnqueue(file, user.id, moduleId, blockId);
 
@@ -302,11 +285,18 @@ export default function LessonDetailPage() {
               ? `Video too large (${enqueueResult.error.sizeMb} MB). Max is ${enqueueResult.error.maxMb} MB.`
               : "File could not be processed.";
 
-          setTaskFiles((prev) => {
-            const entries = [...(prev[blockId] ?? [])];
-            entries[entryIdx] = { url: null, file, status: "error", errorMsg: msg };
-            return { ...prev, [blockId]: entries };
-          });
+          setTaskFiles(prev => ({
+            ...prev,
+            [blockId]: (prev[blockId] ?? []).map(entry =>
+              entry.id === placeholder.id
+                ? {
+                    ...entry,
+                    status: "error",
+                    errorMsg: msg,
+                  }
+                : entry
+            ),
+          }));
           continue;
         }
 
@@ -314,16 +304,22 @@ export default function LessonDetailPage() {
         const uploaded = await uploadFilesForModule(moduleId, accessToken);
         const match = uploaded.find((u) => u.dexieId === dexieId);
 
-        setTaskFiles((prev) => {
-          const entries = [...(prev[blockId] ?? [])];
-          entries[entryIdx] = match
-            ? { url: match.path, file, dexieId, status: "done" }
-            : { url: null, file, dexieId, status: "queued" };
-          return { ...prev, [blockId]: entries };
-        });
+        setTaskFiles(prev => ({
+          ...prev,
+          [blockId]: (prev[blockId] ?? []).map(entry =>
+            entry.id === placeholder.id
+              ? {
+                  ...entry,
+                  url: match?.path ?? null,
+                  dexieId,
+                  status: match ? "done" : "queued",
+                }
+              : entry
+          ),
+        }));
       }
     },
-    [user, moduleId, taskFiles, accessToken]
+    [user, moduleId, accessToken]
   );
 
   const handleTaskFileRemove = useCallback(
@@ -353,6 +349,61 @@ export default function LessonDetailPage() {
     [user?.id, moduleId, accessToken]
   );
 
+  const handleTaskLinkAdd = useCallback(
+    (blockId: string, url: string) => {
+      if (!user) return;
+      setTaskLinks((prev) => {
+        const existing = prev[blockId] ??[];
+        return{  
+          ...prev,
+          [blockId]: [
+            ...existing,
+            {
+              taskId: blockId,
+              url
+            },
+          ],};
+      });
+      storeLinks({
+        id: crypto.randomUUID(),
+        studentId: user?.id,
+        moduleId,
+        blockId,
+        url: [url]
+      })
+    },
+    [user, moduleId]
+  )
+
+  const handleTaskLinkRemove = useCallback(
+    (blockId: string, index: number) => {
+      if (!user) return;
+
+      const link = taskLinks[blockId]?.[index];
+      if (!link) return;
+
+      setTaskLinks((prev) => {
+        const links = [...(prev[blockId] ?? [])];
+        links.splice(index, 1);
+
+        return {
+          ...prev,
+          [blockId]: links,
+        };
+      });
+
+      removeLink(user.id, moduleId, blockId, link.url);
+    },
+    [taskLinks, user, moduleId]
+  );
+
+  function toPreview(file: {taskId: string,  url: string}) {
+    return {
+      taskId: file.taskId,
+      url: file.url
+    }
+  }
+
   // ── Navigation helpers ────────────────────────────────────────────────────
   const sortedModules = [...allModules].sort((a, b) => a.weekNumber - b.weekNumber);
   const currentIdx = sortedModules.findIndex((m) => m.id === moduleId);
@@ -366,7 +417,7 @@ export default function LessonDetailPage() {
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
   const blocked = lessonModule
-    ? isPageBlocked(pages[currentPage], activityText, reflectionText, taskFiles, aiForm, false)
+    ? isPageBlocked(pages[currentPage], activityText, reflectionText, taskFiles, aiForm)
     : false;
 
   const goNext = useCallback(() => {
@@ -383,9 +434,20 @@ export default function LessonDetailPage() {
     setCurrentPage((p) => Math.max(0, p - 1));
   }, [currentPage, prevMod, router]);
 
+  function handleSetMode(mode: number) {
+    setLessonMode(mode as LessonMode)
+    setLessonView(mode as LessonView)
+  }
+
   // ── Submit ────────────────────────────────────────────────────────────────
   async function handleSubmit() {
     if (!lessonModule || !user) return;
+    if (lessonMode === LessonMode.REVIEW) {
+      setIsReviewing(true);
+      setLessonView(LessonView.SUBMITTED); 
+      setIsReviewing(false);
+      return;
+    }
     setIsSubmitting(true);
     setSubmitError("");
 
@@ -406,14 +468,29 @@ export default function LessonDetailPage() {
       });
     }
 
-    const allPaths = Object.values(taskFiles)
+    const uploadedFiles = Object.values(taskFiles)
       .flat()
       .filter((e) => e.status === "done" && e.url)
-      .map((e) => e.url!);
+      .map((e) => ({
+        taskId: e.taskId,
+        url: e.url!,
+      }));
 
     for (const u of freshUploads) {
-      if (!allPaths.includes(u.path)) allPaths.push(u.path);
+      if (!uploadedFiles.some((f) => f.url === u.path)) {
+        uploadedFiles.push({
+          taskId: u.blockId,
+          url: u.path,
+        });
+      }
     }
+
+    const allOtherPaths = Object.values(taskLinks)
+      .flat()
+      .map((e) =>({
+        taskId: e.taskId,
+        url: e.url!
+      }));
 
     const existing = await getDraftForModule(user.id, moduleId);
 
@@ -421,51 +498,62 @@ export default function LessonDetailPage() {
       moduleId,
       activityText,
       reflectionText,
-      fileUrls: allPaths.length > 0 ? allPaths : null,
+      fileUrls: uploadedFiles.length > 0 ? uploadedFiles.map(toPreview) : null,
+      otherUrls: allOtherPaths.length > 0 ? allOtherPaths.map(toPreview) : null,
       aiForm: aiForm.used != null ? aiForm : null,
       localId: existing?.localId ?? crypto.randomUUID(),
     };
 
+    let backendError = "";
+
     // Try backend first
     if (accessToken) {
+      let res;
+      
       try {
         if (existingSubmission?.status === "flagged") {
           const resubmission = {
             id: existingSubmission.id,
-            activityText: existingSubmission.activityText,
-            reflectionText: existingSubmission.reflectionText,
-            fileUrls: existingSubmission.fileUrls ?? (allPaths.length > 0 ? allPaths : null),
+            activityText: activityText,
+            reflectionText: reflectionText,
+            fileUrls: existingSubmission.fileUrls ?? (uploadedFiles.length > 0 ? uploadedFiles.map(toPreview) : null),
+            otherUrls: existingSubmission.otherUrls ?? (allOtherPaths.length > 0 ? allOtherPaths.map(toPreview) : null),
             aiForm: existingSubmission.aiForm,
             localId: existingSubmission.localId,
           };
-          await studentApi.resubmitModule(user.id, resubmission, accessToken, refreshToken);
+          res = await studentApi.resubmitModule(user.id, resubmission, accessToken, refreshToken);
         } else {
-          await studentApi.submitModule(user.id, payload, accessToken, refreshToken);
+          res = await studentApi.submitModule(user.id, payload, accessToken, refreshToken);
         }
-
-        await clearUploadedFilesForModule(moduleId);
-
         setExistingSubmission({
-          id: crypto.randomUUID(),
+          id: res.id,
           moduleTitle: lessonModule.title,
           term: lessonModule.term,
           weekNumber: lessonModule.weekNumber,
-          aiForm,
-          moduleId,
+          aiForm: res.aiForm,
+          moduleId: lessonModule.id,
           activityText,
           reflectionText: reflectionText || null,
-          fileUrls: allPaths.length > 0 ? allPaths : null,
+          fileUrls: uploadedFiles.length > 0 ? uploadedFiles.map(toPreview) : null,
+          otherUrls: allOtherPaths.length > 0 ? allOtherPaths.map(toPreview) : null,
           syncedAt: null,
           localId: payload.localId,
           submittedAt: new Date().toISOString(),
           status: "submitted",
           teacherNote: null,
         });
+        setStatus("submitted")
+        setLessonView(LessonView.SUBMITTED)
+        await clearUploadedFilesForModule(moduleId);
+        await clearLinksForModule(user.id, moduleId)
 
         setIsSubmitting(false);
         return;
-      } catch {
+      } catch (err) {
         // Fall through to Dexie
+        if (err instanceof ApiError) {
+          backendError = err.message
+        }
       }
     }
 
@@ -479,19 +567,23 @@ export default function LessonDetailPage() {
         activityText: activityText || undefined,
         reflectionText: reflectionText || undefined,
         aiForm,
-        fileUrls: allPaths,
+        fileUrls: uploadedFiles.map(toPreview),
+        otherUrls: allOtherPaths.map(toPreview),
         submittedAt: new Date().toISOString(),
         syncStatus: "pending",
         submissionType: existingSubmission?.status === "flagged" ? "resubmit" : "submit",
       });
       setSavedOffline(true);
-      setSubmitError(
-        "No connection. Your work is saved and will submit automatically when you reconnect."
-      );
+      const errorMessage = [
+        backendError,
+        "Your work has been saved, so you won't lose it. Once this issue is resolved, you can submit again."
+      ].filter(Boolean).join("\n\n");
+      setSubmitError(errorMessage);
     } catch {
       setSubmitError("Failed to save your work. Please try again.");
     } finally {
       setIsSubmitting(false);
+      setLessonView(LessonView.LESSON)
     }
   }
 
@@ -507,23 +599,32 @@ export default function LessonDetailPage() {
   if (loadState === "error" || !lessonModule) {
     return (
       <PageShell title="Lesson" backHref="/student/lessons" backLabel="My Lessons">
-        <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
+        <Alert variant="error" title="Loading Failed">
           Failed to load this lesson. Please try again.
-        </div>
+        </Alert>
       </PageShell>
     );
   }
-
-  const status = existingSubmission?.status ?? null;
-
+  
   const toolNames = lessonModule.contentJson.sections
     .flatMap((s) => s.blocks)
     .filter((b) => b.type === "toolLink")
     .map((b) => b.toolName || b.content)
     .filter(Boolean) as string[];
 
-  const showStepper = status === null || status === "flagged";
-  const submitLabel = status === "flagged" ? "Resubmit revision" : undefined;
+  const showStepper = status === null || status === "flagged" || (lessonView === LessonView.LESSON );
+  const submitLabel = status === "flagged" ? "Resubmit revision" : lessonMode === LessonMode.REVIEW ? "Complete Review" : undefined;
+
+  if (lessonView === LessonView.MISSION) {
+    return(
+      <MissionPage 
+        title={lessonModule.title}
+        description={lessonModule.description}
+        outcomes={[lessonModule.outcome]}
+        onStart={() => handleSetMode(1)}
+      />
+    )
+  }
 
   return (
     <>
@@ -531,13 +632,15 @@ export default function LessonDetailPage() {
         <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4">
 
           {submitError && (
-            <div className="text-[13px] text-warning-dark bg-warning-light border border-warning/20 rounded-[10px] px-4 py-3">
+            <Alert variant="error" title="Submission Failed">
               {submitError}
-            </div>
+            </Alert>
           )}
 
-          {(status === "submitted" || status === "approved") && (
-            <SubmittedNotice
+          {(lessonView === LessonView.SUBMITTED && 
+            status === "approved" || status === "submitted") && (
+            <LessonCompletionPage
+              lessonMode={lessonMode}
               status={status}
               submittedAt={existingSubmission!.submittedAt}
               onNext={nextMod ? () => router.push(`/student/lessons/${nextMod.id}`) : undefined}
@@ -547,21 +650,79 @@ export default function LessonDetailPage() {
 
           {status === "flagged" && existingSubmission?.teacherNote && (
             <div className="border-l-[3px] border-warning bg-warning-light rounded-r-[10px] px-4 py-3">
-              <p className="text-[10px] font-bold uppercase tracking-widest text-warning mb-1.5">
+              <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-warning">
                 Teacher feedback — revision required
               </p>
-              <p className="text-[13px] text-warning-dark leading-[1.6]">
+
+              <p className="text-[13px] leading-[1.6] text-warning-dark">
                 {existingSubmission.teacherNote}
               </p>
+
+              {!submitted ? (
+                <>
+                  <div className="mt-4 flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleHelpful}
+                      className="rounded-md border border-border bg-white px-3 py-2 text-sm hover:bg-gray-50"
+                    >
+                      👍 Helpful
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFeedback("disagree")}
+                      className="rounded-md border border-border bg-white px-3 py-2 text-sm hover:bg-gray-50"
+                    >
+                      👎 I disagree
+                    </button>
+                  </div>
+
+                  {feedback === "disagree" && (
+                    <div className="mt-4 space-y-3">
+                      <textarea
+                        value={review}
+                        onChange={(e) => setReview(e.target.value)}
+                        placeholder="Tell us what seems incorrect about this feedback..."
+                        className="min-h-[110px] w-full rounded-md border border-border bg-white p-3 text-sm outline-none focus:border-warning"
+                      />
+
+                      <div className="flex justify-end gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFeedback(null);
+                            setReview("");
+                          }}
+                          className="rounded-md border border-border bg-white px-4 py-2 text-sm"
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={review.trim().length < 10}
+                          onClick={handleDisagree}
+                          className="rounded-md bg-warning px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Send feedback
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="mt-4 text-sm text-success">
+                  ✓ Thanks! Your feedback has been recorded.
+                </p>
+              )}
             </div>
           )}
 
           {showStepper && (
             <LessonStepper
               title={lessonModule.title}
-              description={lessonModule.description}
               weekNumber={lessonModule.weekNumber}
-              term={lessonModule.term}
               toolNames={toolNames}
               sections={lessonModule.contentJson.sections}
               activityText={activityText}
@@ -571,6 +732,10 @@ export default function LessonDetailPage() {
               taskFiles={taskFiles}
               onTaskFilesSelected={handleTaskFilesSelected}
               onTaskFileRemove={handleTaskFileRemove}
+              taskLinks={taskLinks}
+              onLinkAdd={handleTaskLinkAdd}
+              onLinkRemove={handleTaskLinkRemove}
+              previewLinks={previewLinks}
               aiForm={aiForm}
               onAiFormChange={setAiForm}
               savedOffline={savedOffline}
@@ -578,7 +743,7 @@ export default function LessonDetailPage() {
               currentPage={currentPage}
               onSwipeNext={goNext}
               onSwipeBack={goBack}
-              isTeacher={false}
+              lessonMode={lessonMode}
             />
           )}
         </div>
@@ -597,7 +762,7 @@ export default function LessonDetailPage() {
               {(currentPage > 0 || prevMod) && (
                 <button
                   onClick={goBack}
-                  className="inline-flex items-center gap-1 text-[13px] font-bold text-text-secondary border border-border px-3 py-1.5 rounded-[8px] hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-1 text-[13px] font-bold text-text-secondary border border-border px-3 py-1.5 rounded-[8px] hover:bg-gray-50 transition-all-duration"
                   style={{ fontFamily: FONT_BODY }}
                 >
                   <ChevronLeft size={14} /> Back
@@ -607,7 +772,7 @@ export default function LessonDetailPage() {
               {isLastPage ? (
                 <button
                   onClick={handleSubmit}
-                  disabled={isSubmitting || blocked}
+                  disabled={isSubmitting || blocked || isReviewing}
                   className={cn(
                     "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
                     !isSubmitting && !blocked
@@ -616,7 +781,11 @@ export default function LessonDetailPage() {
                   )}
                   style={{ fontFamily: FONT_BODY }}
                 >
-                  {isSubmitting ? "Submitting…" : (submitLabel ?? "Submit lesson")}
+                  {isSubmitting 
+                    ? "Submitting…"
+                    : isReviewing
+                    ? "Reviewing…"
+                    : (submitLabel ?? "Submit lesson")}
                   {!isSubmitting && <ChevronRight size={14} />}
                 </button>
               ) : (
@@ -646,28 +815,33 @@ export default function LessonDetailPage() {
 // Submitted / Approved notice
 // ─────────────────────────────────────────────────────────────────────────────
 
-function SubmittedNotice({
-  status,
-  submittedAt,
-  onNext,
-  onBack,
-}: {
+type LessonCompletionPageProps = {
+  lessonMode: LessonMode;
   status: "submitted" | "approved";
   submittedAt: string;
   onNext?: () => void;
   onBack: () => void;
-}) {
+};
+
+function LessonCompletionPage({
+  lessonMode,
+  status,
+  submittedAt,
+  onNext,
+  onBack,
+}: LessonCompletionPageProps) {
   const date = new Date(submittedAt).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+  const isReview = lessonMode === LessonMode.REVIEW
   const isApproved = status === "approved";
 
   return (
     <div className="bg-bg-card border border-border rounded-[14px] overflow-hidden">
       <div className="flex flex-col items-center text-center gap-4 py-12 px-8">
-        {isApproved ? (
+        {isReview || isApproved ? (
           <CheckCircle2 size={44} className="text-success" />
         ) : (
           <Clock size={44} className="text-purple-mid" />
@@ -677,15 +851,20 @@ function SubmittedNotice({
             className="text-[18px] font-bold text-text-primary mb-1.5"
             style={{ fontFamily: "var(--font-head)" }}
           >
-            {isApproved ? "Module approved" : "Submitted — awaiting review"}
+            {isReview
+                ? "Lesson Complete"
+                : isApproved 
+                ? "Module approved" 
+                : "Submitted — awaiting review"}
           </p>
           <p className="text-[13px] text-text-muted leading-[1.6]">
-            {isApproved
-              ? `Approved and added to your portfolio. Submitted ${date}.`
-              : `Submitted ${date}. Your teacher will review this soon.`}
+            {isReview
+                ? "You've completed this lesson. Your work has been saved and can be reviewed anytime."
+                : isApproved
+                ? `Approved and added to your portfolio. Submitted ${date}.`
+                : `Submitted ${date}. Your teacher will review this soon.`}
           </p>
         </div>
-        <StatusPill status={status} />
         <div className="flex items-center gap-3 mt-2">
           <button
             onClick={onBack}

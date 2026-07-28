@@ -1,0 +1,6 @@
+export * from "./Hero"
+export * from "./ProblemStatement"
+export * from "./WhatWeDeliver"
+export * from "./HowItWorks"
+export * from "./Features"
+export * from "./CallBackForm"

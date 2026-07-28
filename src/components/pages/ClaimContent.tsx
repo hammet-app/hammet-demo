@@ -1,6 +1,6 @@
 "use client";
 
-
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, CheckCircle2 } from "lucide-react";
@@ -25,6 +25,7 @@ import {
   toClaimAccountResponse,
   ClaimAccountResponseDto,
 } from "@/lib/api/types";
+import { fadeUp } from "../animations/home";
 
 type Step = "identify" | "set_password" | "success";
 
@@ -126,7 +127,7 @@ export default function ClaimPage() {
         else if (err.status === 409) setError("This account has already been claimed");
         else if (err.status === 400 || err.status === 422) setError(`Invalid input. ${err.message}`);
         else if (err.status === 500) setError("Server error. Please try again.");
-        else setError(err.message || err.data?.details);
+        else setError(err.message);
       } else if (err instanceof Error) {
         setError(`Unable to connect. ${err.message}`);
       }
@@ -138,20 +139,28 @@ export default function ClaimPage() {
   if (step === "success") {
     return (
       <AuthShell>
-        <div className="flex flex-col items-center py-6 gap-4 text-center">
-          <div
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.96 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.35 }}
+          className="flex flex-col items-center py-6 gap-4 text-center"
+        >
+          <motion.div
+            initial={{ scale: 0, rotate: -90 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 18 }}
             className="w-16 h-16 rounded-full flex items-center justify-center dark:bg-emerald-500/15"
             style={{ background: "rgba(5,150,105,0.1)" }}
           >
             <CheckCircle2 size={32} className="text-emerald-600 dark:text-emerald-400" />
-          </div>
+          </motion.div>
           <div>
             <p className="text-[17px] font-bold text-text-primary" style={{ fontFamily: "var(--font-head)" }}>
               Account activated
             </p>
             <p className="text-[13px] text-text-muted mt-1">Taking you in…</p>
           </div>
-        </div>
+        </motion.div>
       </AuthShell>
     );
   }
@@ -177,70 +186,157 @@ export default function ClaimPage() {
 
   return (
     <AuthShell>
-      <AuthHeading
-        title="Activate your account"
-        description={
-          step === "identify"
-            ? "Enter your email and claim code"
-            : invite
-              ? `Welcome, ${invite.fullName}`
-              : ""
-        }
-      />
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <AuthHeading
+          title="Activate your account"
+          description={
+            step === "identify"
+              ? "Enter your email and claim code"
+              : invite
+                ? `Welcome, ${invite.fullName}`
+                : ""
+          }
+        />
+      </motion.div>
+      
+      <AnimatePresence mode="wait">
+        {/* STEP 1 */}
+        <motion.div
+          key="identify"
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: 12 }}
+        >
+          {!token && step === "identify" && (
+            <motion.fieldset
+              disabled={isLoading}
+              animate={{ opacity: isLoading ? 0.75 : 1 }}
+            >
+              <motion.form 
+                initial="hidden"
+                animate="show"
+                variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 }, }, }}
+                onSubmit={handleIdentify} 
+                className="flex flex-col gap-4"
+              >
+                <motion.div variants={fadeUp}>
+                  <AuthInput id="email" label="Email" value={email} onChange={setEmail} />
+                </motion.div>
 
-      {/* STEP 1 */}
-      {!token && step === "identify" && (
-        <form onSubmit={handleIdentify} className="flex flex-col gap-4">
-          <AuthInput id="email" label="Email" value={email} onChange={setEmail} />
-          <AuthInput id="code" label="Claim code" value={claimCode} onChange={setClaimCode} />
-          {error && <AuthAlert message={error} />}
-          <button type="submit" disabled={isLoading} className={submitBtnClass} style={submitBtnStyle}>
-            {isLoading ? <><Loader2 size={15} className="animate-spin" />Checking…</> : "Continue"}
-          </button>
-        </form>
-      )}
+                <motion.div variants={fadeUp}>
+                  <AuthInput id="code" label="Claim code" value={claimCode} onChange={setClaimCode} />
+                </motion.div>
 
-      {/* STEP 2 */}
-      {step === "set_password" && invite && (
-        <form onSubmit={handleClaim} className="flex flex-col gap-4">
-          {/* Identity pill */}
-          <div className={cn(
-            "rounded-xl px-4 py-3 flex flex-col gap-0.5",
-            "border border-purple/10 dark:border-border",
-            "bg-gradient-to-r from-purple/5 to-transparent dark:from-white/[0.03]"
-          )}>
-            <p className="text-[13.5px] font-semibold text-text-primary">{invite.fullName}</p>
-            <p className="text-[12px] text-text-muted">{invite.email}</p>
-          </div>
+                <motion.div variants={fadeUp}>
+                  {error && <AuthAlert message={error} />}
+                </motion.div>
 
-          <AuthInput
-            id="password"
-            label="Create password"
-            type="password"
-            value={password}
-            onChange={setPassword}
-            showStrength
-          />
-          <AuthInput
-            id="confirm"
-            label="Confirm password"
-            type="password"
-            value={confirm}
-            onChange={setConfirm}
-          />
+                <motion.div variants={fadeUp}>
+                  <button type="submit" disabled={isLoading} className={submitBtnClass} style={submitBtnStyle}>
+                    {isLoading ? <><Loader2 size={15} className="animate-spin" />Checking…</> : "Continue"}
+                  </button>
+                </motion.div>
+              </motion.form>
+            </motion.fieldset>
+          )}
+        </motion.div>
 
-          {error && <AuthAlert message={error} />}
+        {/* STEP 2 */}
+        <motion.div
+          key="password"
+          initial={{ opacity: 0, x: 12 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -12 }}
+        >
+          {step === "set_password" && invite && (
+            <motion.fieldset
+              disabled={isLoading}
+              animate={{opacity: isLoading ? 0.75 : 1, }}
+            >
+              <motion.form
+                initial="hidden"
+                animate="show"
+                variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 }, }, }}
+                onSubmit={handleClaim} 
+                className="flex flex-col gap-4">
+                {/* Identity pill */}
+                <motion.div 
+                  variants={fadeUp}
+                  whileHover={{ y: -2 }}
+                  transition={{ type: "spring", stiffness: 350 }}
+                  className={cn(
+                    "rounded-xl px-4 py-3 flex flex-col gap-0.5",
+                    "border border-purple/10 dark:border-border",
+                    "bg-gradient-to-r from-purple/5 to-transparent dark:from-white/[0.03]"
+                )}>
+                  <p className="text-[13.5px] font-semibold text-text-primary">{invite.fullName}</p>
+                  <p className="text-[12px] text-text-muted">{invite.email}</p>
+                </motion.div>
 
-          <button
-            type="submit"
-            disabled={isLoading || isGoogleLoading}
-            className={submitBtnClass}
-            style={submitBtnStyle}
-          >
-            {isLoading ? <><Loader2 size={15} className="animate-spin" />Activating…</> : "Activate account"}
-          </button>
-        </form>
-      )}
+                <motion.div variants={fadeUp}>
+                  <AuthInput
+                    id="password"
+                    label="Create password"
+                    type="password"
+                    value={password}
+                    onChange={setPassword}
+                    showStrength
+                  />
+                </motion.div>
+
+                <motion.div variants={fadeUp}>
+                  <AuthInput
+                    id="confirm"
+                    label="Confirm password"
+                    type="password"
+                    value={confirm}
+                    onChange={setConfirm}
+                  />
+                </motion.div>
+
+                <motion.div variants={fadeUp}>
+                  {error && <AuthAlert message={error} />}
+                </motion.div>
+
+                <motion.div variants={fadeUp}>
+                  <motion.button
+                    type="submit"
+                    disabled={isLoading || isGoogleLoading}
+                    whileHover={{ y: -2, scale: 1.01, }}
+                    whileTap={{ scale: 0.985 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                    className={submitBtnClass}
+                    style={submitBtnStyle}
+                  >
+                    <AnimatePresence mode="wait">
+                      <motion.span
+                        key={isLoading ? "loading" : "idle"}
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.18 }}
+                        className="flex items-center gap-2"
+                      >
+                        {isLoading ? (
+                          <>
+                            <Loader2 size={15} className="animate-spin" />
+                            Activating…
+                          </>
+                        ) : (
+                          "Activate account"
+                        )}
+                      </motion.span>
+                    </AnimatePresence>
+                  </motion.button>
+                </motion.div>
+              </motion.form>
+            </motion.fieldset>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </AuthShell>
   );
 }

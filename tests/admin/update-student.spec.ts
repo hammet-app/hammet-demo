@@ -5,9 +5,13 @@ test("school admin can update student", async ({ page }) => {
 
   await page.goto("/admin")
 
+  await page.pause();
+
   await page.getByRole('button', { 
     name: 'Close' 
   }).click();
+
+  await page.getByRole('button', { name: 'Dismiss' }).click();
 
   await page.getByRole('link', { 
     name: 'Students' 
@@ -16,6 +20,10 @@ test("school admin can update student", async ({ page }) => {
   await expect(page).toHaveURL(
     /\/admin\/students/
   );
+
+  await page.pause();
+
+  await page.locator('.flex.items-center.justify-center.rounded-lg').first().click();
 
   await page.getByRole('button', { 
     name: 'Update' 

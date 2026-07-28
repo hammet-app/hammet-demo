@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { getAdminModules } from "@/lib/api/admin";
-import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
+import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
 import type { CurriculumModule } from "@/lib/api/types";
 
 

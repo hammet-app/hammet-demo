@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
+import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
 import { ModuleCard } from "@/components/cards/module-card";
 import { StatCard } from "@/components/cards/stat-card";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";
@@ -20,9 +20,7 @@ export default function LessonsPage() {
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const profileIncomplete =
-    !!user &&
-    (!user.classLevel || !user.term);
+  const profileIncomplete = !!user && (!user.classLevel || !user.term);
 
   useEffect(() => {
     if (!isResolved) return;
@@ -228,9 +226,9 @@ export default function LessonsPage() {
                     weekNumber={lessonModule.weekNumber}
                     term={lessonModule.term}
                     status={statusMap.get(lessonModule.id) ?? "not_started"}
-                    locked={!unlocked}
+                    //locked={!unlocked}
                     onClick={() => {
-                      if (!unlocked) return;
+                      //if (!unlocked) return;
                       router.push(`/student/lessons/${lessonModule.id}`);
                     }}
                   />

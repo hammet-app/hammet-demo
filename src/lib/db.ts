@@ -13,8 +13,12 @@ import {
   type AiFormStateDto,
   type CreateSubmissionResponsesDto,
   type CreateSubmissionResponses,
+  PreviewLink,
+  PreviewLinkDto,
   fromAiFormState,
   toCreateSubmissionResponses,
+  toPreviewLink,
+  fromPreviewLink,
 } from '@/lib/api/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -33,7 +37,8 @@ export interface LocalSubmission {
   moduleId: string
   activityText?: string
   reflectionText?: string
-  fileUrls: string[]       // uploaded Supabase Storage URLs (may be empty)
+  fileUrls: PreviewLink[]       // uploaded Supabase Storage URLs (may be empty)
+  otherUrls: PreviewLink[]
   aiForm: AiFormState |null;
   submittedAt: string       // ISO timestamp
   syncStatus: 'pending' | 'synced' | 'failed' | 'draft'
@@ -47,7 +52,8 @@ type LocalSubmissionDto = {
   module_id: string
   activity_text: string | null
   reflection_text: string
-  file_urls: string[]
+  file_urls: PreviewLinkDto[]
+  other_urls: PreviewLinkDto[]
   ai_form: AiFormStateDto | null,
   submitted_at: string
 }
@@ -90,6 +96,7 @@ export interface CachedModule {
   level: string
   title: string
   description?: string
+  outcome: string
   contentJson: CurriculumContentJson
   updatedAt: string
   published: boolean
@@ -120,6 +127,14 @@ export interface LocalFileQueue {
   createdAt: string
 }
 
+export interface LocalLinks {
+  id: string
+  studentId: string;
+  moduleId: string;
+  blockId: string;
+  url: string[]
+}
+
 type SyncRegistration = ServiceWorkerRegistration & {
   sync: {
     register(tag: string): Promise<void>;
@@ -136,6 +151,7 @@ class HammetDB extends Dexie {
   fileQueue!:        Table<LocalFileQueue>
   session!:          Table<CachedSession>
   pendingProgress!:  Table<PendingProgress>
+  taskLinks!:        Table<LocalLinks>
 
   constructor() {
     super('hammet-db')
@@ -195,6 +211,17 @@ class HammetDB extends Dexie {
       fileQueue:        'id, studentId, moduleId, blockId, uploadStatus, operation',
       session:          'id',
       pendingProgress:  'studentId',   // ← one row per student, upserted on every page turn
+    })
+
+    this.version(7).stores({
+      submissions:      'localId, studentId, moduleId, syncStatus, [studentId+moduleId]',
+      portfolioEntries: 'localId, studentId, moduleId',
+      modules:          'id, term, level, [term+level]',
+      moduleSummaries:  'id, term, level, [term+level]',
+      fileQueue:        'id, studentId, moduleId, blockId, uploadStatus, operation',
+      session:          'id',
+      pendingProgress:  'studentId',
+      taskLinks:        'id, studentId, moduleId, blockId, [studentId+moduleId], [studentId+moduleId+blockId]'
     })
   }
 }
@@ -259,6 +286,7 @@ export async function submitLesson({
   reflectionText,
   aiForm,
   fileUrls,
+  otherUrls,
   syncStatus,
   submissionType,
   accessToken,
@@ -269,7 +297,8 @@ export async function submitLesson({
   activityText?:  string
   reflectionText?: string
   aiForm: AiFormState | null
-  fileUrls:       string[]
+  fileUrls:       PreviewLink[]
+  otherUrls:      PreviewLink[]
   syncStatus: 'pending' | 'synced' | 'failed' | 'draft'
   submissionType: 'submit'  | 'resubmit'
   // Optional — if provided and online, we attempt immediate sync.
@@ -292,6 +321,7 @@ export async function submitLesson({
     activityText,
     reflectionText,
     fileUrls: fileUrls,
+    otherUrls: otherUrls,
     aiForm,
     submittedAt,
     syncStatus,
@@ -361,7 +391,7 @@ export async function getDraftForModule(
   return db.submissions
     .where('[studentId+moduleId]')
     .equals([studentId, moduleId])
-    .and((s) => s.syncStatus === 'draft')
+    .and((s) => s.syncStatus === 'draft' || s.syncStatus === 'pending')
     .first()
 }
  
@@ -431,6 +461,80 @@ export async function clearSyncedSubmissions(): Promise<void> {
   await db.submissions.where('syncStatus').equals('synced').delete()
 }
 
+// ── Task Links helpers ────────────────────────────────────────────────────────
+export async function storeLinks(entry: LocalLinks) {
+  const existing = await db.taskLinks
+    .where("[studentId+moduleId]")
+    .equals([entry.studentId, entry.moduleId])
+    .filter(l => l.blockId === entry.blockId)
+    .first();
+
+  if (existing) {
+    await db.taskLinks.put({
+      ...existing,
+      url: [...new Set([...existing.url, ...entry.url])],
+    });
+  } else {
+    await db.taskLinks.add(entry);
+  }
+}
+
+export async function removeLink(
+  studentId: string,
+  moduleId: string,
+  blockId: string,
+  url: string
+) {
+  const existing = await db.taskLinks
+    .where("[studentId+moduleId+blockId]")
+    .equals([studentId, moduleId, blockId])
+    .first();
+
+  if (!existing) return;
+
+  const remaining = existing.url.filter(u => u !== url);
+
+  if (remaining.length === 0) {
+    await db.taskLinks.delete(existing.id);
+  } else {
+    await db.taskLinks.put({
+      ...existing,
+      url: remaining,
+    });
+  }
+}
+
+export async function getLinks(
+  studentId: string,
+  moduleId: string
+): Promise<LocalLinks[]> {
+  return db.taskLinks
+    .where("[studentId+moduleId]")
+    .equals([studentId, moduleId])
+    .toArray();
+}
+
+export async function getLinksForBlock(
+  studentId: string,
+  moduleId: string,
+  blockId: string
+): Promise<LocalLinks | undefined> {
+  return db.taskLinks
+    .where("[studentId+moduleId]")
+    .equals([studentId, moduleId])
+    .filter(l => l.blockId === blockId)
+    .first();
+}
+
+export async function clearLinksForModule(
+  studentId: string, moduleId: string
+) {
+  db.taskLinks
+    .where("[studentId+moduleId]")
+    .equals([studentId, moduleId])
+    .delete()
+}
+
 // ── File queue helpers ────────────────────────────────────────────────────────
 
 export async function enqueueFile(
@@ -445,6 +549,13 @@ export async function enqueueFile(
   }
   await db.fileQueue.put(record)
   return record.id
+}
+
+export async function getFilesForPendingSubmissions(studentId: string, moduleId: string): Promise<LocalFileQueue[]> {
+  return db.fileQueue
+    .where('uploadStatus').equals('done')
+    .filter((f) => f.moduleId === moduleId && f.studentId === studentId)
+    .toArray()
 }
  
 export async function getPendingFiles(): Promise<LocalFileQueue[]> {
@@ -676,7 +787,7 @@ export async function clearPendingProgress(studentId: string): Promise<void> {
 export async function updateSubmissionFileUrls(
   moduleId: string,
   studentId: string,
-  fileUrls: string[]
+  fileUrls: PreviewLink[]
 ): Promise<void> {
   await db.submissions
     .where('[studentId+moduleId]')
@@ -697,7 +808,8 @@ function fromLocalSubmission(model: LocalSubmission): LocalSubmissionDto {
     module_id: model.moduleId,
     activity_text: model.activityText ?? null,
     reflection_text: model.reflectionText!,
-    file_urls: model.fileUrls,
+    file_urls: model.fileUrls.map(fromPreviewLink) ?? null,
+    other_urls: model.otherUrls.map(fromPreviewLink) ?? null,
     ai_form: model.aiForm
                 ? fromAiFormState(model.aiForm)
                 : null,

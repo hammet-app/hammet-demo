@@ -38,10 +38,15 @@ test("school admin can bulk create students", async ({ page }) => {
     name: 'Close' 
   }).click();
 
+  await page.getByRole('button', { name: 'Dismiss' }).click();
 
   await page.getByRole('button', { 
     name: 'Bulk import students'
   }).click();
+
+  await page.pause();
+
+  await page.getByRole('button', { name: 'Paste CSV' }).click();
 
   await page.getByRole('textbox', { 
     name: 'Chisom Obi,chisom@school.edu.' 

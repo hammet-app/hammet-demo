@@ -12,6 +12,18 @@ export type SchoolStats = {
   pendingStudents: number;
 };
 
+export type DashboardAttention = {
+  pendingInvitations: number;
+  pendingSubmissions: number;
+  capacity: {
+    enrolled: number;
+    maximum: number;
+  };
+  term: {
+    daysRemaining: number;
+  };
+};
+
 export type SchoolProfile = {
   id: string;
   name: string;
@@ -22,6 +34,7 @@ export type SchoolProfile = {
   termStart: string;
   termEnd: string;
   session: string|null;
+  attention: DashboardAttention;
 };
 
 // POST /admin/update-term
@@ -51,6 +64,7 @@ export type AdminStudentsResponse = {
 
 // PATCH /admin/students/[id]
 export type UserUpdateRequest = {
+  fullName?: string;
   email?: string;
   dateOfBirth?: string;
   classLevel?: string;

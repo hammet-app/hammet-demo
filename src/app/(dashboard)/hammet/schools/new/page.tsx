@@ -1,48 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { z } from "zod";
 import { registerSchool } from "@/lib/api/hammet";
-import { PageShell } from "@/components/layout/PageShell";
+import { PageShell } from "@/components/layout/common/PageShell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { ApiError } from "@/lib/api/api-client";
 
 import type { RegisterSchoolRequest } from "@/lib/api/types";
 import type { UserRole } from "@/lib/utils/roles";
+import { FormSection, SelectField, TIER_OPTIONS } from "@/components/forms";
+import { registerSchoolSchema } from "@/lib/validation";
 
 type FormErrors = Partial<Record<keyof RegisterSchoolRequest, string>> & {
   form?: string;
 };
 
-function parseArms(input: string): string[] | undefined {
+function parseArms(input: string): string[] |undefined {
   if (!input.trim()) return undefined;
 
   return input
     .split(",")
-    .map((a) => a.trim().toUpperCase())
-    .filter(Boolean);
+    .map(a => a.trim().toUpperCase())
+    .filter(a => /^[A-Z]{1,3}$/.test(a));
 }
 
-function validate(form: RegisterSchoolRequest): FormErrors {
+function zodErrorsToFormErrors(
+  error: z.ZodError
+): FormErrors {
   const errors: FormErrors = {};
 
-  if (!form.name.trim()) errors.name = "School name is required.";
-  if (!form.adminFullName.trim())
-    errors.adminFullName = "Admin full name is required.";
+  for (const issue of error.issues) {
+    const field = issue.path[0] as keyof RegisterSchoolRequest;
 
-  if (!form.adminEmail.trim())
-    errors.adminEmail = "Admin email is required.";
-
-  if (!form.schoolEmail.trim())
-    errors.schoolEmail = "School email is required.";
-
-  if (!form.schoolAddress.trim())
-    errors.schoolAddress = "School address is required.";
-
-  if (!form.phoneNumber.trim())
-    errors.phoneNumber = "Phone number is required.";
+    if (!errors[field]) {
+      errors[field] = issue.message;
+    }
+  }
 
   return errors;
 }
@@ -55,8 +52,6 @@ export default function NewSchoolPage() {
 
   const [countryCode, setCountryCode] = useState("+234");
   const [phone, setPhone] = useState("");
-
-  const [isTeacher, setIsTeacher] = useState(false);
 
   const [form, setForm] = useState<RegisterSchoolRequest>({
     name: "",
@@ -75,6 +70,8 @@ export default function NewSchoolPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const schoolNameRef = useRef<HTMLInputElement>(null)
+
   function set<K extends keyof RegisterSchoolRequest>(
     key: K,
     value: RegisterSchoolRequest[K]
@@ -86,13 +83,9 @@ export default function NewSchoolPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    console.log(form.tier)
-
     const finalPhone = `${countryCode}${phone}`;
 
-    const finalRoles: UserRole[] = isTeacher
-      ? ["school_admin"]
-      : ["school_admin"];
+    const finalRoles: UserRole[] = ["school_admin"]
 
     const payload: RegisterSchoolRequest = {
       ...form,
@@ -101,12 +94,12 @@ export default function NewSchoolPage() {
       arms: parseArms(armsInput),
     };
 
-    const validationErrors = validate(payload);
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    const result = registerSchoolSchema.safeParse(payload)
+
+    if (!result.success) {
+      setErrors(zodErrorsToFormErrors(result.error))
       return;
     }
-
     if (!accessToken) return;
 
     setIsLoading(true);
@@ -148,14 +141,17 @@ export default function NewSchoolPage() {
       backHref="/hammet"
       rounded={true}
     >
-      <form onSubmit={handleSubmit} className="w-full p-6 rounded-lg flex flex-col gap-8 bg-purple-light/50">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
 
         {/* SCHOOL INFO */}
-        <div className="flex flex-col gap-4">
-          <p className="text-sm uppercase text-muted">School Info</p>
+        <FormSection
+          title="School Information"
+          description="Basic details about the school"
+        >
 
           <AuthInput
             id="school-name"
+            ref={schoolNameRef}
             label="School name"
             placeholder="Hammet Group of Schools"
             value={form.name}
@@ -188,13 +184,14 @@ export default function NewSchoolPage() {
             value={form.schoolWebsite || ""}
             onChange={(e) => set("schoolWebsite", e)}
           />
-        </div>
+        </FormSection>
 
         {/* CONTACT */}
-        <div className="flex flex-col gap-4">
-          <p className="text-xs uppercase text-muted">Contact</p>
-
-          <div className="flex gap-2 justify-start">
+        <FormSection
+          title="Contact Information"
+          description="How Hammet can reach the school"
+        >
+          <div className="flex flex-col gap-3 sm:flex-row">
             <AuthInput
               id="country-code"
               label=""
@@ -203,7 +200,7 @@ export default function NewSchoolPage() {
               type="tel"
               value={countryCode}
               onChange={(e) => setCountryCode(e)}
-              style="w-24"
+              className="w-24 shrink-0"
             />
 
             <AuthInput 
@@ -213,18 +210,20 @@ export default function NewSchoolPage() {
               label=""
               placeholder="Phone number"
               type="number"
-              style="w-80 -ml-1"
+              className="flex-1"
             />
 
           </div>
           {errors.phoneNumber && (
             <p className="text-xs text-red-600">{errors.phoneNumber}</p>
           )}
-        </div>
+        </FormSection>
 
         {/* ADMIN */}
-        <div className="flex flex-col gap-4">
-          <p className="text-xs uppercase text-muted">Admin</p>
+        <FormSection
+          title="School Administrator"
+          description="The first administrator who will manage this school"
+        >
 
           <AuthInput
             id="admin-full-name"
@@ -241,78 +240,24 @@ export default function NewSchoolPage() {
             onChange={(e) => set("adminEmail", e)}
             error={errors.adminEmail}
           />
-        </div>
+        </FormSection>
 
         {/* CONFIG */}
-        <div className="flex flex-col gap-4">
+        <FormSection
+          title="School Configuration"
+          description="Subscription tier and optional class arms"
+        >
 
           {/* Tier */}
           <div className="flex flex-col gap-4">
-            <label
-              htmlFor="tier"
-              className="text-xs font-medium uppercase tracking-wide text-muted"
-            >
-              Tier
-            </label>
-
-            <div className="relative">
-              <select
-                id="tier"
-                value={form.tier}
-                onChange={(e) =>
-                  set("tier", e.target.value as
-                    | "pilot"
-                    | "summer"
-                    | "spark"
-                    | "academy"
-                    | "premier"
-                    | "global")
-                }
-                className="
-                  w-full
-                  appearance-none
-                  rounded-lg
-                  border
-                  border-gray-200
-                  bg-white
-                  px-4
-                  py-3
-                  pr-10
-                  text-sm
-                  font-medium
-                  text-gray-900
-                  shadow-sm
-                  transition-all
-                  outline-none
-                  hover:border-gray-300
-                  focus:border-[var(--color-purple)]
-                  focus:ring-2
-                  focus:ring-[rgba(91,33,182,0.15)]
-                "
-              >
-                <option value="pilot">Pilot</option>
-                <option value="summer">Summer</option>
-                <option value="spark">Spark</option>
-                <option value="academy">Academy</option>
-                <option value="premier">Premier</option>
-                <option value="global">Global</option>
-              </select>
-
-              <svg
-                className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
+            <SelectField
+              id="tier"
+              label="Tier"
+              value={form.tier}
+              options={TIER_OPTIONS}
+              error={errors.tier}
+              onChange={(value) => set("tier", value)}
+            />
           </div>
 
           {/* Arms */}
@@ -324,16 +269,7 @@ export default function NewSchoolPage() {
             onChange={(e) => setArmsInput(e)}
           />
 
-          {/* Roles */}
-          {/* <label className="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              checked={isTeacher}
-              onChange={(e) => setIsTeacher(e.target.checked)}
-            />
-            Also assign as teacher
-          </label> */}
-        </div>
+        </FormSection>
 
         <button
           type="submit"

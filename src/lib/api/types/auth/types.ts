@@ -43,6 +43,13 @@ export type ClaimAccountResponse = {
   user: LoginResponse["user"];
 };
 
+export type RegisterAdminRequest = {
+  schoolId: string;
+  fullName: string;
+  email: string;
+  roles: string[]
+}
+
 // POST /auth/resend/student
 export type ResendVerificationRequest = {
   id: string;
@@ -105,9 +112,10 @@ export type RegisterStudentRequest = {
   fullName: string;
   email: string;
   classLevel: string;
+  gender: string;
   classArm: string | null;
-  parentEmail: string;         // stored on user record, used for parent link
-  parentPhone: string;         // stored on user record, used for parent link
+  parentEmail?: string;         // stored on user record, used for parent link
+  parentPhone?: string;         // stored on user record, used for parent link
   dateOfBirth: string;
 };
 
@@ -117,8 +125,26 @@ export type RegisterStudentResponse = {
   code: string;
 };
 
+export type BulkStudentInput = {
+  fullName: string;
+  email: string;
+  classLevel: string;
+  classArm: string;
+  gender: string;
+  parentEmail?: string;
+  parentPhone?: string;
+  dateOfBirth: string;
+}
+
 export type BulkRegisterRequest = {
-  csvText: string;
+  students: BulkStudentInput[];
+}
+
+export type BulkError = {
+  row?: number;
+  email?: string;
+  code? : string;
+  message: string;
 }
 
 // POST /auth/register/students/bulk — school_admin only (CSV upload)

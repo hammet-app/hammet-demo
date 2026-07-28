@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils/utils";
 import type { LucideIcon } from "lucide-react";
+import CountUp from "react-countup"
 
 interface StatCardProps {
   label: string;
@@ -7,6 +8,7 @@ interface StatCardProps {
   sub?: string;
   icon: LucideIcon;
   iconVariant?: "purple" | "cyan" | "green" | "amber" | "red";
+  animate?: boolean;
   className?: string;
 }
 
@@ -39,6 +41,7 @@ export function StatCard({
   sub,
   icon: Icon,
   iconVariant="purple",
+  animate=false,
   className,
 }: StatCardProps) {
   return (
@@ -76,9 +79,21 @@ export function StatCard({
         className="text-[26px] font-bold text-text-primary leading-none"
         style={{ fontFamily: "var(--font-head)" }}
       >
-        {typeof value === "number"
-          ? value.toLocaleString()
-          : value}
+        {typeof value === "number" ? (
+          animate ? (
+            <CountUp
+              end={value}
+              duration={1}
+              separator=","
+              enableScrollSpy
+              scrollSpyOnce
+            />
+          ) : (
+            value.toLocaleString()
+          )
+        ) : (
+          value
+        )}
       </div>
       {sub && (
         <p className="text-[11px] text-text-muted">{sub}</p>

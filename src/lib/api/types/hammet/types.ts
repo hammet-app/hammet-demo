@@ -1,4 +1,5 @@
 import { CurriculumModuleBlock } from "@/lib/api/types/module";
+import { UserRole } from "@/lib/utils/roles";
 
 // GET /hammet/schools
 // Full list of all registered schools — hammet_admin only
@@ -14,6 +15,39 @@ export type SchoolListItem = {
   };
   createdAt: string; // ISO 8601
 };
+
+export type SchoolDetails = {
+  id: string;
+  name: string;
+  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
+  email: string;
+  address: string;
+  phoneNumber: string;
+  website: string | null;
+  term: string;
+  createdAt: string;
+  stats: {
+    totalStudents: number
+    activeStudents: number;
+    pendingStudents: number;
+  }
+}
+
+export type AdminDetails = {
+  id: string;
+  fullName: string;
+  email: string;
+  role: UserRole[];
+  lastLogin: string | null;
+}
+
+// GET /hammet/schools/{school_id}
+// Details of registered school
+export type SchoolDetailsItem ={
+  school: SchoolDetails;
+  admins: AdminDetails[]
+
+}
 
 export type SchoolsListResponse = {
   schools: SchoolListItem[];
@@ -46,3 +80,28 @@ export type CreateModuleRequest = {
     blocks: CurriculumModuleBlock[];
   };
 };
+
+export type DisputeReviewPayload = {
+  id: string;
+  reviewNote: string
+}
+
+export type  Dispute = {
+  id: string;
+  studentId: string;
+  moduleTitle: string;
+  originalResponse: string;
+  aiStatus: string;
+  aiScore: number;
+  studentReview: string;
+  studentDisputeNote: string;
+  disputedAt: string;
+  reviewedBy: string | null;
+  reviewed: boolean;
+  reviewNote: string | null
+}
+
+export type Disputes = {
+  disputes: Dispute[]
+}
+

@@ -22,6 +22,7 @@ import {
     Resubmission,
     CreateSubmissionResponses
 } from "@/lib/api/types/submissions/types";
+import { fromPreviewLink, toPreviewLink } from "../student";
 
 /**
  * Naming convention:
@@ -58,7 +59,7 @@ export function fromAiFormState(model: AiFormState): AiFormStateDto {
     }
 }
 
-export function toAiFormStateDto(dto: AiFormStateDto): AiFormState {
+export function toAiFormState(dto: AiFormStateDto): AiFormState {
     return {
         used: dto.used,
         noReason: dto.no_reason,
@@ -79,7 +80,11 @@ export function fromCreateSubmissionRequest(model: CreateSubmissionRequest): Cre
         module_id: model.moduleId,
         activity_text: model.activityText,
         reflection_text: model.reflectionText,
-        file_urls: model.fileUrls,
+        file_urls: model.fileUrls?.map(fromPreviewLink) ?? null,
+        other_urls: model.otherUrls?.map(fromPreviewLink) ?? null,
+        ai_form: model.aiForm 
+            ? fromAiFormState(model.aiForm)
+            : null,
         local_id: model.localId
     }
 }
@@ -93,9 +98,10 @@ export function toCreateSubmissionResponse(dto: CreateSubmissionResponseDto): Cr
         activityText: dto.activity_text,
         reflectionText: dto.reflection_text,
         aiForm: dto.ai_form
-                ? toAiFormStateDto(dto.ai_form)
+                ? toAiFormState(dto.ai_form)
                 : null,
-        fileUrls: dto.file_urls,
+        fileUrls: dto.file_urls?.map(toPreviewLink) ?? null,
+        otherUrls: dto.other_urls?.map(toPreviewLink) ?? null,
         teacherNote: dto.teacher_note,
         approvedAt: dto.approved_at,
         approvedBy: dto.approved_by,
@@ -110,7 +116,8 @@ export function fromResubmission(model: Resubmission): ResubmissionDto {
         id: model.id,
         activity_text: model.activityText,
         reflection_text: model.reflectionText,
-        file_urls: model.fileUrls,
+        file_urls: model.fileUrls?.map(fromPreviewLink) ?? null,
+        other_urls: model.otherUrls?.map(fromPreviewLink) ?? null,
         ai_form: model.aiForm ? fromAiFormState(model.aiForm) : null,
         local_id: model.localId
     }
@@ -127,6 +134,7 @@ export function fromSyncSubmissionItem(model: SyncSubmissionItem): SyncSubmissio
         module_id: model.moduleId,
         reflection_text: model.reflectionText,
         file_urls: model.fileUrls,
+        other_urls: model.otherUrls,
         local_id: model.localId
     }
 }

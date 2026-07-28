@@ -11,6 +11,7 @@ import { syncPendingSubmissions } from "@/lib/db"
 import { studentApi } from "@/lib/api/student"
 import { AuthUser, UserRole } from "@/lib/utils/roles";
 import { uploadAllPendingFiles } from "@/lib/file-pipeline";
+import { PreviewLink } from "@/lib/api/types";
 
 export function useOnlineStatus(
   user: AuthUser,
@@ -38,10 +39,13 @@ export function useOnlineStatus(
         const uploaded = await uploadAllPendingFiles(token)
         if (uploaded.length > 0) {
           // Group paths by moduleId
-          const pathsByModule = new Map<string, string[]>()
+          const pathsByModule = new Map<string, PreviewLink[]>()
           for (const u of uploaded) {
             const paths = pathsByModule.get(u.moduleId) ?? []
-            paths.push(u.path)
+            paths.push({
+              taskId: u.blockId,
+              url: u.path
+            })
             pathsByModule.set(u.moduleId, paths)
           }
 

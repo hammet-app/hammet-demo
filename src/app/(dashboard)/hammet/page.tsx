@@ -3,15 +3,17 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-import { Building2, Users, UserCheck, Ban } from "lucide-react";
+import { Building2, Users, UserCheck, Ban, CircleHelp } from "lucide-react";
 import type { SchoolListItem } from "@/lib/api/types";
 import { StatCard } from "@/components/cards/stat-card";
-import { SchoolCard } from "@/components/cards/hammet/SchoolCard";
+import { SchoolCard, SchoolToolbar } from "@/components/cards/hammet";
 import { getTierCounts } from "@/lib/schools/getTierCounts";
 import { getSchools, deactivateSchool } from "@/lib/api/hammet";
 import { getDashboardStats } from "@/lib/schools/getDashboardStats";
-import { PageShell, ListSkeleton } from "@/components/layout/PageShell";
-import { SchoolToolbar } from "@/components/cards/hammet/SchoolToolbar";
+import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
+import { Button } from "@/components/ui";
+import { useOnboardingContext } from "@/components/onboarding/onboarding-provider";
+import { HelpButton } from "@/components/onboarding/help-button";
 
 type TierFilter =
   | "all"
@@ -26,6 +28,7 @@ type TierFilter =
 export default function HammetDashboardPage() {
   const { accessToken, refreshToken } = useAuth();
   const router = useRouter();
+  const { startTour } = useOnboardingContext();
 
   const [schools, setSchools] = useState<SchoolListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,14 +97,24 @@ export default function HammetDashboardPage() {
     <PageShell
       title="Schools"
       description={`${schools.length} registered`}
-    // actions={
+      actions={
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={startTour}
+        >
+          <CircleHelp className="h-4 w-4 mr-2" />
+          Replay Tour
+        </Button>
     //   <button
     //     onClick={() => router.push("/hammet/schools/new")}
     //     className="px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-semibold"
     //   >
     //     New school
     //   </button>
-    // }
+      
+      }
+
     >
       {isLoading ? (
         <ListSkeleton rows={6} />
@@ -117,12 +130,13 @@ export default function HammetDashboardPage() {
             </div>
           )}
 
-          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-tour="platform-overview">
             <StatCard
               label="Schools"
               value={dashboardStats.schools}
               icon={Building2}
               iconVariant="purple"
+              animate
             />
 
             <StatCard
@@ -130,6 +144,7 @@ export default function HammetDashboardPage() {
               value={dashboardStats.students}
               icon={Users}
               iconVariant="cyan"
+              animate
             />
 
             <StatCard
@@ -137,6 +152,7 @@ export default function HammetDashboardPage() {
               value={dashboardStats.active}
               icon={UserCheck}
               iconVariant="green"
+              animate
             />
 
             <StatCard
@@ -144,6 +160,7 @@ export default function HammetDashboardPage() {
               value={dashboardStats.suspended}
               icon={Ban}
               iconVariant="red"
+              animate
             />
           </div>
 
@@ -158,6 +175,7 @@ export default function HammetDashboardPage() {
               onCreateSchool={() => 
                 router.push("/hammet/schools/new")
               }
+              
             />
           )}
 
@@ -168,25 +186,23 @@ export default function HammetDashboardPage() {
               </p>
             </div>
           ) : (
-            <div
-              className="
-                grid
-                gap-6
-                [grid-template-columns:repeat(auto-fit,minmax(360px,1fr))]
-              "
-            >
-              {filtered.map((school) => (
-                <SchoolCard
-                  key={school.id}
-                  school={school}
-                  onDeactivate={handleDeactivate}
-                  deactivating={deactivatingId === school.id}
-                />
+            <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(360px,1fr))]" data-tour="school-directory">
+              {filtered.map((school, index) => (
+                <div key={school.id} data-tour={index===0 ? "school-card" : undefined}>
+                  <SchoolCard
+                    school={school}
+                    onDeactivate={handleDeactivate}
+                    deactivating={deactivatingId === school.id}
+                    
+
+                  />
+                </div>
               ))}
             </div>
           )}
         </>
       )}
+
     </PageShell>
   );
 }

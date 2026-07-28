@@ -37,6 +37,10 @@ export async function createClaimedUser(
     // Students submit token through the form
     await page.goto("/claim");
 
+    expect(page.getByRole('button', {
+      name: 'Continue'
+    })).toBeVisible()
+
     await page.getByRole('textbox', { 
       name: 'Email' 
     }).fill(email);

@@ -38,7 +38,7 @@ export type CurriculumModuleBlockDto = {
 };
 
 export interface CurriculumSectionDto {
-  id?: string | null;
+  id: string
   heading?: string | null;
   blocks: CurriculumModuleBlockDto[];
 }
@@ -51,7 +51,9 @@ export interface CurriculumModuleDto {
   id: string;
   title: string;
   description?: string;
+  outcome: string;
   term: number;
+  tier?: string;
   week_number: number;
   level: string;
   content_json: CurriculumContentJsonDto;

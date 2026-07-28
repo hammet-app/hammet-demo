@@ -1,4 +1,3 @@
-// hooks/use-tour.ts
 import { useCallback, useEffect, useRef } from 'react'
 import { driver } from 'driver.js'
 import 'driver.js/dist/driver.css'
@@ -20,6 +19,18 @@ interface UseTourOptions {
 
 export function useTour({ role, onComplete }: UseTourOptions) {
   const driverRef = useRef<ReturnType<typeof driver> | null>(null)
+
+  useEffect(() => {
+    const handleResize = () => {
+      driverRef.current?.refresh();
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     // Instantiate once per role mount

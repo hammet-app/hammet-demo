@@ -1,13 +1,4 @@
-/**
- * Authenticated API client.
- *
- * Usage:
- *   import { apiClient } from "@/lib/api-client";
- *
- *   // In a component or server action
- *   const data = await apiClient.get<StudentProgress>("/students/me/progress", token);
- *   const result = await apiClient.post<LoginResponse>("/auth/login", body);
- */
+import { BulkError } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "";
 
@@ -17,6 +8,25 @@ interface RequestOptions {
   token?: string | null;
   /** Pass a refreshToken fn so the client can retry once on 401 */
   onRefresh?: () => Promise<string | null>;
+}
+async function buildApiError(
+    response: Response
+): Promise<ApiError> {
+  const error = await response
+    .json()
+    .catch(() => ({
+      success: false,
+      error: {
+        code: "UNKNOWN",
+        message: "Request failed",
+      },
+    }));
+
+  return new ApiError(
+    response.status,
+    error,
+    error.error?.message ?? "Request failed",
+  );
 }
 
 async function requestForm<T>(
@@ -56,12 +66,7 @@ async function requestForm<T>(
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Request failed" }));
-    throw new ApiError(
-      res.status,
-      err,
-      (err.error?.message || err.detail) ?? "Request failed"
-    );
+    throw await buildApiError(res)
   }
 
   if (res.status === 204) return undefined as T;
@@ -107,12 +112,7 @@ async function request<T>(
       });
 
       if (!retryRes.ok) {
-        const err = await retryRes.json().catch(() => ({ detail: "Request failed" }));
-        throw new ApiError(
-          res.status,
-          err,
-          err.error?.message || err.detail || "Request failed"
-        );
+        throw await buildApiError(retryRes)
       }
 
       return retryRes.json() as Promise<T>;
@@ -123,12 +123,7 @@ async function request<T>(
   }
 
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Request failed" }))
-    throw new ApiError(
-      res.status,
-      err,
-      (err.error?.message || err.detail) ?? "Request failed"
-    );
+    throw await buildApiError(res);
   }
 
   // 204 No Content
@@ -163,25 +158,26 @@ export const apiClient = {
 // ─── ApiError ────────────────────────────────────────────────
 interface ApiErrorResponse {
   success: false;
+
   error: {
     code: string;
     message: string;
-    detail?: unknown;
+    details?: ApiErrorDetails;
   };
 }
 
-
 export type ApiErrorDetails =
-  | string
-  | Record<string, unknown>
-  | Record<string, unknown>[]
-  | null;
+    | BulkError[]
+    | Record<string, unknown>
+    | Record<string, unknown>[]
+    | string
+    | null;
 
 
-export class ApiError<T = ApiErrorResponse> extends Error {
+export class ApiError extends Error {
   constructor(
     public readonly status: number,
-    public readonly data: T | null,
+    public readonly data: ApiErrorResponse | null,
     message: string,
     
   ) {
@@ -190,12 +186,44 @@ export class ApiError<T = ApiErrorResponse> extends Error {
   }
 
   get details(): ApiErrorDetails {
-    return ((this.data as ApiErrorResponse)?.error?.detail ??
-      null) as ApiErrorDetails;
+    return this.data?.error?.details ?? null;
   }
 
   get code() {
-    return (this.data as ApiErrorResponse)?.error?.code;
+    return this.data?.error?.code;
   }
+  get unauthorized() {
+    return this.status === 401;
+  }
+
+  get notFound() {
+    return this.status === 404;
+  }
+
+  is(status: number) {
+      return this.status === status;
+  }
+
+  get forbidden() {
+      return this.status === 403;
+  }
+
+  get validation() {
+      return this.status === 422;
+  }
+
+  get conflict() {
+      return this.status === 409;
+  }
+
+  get internal() {
+      return this.status >= 500;
+  }
+
+  get success() {
+    return (
+        this.data as ApiErrorResponse
+    )?.success ?? false;
+  } 
 }
 

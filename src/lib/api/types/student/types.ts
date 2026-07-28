@@ -1,4 +1,16 @@
+import { SubmissionStatus } from "@/components/ui";
 import { AiFormState } from "@/lib/api/types/submissions";
+
+
+export type PreviewLink = {
+  taskId: string;
+  url: string;
+  title? : string;
+  type?: string;
+  faviconUrl?: string
+}
+
+export type PreviewLinkState = PreviewLink[];
 
 // ============================================================
 // GET /students/me
@@ -66,7 +78,8 @@ export type Submission = {
   aiForm: AiFormState | null
   activityText: string;
   reflectionText: string | null;
-  fileUrls: string[] | null;
+  fileUrls: PreviewLink[] | null;
+  otherUrls: PreviewLink[] | null;
   status: "submitted" | "approved" | "flagged";
   teacherNote: string | null;    // populated when flagged
   submittedAt: string;
@@ -90,8 +103,10 @@ export type PortfolioEntry = {
   moduleTitle: string;
   term: number;
   weekNumber: number;
+  status: SubmissionStatus
   reflectionText: string | null;
-  fileUrls: string[] | null;
+  fileUrls: PreviewLink[] | null;
+  otherUrls: PreviewLink[] | null;
   approvedAt: string;            // auto-generated on approval by Celery
   // denormalised — no join needed
   studentName: string;
@@ -114,4 +129,10 @@ export interface PerformancePoint {
 export interface PerformanceParams {
   term?: number[];
   level?: string[];
+}
+
+export interface DisputeReview {
+  submissionId: string;
+  note?: string;
+  review: "helpful" | "disagree"
 }

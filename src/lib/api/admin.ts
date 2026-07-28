@@ -8,6 +8,7 @@ import {
   type BulkRegisterResponse,
   type ParentLinkSendResponse,
   type SchoolProfileDto,
+  type AdminStudent,
   //PromotionPreviewResponse,
   //PromotionConfirmRequest,
   //PromotionConfirmResponse,
@@ -28,6 +29,7 @@ import {
   type ParentLinkSendResponseDto,
   type UpdateTerm,
   type UpdateTermDto,
+  type AdminStudentDto,
   toAdminModulesResponse,
   toAdminStudentResponse,
   fromUpdateUserRequest,
@@ -38,6 +40,8 @@ import {
   toCurriculumModule,
   toSchoolProfile,
   fromUpdateTermRequest,
+  fromBulkRegisterRequest,
+  toAdminStudent,
 } from "@/lib/api/types";
 
 // ------------------------------------------------------------
@@ -83,6 +87,18 @@ export async function getAdminStudents(
   return toAdminStudentResponse(response)
 }
 
+export async function getAdminStudent(
+  id: string,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<AdminStudent> {
+  const response = await apiClient.get<AdminStudentDto>(`/admin/students/${id}`, token, {
+    onRefresh,
+  });
+
+  return toAdminStudent(response)
+}
+
 export async function updateStudent(
   studentId: string,
   body: UserUpdateRequest,
@@ -123,13 +139,14 @@ export async function registerStudent(
 }
 
 export async function bulkRegisterStudents(
-  csvText: BulkRegisterRequest,
+  students: BulkRegisterRequest,
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<BulkRegisterResponse> {
+  const payload = fromBulkRegisterRequest(students)
   const response = await apiClient.post<BulkRegisterResponseDto>(
     "/auth/register/students/bulk",
-    csvText,
+    payload,
     token,
     { onRefresh }
   );

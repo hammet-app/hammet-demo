@@ -1,4 +1,17 @@
-import { AiFormState } from "@/lib/api/types/submissions";
+import { SubmissionStatus } from "@/components/ui";
+import { AiFormState, AiFormStateDto } from "@/lib/api/types/submissions";
+
+export type PreviewLinkDto = {
+  task_id: string;
+  url: string;
+  title? : string;
+  type? : string;
+  favicon_url?: string
+}
+
+
+
+export type PreviewLinkStateDto = PreviewLinkDto[];
 
 // ============================================================
 // GET /students/me
@@ -63,10 +76,11 @@ export type SubmissionDto = {
   module_title: string;
   term: number;
   week_number: number;
-  ai_form: AiFormState | null
+  ai_form: AiFormStateDto | null
   activity_text: string;
   reflection_text: string | null;
-  file_urls: string[] | null;
+  file_urls: PreviewLinkDto[] | null;
+  other_urls: PreviewLinkDto[] | null;
   status: "submitted" | "approved" | "flagged";
   teacher_note: string | null;    // populated when flagged
   submitted_at: string;
@@ -90,8 +104,10 @@ export type PortfolioEntryDto = {
   module_title: string;
   term: number;
   week_number: number;
+  status: SubmissionStatus;
   reflection_text: string | null;
-  file_urls: string[] | null;
+  file_urls: PreviewLinkDto[] | null;
+  other_urls: PreviewLinkDto[] | null;
   approved_at: string;            // auto-generated on approval by Celery
   // denormalised — no join needed
   student_name: string;
@@ -102,3 +118,10 @@ export type StudentPortfolioDto = {
   entries: PortfolioEntryDto[];
   total: number;
 };
+
+
+export interface DisputeReviewDto {
+  submission_id : string;
+  note?: string;
+  review: "helpful" | "disagree"
+}

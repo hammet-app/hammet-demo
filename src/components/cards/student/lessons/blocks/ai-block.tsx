@@ -44,7 +44,7 @@ export function AiPromptBlock({ block }: { block: CurriculumModuleBlock }) {
         className="border-l-4 border-purple pl-4 text-[16px] leading-relaxed text-text-primary italic"
         style={{ fontFamily: FONT_BODY }}
       >
-        "{block.content}"
+        &quot;{block.content}&quot;
       </blockquote>
       
         <div className="mt-5 flex justify-end">

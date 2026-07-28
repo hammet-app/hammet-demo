@@ -7,6 +7,7 @@ import {
   Users,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { DashboardAttention } from "@/lib/api/types";
 
 export const containerVariants = {
     hidden: {},
@@ -29,20 +30,8 @@ export const cardVariants = {
     },
 };
 
-type DashboardAttention = {
-  pendingInvitations: number;
-  pendingSubmissions: number;
-  capacity: {
-    enrolled: number;
-    maximum: number;
-  };
-  term: {
-    daysRemaining: number;
-  };
-};
-
 type AttentionSectionProps = {
-  attention?: DashboardAttention;
+  attention: DashboardAttention;
 
   onPendingInvitations?: () => void;
   onPendingSubmissions?: () => void;

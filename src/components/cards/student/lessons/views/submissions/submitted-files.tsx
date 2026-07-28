@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image";
 import { FONT_BODY } from "@/lib/student/lessons/build";
 import { AssetPreview, AssetPreviewModal } from "./asset";
 import { SubmittedArtifactsCardProps, SubmittedArtifactsSurfaceProps } from "./types";
@@ -61,7 +62,7 @@ export function SubmittedArtifactCard({
         {isLink && (
           <div className={cn("flex flex-col items-center justify-center bg-bg-page px-4")}>
             {artifact.faviconUrl ? (
-              <img
+              <Image
                 src={artifact.faviconUrl}
                 alt=""
                 className="mb-3 h-12 w-12 rounded-xl"
@@ -89,7 +90,6 @@ export function SubmittedArtifactSurface({
   helperText,
   artifacts
 }: SubmittedArtifactsSurfaceProps) {
-  console.log(artifacts)
   const [selectedArtifact, setSelectedArtifact] = useState<PreviewLink | null>(null)
   const files = artifacts.filter((artifact) => artifact.type === "file");
   const links = artifacts.filter((artifact) => artifact.type === "link");

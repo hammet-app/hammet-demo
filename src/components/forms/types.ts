@@ -47,7 +47,22 @@ export const LEVEL_OPTIONS: SelectOption<RegisterStudentRequest["classLevel"]>[]
  {
     value:  "SSS3",
     label:  "SSS3"
- }
+ },
+ {
+    value: "summer",
+    label: "Summer"
+ },
+]
+
+export const GENDER_OPTIONS: SelectOption<RegisterStudentRequest["gender"]>[] =[
+  {
+    value: "M",
+    label: "Male"
+  },
+  {
+    value: "F",
+    label: "Female"
+  },
 ]
 
 export type SelectOption<T extends string> = {

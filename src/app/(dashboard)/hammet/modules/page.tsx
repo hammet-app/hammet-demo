@@ -163,7 +163,7 @@ export default function HammetModulesPage() {
           </div>
 
         <p className="mt-2 text-sm text-[var(--color-text-secondary)]">
-          Choose the subscription tier you'd like to browse.
+          Choose the subscription tier you&apos;d like to browse.
         </p>
       </div>
       {isLoading ? (

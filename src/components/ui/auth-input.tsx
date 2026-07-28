@@ -2,6 +2,7 @@
 
 import { forwardRef, HTMLInputTypeAttribute, KeyboardEvent, ReactNode, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { motion } from "motion/react";
 import { cn } from "@/lib/utils/utils";
 import { FieldError } from "@/components/ui/auth-shell";
 
@@ -82,7 +83,17 @@ export const AuthInput = forwardRef<
   }
 
   return (
-    <div className="flex flex-col gap-1">
+    <motion.div 
+      animate={
+        error
+          ? {
+            x: [0, -5, 5, -5, 5, 0],
+          }
+          : {}
+      }
+      transition={{ duration: 0.35 }}
+      className="flex flex-col gap-1"
+    >
       <label htmlFor={id} className="text-[12.5px] font-medium text-text-secondary">
         {label}
 
@@ -97,7 +108,10 @@ export const AuthInput = forwardRef<
         <p className="text-[11.5px] text-text-muted -mt-0.5">{description}</p>
       )}
 
-      <div className="relative">
+      <motion.div
+        animate={{ scale: focused ? 1.01 : 1, }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        className="relative">
         {leftIcon}
         <input
           id={id}
@@ -143,28 +157,30 @@ export const AuthInput = forwardRef<
         /> */}
 
         {isPassword && (
-          <button
+          <motion.button
             type="button"
+            whileHover={{ scale: 1.08, }}
+            whileTap={{ scale: 0.92 }}
             onClick={() => setShowPassword((p) => !p)}
             tabIndex={-1}
             aria-label={showPassword ? "Hide password" : "Show password"}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-purple dark:hover:text-cyan transition-colors"
           >
             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-          </button>
+          </motion.button>
         )}
-      </div>
+      </motion.div>
 
       {strength && value && (
         <div className="flex flex-col gap-1 mt-1" aria-live="polite" aria-atomic="true">
           <div className="h-[3px] rounded-full bg-border overflow-hidden">
-            <div
+            <motion.div
               className="h-full rounded-full"
-              style={{
+              animate={{
                 width: `${strengthPct}%`,
                 background: strength.color,
-                transition: "width 0.4s ease, background 0.4s",
               }}
+              transition={{ duration: 0.35 }}
             />
           </div>
           <p className="text-[11px]" style={{ color: strength.color }}>
@@ -174,6 +190,6 @@ export const AuthInput = forwardRef<
       )}
 
       <FieldError message={error} />
-    </div>
+    </motion.div>
   );
 })

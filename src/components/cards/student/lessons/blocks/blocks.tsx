@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image";
 import { AlertTriangle, ImageOff, ExternalLink } from "lucide-react";
 import { motion } from "motion/react";
 import { 
@@ -32,7 +33,7 @@ export function ContentBlock({ block }: { block: CurriculumModuleBlock }) {
 export function SubheadingBlock({ block }: { block: CurriculumModuleBlock }) {
   return (
     <h3
-      className="mt-10 mb-4 text-[20px] sm:text-[22px] font-semibold text-text-primary leading-tight"
+      className="mb-4 text-[20px] sm:text-[22px] font-semibold text-text-primary leading-tight"
       style={{ fontFamily: FONT_HEAD }}
     >
       {block.content}
@@ -76,7 +77,7 @@ export function ImageBlock({ block }: { block: CurriculumModuleBlock }) {
   }
   return (
     <figure className="rounded-[10px] overflow-hidden border border-border">
-      <img
+      <Image
         src={block.url || block.content}
         alt={block.content || "Lesson image"}
         className="w-full h-auto object-cover"

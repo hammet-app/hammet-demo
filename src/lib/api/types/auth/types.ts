@@ -112,6 +112,7 @@ export type RegisterStudentRequest = {
   fullName: string;
   email: string;
   classLevel: string;
+  gender: string;
   classArm: string | null;
   parentEmail?: string;         // stored on user record, used for parent link
   parentPhone?: string;         // stored on user record, used for parent link
@@ -129,6 +130,7 @@ export type BulkStudentInput = {
   email: string;
   classLevel: string;
   classArm: string;
+  gender: string;
   parentEmail?: string;
   parentPhone?: string;
   dateOfBirth: string;

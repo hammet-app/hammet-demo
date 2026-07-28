@@ -1,4 +1,3 @@
-import { source } from "motion/react-client";
 import {
   CLASS_LEVELS,
   PreviewStudent,
@@ -10,7 +9,7 @@ const EMAIL =
 
 export function validateCSV(
   students: PreviewStudent[],
-  availableArms?: string[]
+  availableArms?: string[], 
 ): PreviewStudent[] {
 
   const emails = new Map<
@@ -94,6 +93,7 @@ export function validateCSV(
       });
     }
 
+    
     if (
       student.parentEmail &&
       !EMAIL.test(student.parentEmail)
@@ -114,6 +114,17 @@ export function validateCSV(
         message: "Duplicate email in file"
       });
     }
+
+    if (
+      student.gender && 
+      !["M", "F"].includes(student.gender)
+    ) {
+      errors.push({
+        source: "frontend",
+        message: "Gender must be M or F"
+      })
+    }
+
 
     return {
       ...student,

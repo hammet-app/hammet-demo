@@ -3,7 +3,6 @@ import {
   TaskFilesState,
   AiFormState
 } from "@/lib/api/types";
-import { LessonMode } from "./types";
 import { StepperPage, REFLECTION_MAX, REFLECTION_MIN } from "./types";
 
 

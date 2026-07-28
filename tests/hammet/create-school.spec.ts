@@ -20,6 +20,8 @@ test("hammet admin can register a school", async ({ page, request }) => {
 
   await login(page, request);
 
+  await page.pause();
+
   await page.goto("/hammet/schools/new");
   
   await expect(page).toHaveURL(/schools\/new/);
@@ -27,6 +29,8 @@ test("hammet admin can register a school", async ({ page, request }) => {
   await page.getByRole('button', { 
     name: 'Close' 
   }).click();
+
+  await page.getByRole('button', { name: 'Dismiss' }).click();
 
   await page.getByRole("textbox", {
     name: "School name",
@@ -57,7 +61,8 @@ test("hammet admin can register a school", async ({ page, request }) => {
     exact: true,
   }).fill(school.adminEmail);
 
-  await page.getByLabel('Tier').selectOption(tier);
+  await page.getByRole('combobox', { name: 'Tier' }).click();
+  await page.getByRole('option', { name: 'Summer' }).click();
 
   await page.getByRole("button", {
     name: "Register school",

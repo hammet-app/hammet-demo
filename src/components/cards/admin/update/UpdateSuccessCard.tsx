@@ -19,7 +19,7 @@ export function StudentUpdateSuccessCard({
         variant="success"
         title="Student Updated"
       >
-        {studentName}'s information has been updated successfully.
+        {studentName}&apos;s information has been updated successfully.
       </Alert>
 
       <div className="rounded-2xl border border-border bg-bg-card p-6">

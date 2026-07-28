@@ -13,6 +13,7 @@
 
 .lesson-reading p {
   margin: 0;
+  margin-bottom: 1.5rem;
 }
 
 .lesson-reading p + p {

@@ -98,6 +98,7 @@ export default function NewSchoolPage() {
 
     if (!result.success) {
       setErrors(zodErrorsToFormErrors(result.error))
+      return;
     }
     if (!accessToken) return;
 

@@ -42,6 +42,7 @@ export type NavEntry = NavItem | NavSection | NavDivider;
 
 export const navConfig: Record<UserRole, NavEntry[]> = {
   student: [
+    { type: "item", label: "Dashboard",      href: "/student",                 icon: Home, },
     { type: "item", label: "My Lessons",     href: "/student/lessons",       icon: BookOpen,       },
     { type: "item", label: "My Progress",    href: "/student/progress",      icon: BarChart2,      },
     { type: "item", label: "Submissions",    href: "/student/submissions",   icon: ClipboardList,  },

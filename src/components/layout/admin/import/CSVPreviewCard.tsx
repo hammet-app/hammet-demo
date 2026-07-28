@@ -3,12 +3,10 @@ import { useEffect, useRef, useState } from "react";
 
 type CSVPreviewCardProps = {
   students: PreviewStudent[];
-  expandTrigger: number;
 };
 
 export function CSVPreviewCard({
   students,
-  expandTrigger,
 }: CSVPreviewCardProps) {
   const ready = students.filter(
     (s) => s.errors.length === 0
@@ -19,11 +17,6 @@ export function CSVPreviewCard({
   const rowRefs = useRef<
     Record<number, HTMLDivElement | null>
   >({});
-
-  useEffect(() => {
-    setExpanded(true);
-
-  }, [expandTrigger])
 
   const visibleStudents = 
     expanded

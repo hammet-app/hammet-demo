@@ -19,6 +19,7 @@ import {
 } from "@/components/cards/admin/dashboard";
 import { Button } from "@/components/ui";
 import { useOnboardingContext } from "@/components/onboarding/onboarding-provider";
+import { HelpButton } from "@/components/onboarding/help-button";
 
 const sessions = Array.from(
   { length: 10 },
@@ -223,11 +224,13 @@ function QuickActionCard({ action }: { action: QuickAction }) {
 
   return (
     <motion.button
-      onClick={() =>
-        action.onClick
-          ? action.onClick()
-          : router.push(action.href!)
-      }
+      onClick={() =>  {
+        if (action.onClick) {
+          action.onClick();
+        } else if (action.href) {
+          router.push(action.href);
+        }
+      }}
       className="group relative overflow-hidden rounded-2xl border border-border
         bg-bg-card p-5 text-left transition-all duration-200
         hover:-translate-y-1 hover:border-purple-mid hover:shadow-lg
@@ -348,7 +351,7 @@ export default function AdminDashboardPage() {
             Unable to load school profile
           </h3>
           <p className="mt-1 text-sm text-danger-dark">
-            Your account isn't linked ot a school. Please contact Hammet support
+            Your account isn&apos;t linked ot a school. Please contact Hammet support
           </p>
         </div>
       ) : (
@@ -384,6 +387,7 @@ export default function AdminDashboardPage() {
             >
               <div data-tour="needs-attention">
                 <AttentionSection
+                  attention={profile.attention}
                   onPendingInvitations={() =>
                     router.push("/admin/students?status=pending")
                   }
@@ -448,10 +452,8 @@ export default function AdminDashboardPage() {
                       viewport={{ once: true, }}
                       data-tour="school-card"
                     >
-                      {academicActions.map((action, index) => (
-                        <div key={action.label} >
-                          <QuickActionCard action={action} />
-                        </div>
+                      {academicActions.map((action) => (
+                        <QuickActionCard key={action.label} action={action} />
                       ))}
                     </motion.div>
                   </section>

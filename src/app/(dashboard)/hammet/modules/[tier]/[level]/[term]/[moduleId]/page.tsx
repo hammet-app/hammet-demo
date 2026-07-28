@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-import { CurriculumModule, CurriculumModuleBlock } from "@/lib/api/types";
+import { CurriculumModule } from "@/lib/api/types";
 import { ListSkeleton, PageShell } from "@/components/layout/common/PageShell";
 import { useAuth } from "@/lib/auth/auth-context";
-import { Alert, Button } from "@/components/ui";
+import { Alert } from "@/components/ui";
 import { editModule, getModule } from "@/lib/api/hammet";
 import { ApiError } from "@/lib/api/api-client";
 import { Save } from "lucide-react";
@@ -21,7 +21,7 @@ const TERM_LABELS: Record<number, string> = {
 
 export default function HammetModuleEditor() {
   
-  const { user, accessToken, refreshToken } = useAuth()
+  const { accessToken, refreshToken } = useAuth()
 
   const params = useParams<{ tier: string, level: string, term: string, moduleId: string }>();
   const tier = decodeURIComponent(params.tier)
@@ -29,7 +29,7 @@ export default function HammetModuleEditor() {
   const term = Number(params.term)
   const moduleId = decodeURIComponent(params.moduleId)
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [lessonModule, setLessonModule] = useState<CurriculumModule | null>(null)
   const [editableModule, setEditableModule] = useState<CurriculumModule | null>(null)
   const [error, setError] = useState("");
@@ -39,16 +39,15 @@ export default function HammetModuleEditor() {
   useEffect(() => {
     if (!accessToken || !tier) return;
 
-    setIsLoading(true)
     getModule(tier, moduleId, accessToken, refreshToken)
       .then((res) => {
-        setLessonModule(res)
-        setEditableModule(res)
+        setLessonModule(res);
+        setEditableModule(res);
       })
       .catch((err: ApiError) => setError(err.message))
       .catch(() => setError("Failed to load module"))
-      .finally(() => setIsLoading(false))
-  }, [tier, moduleId, accessToken, refreshToken])
+      .finally(() => setIsLoading(false));
+  }, [tier, moduleId, accessToken, refreshToken]);
 
   useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
@@ -67,23 +66,26 @@ export default function HammetModuleEditor() {
 
   async function handleSave() {
     if (!accessToken || !lessonModule || !editableModule) return
-
-    console.log(editableModule.tier)
-    editableModule.tier = tier
-
     try {
+      const moduleToSave = {
+        ...editableModule,
+        tier,
+      };
+
       const res = await editModule(
         lessonModule.id,
-        editableModule,
+        moduleToSave,
         accessToken,
         refreshToken
-      )
+      );
+
       if (res) {
-        setLessonModule(editableModule)
+        setLessonModule(moduleToSave);
+        setEditableModule(moduleToSave);
         setHasChanges(false);
       }
       
-    } catch (err) {
+    } catch {
       setError("Failed to update module")
     }
   }

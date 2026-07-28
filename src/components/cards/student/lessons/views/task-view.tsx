@@ -338,7 +338,6 @@ export function TaskPageView({
         const entries = taskFiles[block.id] ?? [];
         const inputId = `task-upload-${block.id}`;
         const links = taskLinks[block.id] ?? [];
-        console.log("Task", previewLinks)
 
         return (
           <div key={block.id} className="flex flex-col gap-3">

@@ -67,12 +67,18 @@ export function WhatWeDeliver() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.12 }}
               whileHover={{ y: -8, backgroundColor: "#FAF8FF", borderColor: "#DDD6FE" }}
-              className="group rounded-2xl p-6 transition-colors"
+              className="group relative overflow-hidden rounded-2xl p-6 border border-transparent"
             >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.7 }}
+                whileHover={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3 }}
+                className="absolute -top-8 -left-8 h-40 w-40 pointer-events-none bg-gradient-to-br bg-[#EDE9FE]/60 blur-3xl"
+              />
               <motion.div
                 whileHover={{ rotate: -8, scale: 1.08, }}
                 transition={{ type: "spring", stiffness: 350, damping: 15 }}
-                className="w-12 h-12 rounded-xl bg-[#EDE9FE] text-[#5B21B6] flex items-center justify-center mb-5 group-hover:bg-[#3B0764] group-hover:text-white transition-colors duration-300"
+                className="relative z-10 w-12 h-12 rounded-xl bg-[#EDE9FE] text-[#5B21B6] flex items-center justify-center mb-5 group-hover:bg-[#3B0764] group-hover:text-white transition-colors duration-300"
               >
                 <motion.div 
                   whileHover={{ rotate: 8 }}
@@ -84,7 +90,7 @@ export function WhatWeDeliver() {
               <motion.h3
                 whileHover={{ color: "#5B21B6"}}
                 transition={{ duration: 0.2 }}
-                className="font-[family-name:var(--font-jakarta)] text-lg font-bold text-[#1E1B4B] mb-3">
+                className="relative z-10 font-[family-name:var(--font-jakarta)] text-lg font-bold text-[#1E1B4B] mb-3">
                 {col.title}
               </motion.h3>
               <motion.p
@@ -92,7 +98,7 @@ export function WhatWeDeliver() {
                 whileInView={{ opacity: 1}}
                 viewport={{ once: true }}
                 transition={{ delay: 0.15 }}
-                className="text-gray-500 text-sm leading-relaxed">
+                className="relative z-10 text-gray-500 text-sm leading-relaxed">
                   {col.body}
                 </motion.p>
             </motion.div>

@@ -158,7 +158,6 @@ export const studentApi = {
     onRefresh: () => Promise<string | null>
   ): Promise<boolean> => {
     const payload = fromDisputeReview(body)
-    console.log(payload)
 
     return apiClient.post<boolean>(
       '/submissions/dispute', payload, token, { onRefresh }

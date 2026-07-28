@@ -52,10 +52,10 @@ export function ModuleCard({
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-mid",
 
         // 👇 only allow hover if NOT locked
-        //!locked && "hover:border-purple-mid hover:ring-2 hover:ring-purple-mid/10",
+        !locked && "hover:border-purple-mid hover:ring-2 hover:ring-purple-mid/10",
 
         // 👇 locked styles
-        //locked && "cursor-not-allowed",
+        locked && "cursor-not-allowed",
 
         className
       )}

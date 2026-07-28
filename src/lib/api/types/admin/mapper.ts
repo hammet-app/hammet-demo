@@ -2,6 +2,7 @@ import {
     AdminModulesResponseDto,
     AdminStudentDto,
     AdminStudentsResponseDto,
+    DashboardAttentionDto,
     ParentLinkSendResponseDto,
     SchoolProfileDto,
     SchoolStatsDto,
@@ -17,7 +18,8 @@ import {
     AdminStudentsResponse,
     UserUpdateRequest,
     ParentLinkSendResponse,
-    UpdateTerm
+    UpdateTerm,
+    DashboardAttention
 } from "@/lib/api/types/admin/types"
 import {toCurriculumModule} from "@/lib/api/types/module"
 
@@ -41,6 +43,17 @@ export function toSchoolStats(dto: SchoolStatsDto): SchoolStats {
     }
 }
 
+function toDashboardAttention(dto: DashboardAttentionDto): DashboardAttention {
+    return {
+        pendingInvitations: dto.pending_invitations,
+        pendingSubmissions: dto.pending_submissions,
+        capacity: dto.capacity,
+        term: {
+            daysRemaining: dto.term.days_remaining
+        }
+    }
+}
+
 export function toSchoolProfile(dto: SchoolProfileDto): SchoolProfile {
     return {
         id: dto.id,
@@ -51,7 +64,9 @@ export function toSchoolProfile(dto: SchoolProfileDto): SchoolProfile {
         stats: toSchoolStats(dto.stats),
         termStart: dto.term_start,
         termEnd: dto.term_end,
-        session: dto.session
+        session: dto.session,
+        attention: toDashboardAttention(dto.attention)
+        
     }
 }
 

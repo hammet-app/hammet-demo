@@ -14,14 +14,16 @@ import { FormSection } from "@/components/forms/FormSection";
 import { motion, AnimatePresence } from "motion/react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { SelectField, SelectOption, LEVEL_OPTIONS } from "@/components/forms";
+import { SelectField, SelectOption, LEVEL_OPTIONS, GENDER_OPTIONS } from "@/components/forms";
 
+const upper_tiers = ["premier", "global"]
 
 type FormState = {
   fullName: string;
   email: string;
   classLevel: string;
   classArm: string;
+  gender: string;
   parentEmail: string;
   parentPhone: string;
   dateOfBirth: string;
@@ -29,16 +31,19 @@ type FormState = {
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
-function validate(form: FormState, availableArms: string[]): FormErrors {
+function validate(form: FormState, availableArms: string[], tier: string): FormErrors {
   const errs: FormErrors = {};
+  
   if (!form.fullName.trim()) errs.fullName = "Full name is required";
   if (!form.email.trim()) {
     errs.email = "Email is required";
   }
   if (!form.classLevel) errs.classLevel = "Select level";
   if (availableArms.length > 0 && !form.classArm) errs.classArm = "Select arm";
-  if (!form.parentEmail.trim()) errs.parentEmail = "Parent email is required";
-  if (!form.parentPhone.trim()) errs.parentPhone = "Phone is required";
+  if (upper_tiers.includes(tier)) {
+    if (!form.parentEmail.trim()) errs.parentEmail = "Parent email is required";
+    if (!form.parentPhone.trim()) errs.parentPhone = "Phone is required";
+  }
   if (!form.dateOfBirth.trim()) errs.dateOfBirth = "Date of Birth";
   return errs;
 }
@@ -57,6 +62,7 @@ export default function NewStudentPage() {
     email: "",
     classLevel: "",
     classArm: "",
+    gender: "",
     parentEmail: "",
     parentPhone: "",
     dateOfBirth: "",
@@ -66,6 +72,7 @@ export default function NewStudentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [tier, setTier] = useState<string | null>("")
 
   const fullNameRef = useRef<HTMLInputElement>(null)
 
@@ -73,7 +80,10 @@ export default function NewStudentPage() {
     if (!accessToken) return;
 
     getSchoolProfile(accessToken, refreshToken)
-      .then((p) => setAvailableArms(p.availableArms ?? []))
+      .then((p) => {
+        setAvailableArms(p.availableArms ?? []);
+        setTier(p.tier)
+      })
       .catch(() => setAvailableArms([]))
       .finally(() => setIsLoading(false));
   }, [accessToken, refreshToken]);
@@ -85,11 +95,11 @@ export default function NewStudentPage() {
   }
 
   async function handleSubmit() {
-    if (!accessToken) return;
+    if (!accessToken || !tier ) return;
 
     setCreated(null)
 
-    const errs = validate(form, availableArms);
+    const errs = validate(form, availableArms, tier);
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
@@ -99,14 +109,27 @@ export default function NewStudentPage() {
     setSubmitting(true);
     setError(null);
 
-    const clean = form.parentPhone.replace(/^0/, "");
-    const finalPhone = `${countryCode}${clean}`;
+    let finalPhone = null
+    let finalEmail = null
+
+    if (upper_tiers.includes(tier)) {
+      const clean = form.parentPhone.replace(/^0/, "");
+
+      finalPhone = `${countryCode}${clean}`;
+      finalEmail = form.parentEmail
+    } else {
+      finalPhone = "";
+      finalEmail = ""; 
+    }
+
+    
 
     try {
       const res = await registerStudent(
         {
           ...form,
           parentPhone: finalPhone,
+          parentEmail: finalEmail,
         },
         accessToken,
         refreshToken
@@ -119,6 +142,7 @@ export default function NewStudentPage() {
         email: "",
         classLevel: "",
         classArm: "",
+        gender: "",
         parentEmail: "",
         parentPhone: "",
         dateOfBirth: "",
@@ -237,6 +261,16 @@ export default function NewStudentPage() {
 
                 <FieldError message={errors.dateOfBirth} />
 
+                <SelectField
+                  id="gender"
+                  label="Gender"
+                  value={form.gender}
+                  options={GENDER_OPTIONS}
+                  error={errors.gender}
+                  onChange={(value) => set("gender",value)}
+                />
+                <FieldError message={errors.gender} />
+
               </FormSection>
 
               <FormSection
@@ -269,45 +303,47 @@ export default function NewStudentPage() {
                   </div>
                 )}
               </FormSection>
-
-              <FormSection
-                title="Parent Information"
-                description="Used for progress reports"
-              >
-                <AuthInput
-                  id="parent-email"
-                  label="Parent email"
-                  value={form.parentEmail}
-                  onChange={(e) => set("parentEmail", e)}
-                />
-                <FieldError message={errors.parentEmail} />
               
-                <div className="flex gap-2">
-                  <input
-                    value={countryCode}
-                    onChange={(e) => setCountryCode(e.target.value)}
-                    className={cn("w-24 h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
-                      "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
-                      "transition-all duration-200",
-                      "disabled:opacity-50 disabled:cursor-not-allowed",
-                      "border-border hover:border-purple/30 focus:border-purple focus:ring-2 focus:ring-purple/8",
-                      "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10")}
+              {tier && upper_tiers.includes(tier) && (
+                <FormSection
+                  title="Parent Information"
+                  description="Used for progress reports"
+                >
+                  <AuthInput
+                    id="parent-email"
+                    label="Parent email"
+                    value={form.parentEmail}
+                    onChange={(e) => set("parentEmail", e)}
                   />
+                  <FieldError message={errors.parentEmail} />
+                
+                  <div className="flex gap-2">
+                    <input
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      className={cn("w-24 h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
+                        "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
+                        "transition-all duration-200",
+                        "disabled:opacity-50 disabled:cursor-not-allowed",
+                        "border-border hover:border-purple/30 focus:border-purple focus:ring-2 focus:ring-purple/8",
+                        "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10")}
+                    />
 
-                  <input
-                    placeholder="Phone number"
-                    value={form.parentPhone}
-                    onChange={(e) => set("parentPhone", e.target.value)}
-                    className={cn("w-74 h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
-                      "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
-                      "transition-all duration-200",
-                      "disabled:opacity-50 disabled:cursor-not-allowed",
-                      "border-border hover:border-purple/30 focus:border-purple focus:ring-2 focus:ring-purple/8",
-                      "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10")}
-                  />
-                </div>
-                <FieldError message={errors.parentPhone} />
-              </FormSection>
+                    <input
+                      placeholder="Phone number"
+                      value={form.parentPhone}
+                      onChange={(e) => set("parentPhone", e.target.value)}
+                      className={cn("w-74 h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
+                        "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
+                        "transition-all duration-200",
+                        "disabled:opacity-50 disabled:cursor-not-allowed",
+                        "border-border hover:border-purple/30 focus:border-purple focus:ring-2 focus:ring-purple/8",
+                        "dark:hover:border-cyan/40 dark:focus:border-cyan dark:focus:ring-cyan/10")}
+                    />
+                  </div>
+                  <FieldError message={errors.parentPhone} />
+                </FormSection>
+              )}
 
               <Button
                 onClick={handleSubmit}

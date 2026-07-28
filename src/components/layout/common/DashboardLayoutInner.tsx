@@ -103,7 +103,6 @@ export function DashboardLayoutInner({
             />
           </SheetContent>
         </Sheet>
-        <HelpButton />
         {/* First-time consent gate — school_admin only, blocks interaction until accepted */}
         <CookieConsentModal
           open={needsInitialConsent}

@@ -12,7 +12,7 @@ import { AssetPreview, AssetPreviewModal } from "@/components/cards/student/less
 import { ModalShell } from "@/components/modals/ModalShell";
 
 export default function PortfolioPage() {
-  const { accessToken, refreshToken, user } = useAuth();
+  const { accessToken, refreshToken } = useAuth();
   const [entries, setEntries] = useState<PortfolioEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -184,8 +184,10 @@ function PortfolioEntryModal({
   entry, 
   onClose
 }: PortfolioEntryModalProps) {
-  if (!open || !entry) return null;
   const [selectedArtifact, setSelectedArtifact] = useState<PreviewLink | null>(null);
+  
+  if (!open || !entry) return null;
+  
   const files = entry?.fileUrls?.filter(Boolean) ?? [];
   const approvedDate = new Date(entry.approvedAt).toLocaleDateString("en-GB", {
     day: "numeric",

@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react"
+import { motion } from "motion/react"
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   getAdminStudents,
@@ -24,7 +23,7 @@ import { Button } from "@/components/ui";
 
 const CLASS_LEVELS = [
   "JSS1", "JSS2", "JSS3",
-  "SSS1", "SSS2", "SSS3",
+  "SSS1", "SSS2", "SSS3", "summer" as "Summer"
 ] as const;
 
 const STATUSES = ["active", "pending"] as const;
@@ -124,6 +123,7 @@ export default function AdminStudentsPage() {
     SSS1: true,
     SSS2: true,
     SSS3: true,
+    summer: true
   }));
 
   // Filter state
@@ -143,7 +143,10 @@ export default function AdminStudentsPage() {
       .finally(() => setIsLoading(false));
   }, [accessToken, refreshToken]);
 
-  const canUseParentLink = ["premier", "global"].includes(profile?.tier!)
+  const tier = profile?.tier;
+
+  const canUseParentLink =
+    tier === "premier" || tier === "global";
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase();

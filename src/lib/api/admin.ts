@@ -92,7 +92,7 @@ export async function getAdminStudent(
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<AdminStudent> {
-  const response = await apiClient.get<AdminStudentDto>(`/admin/student/${id}`, token, {
+  const response = await apiClient.get<AdminStudentDto>(`/admin/students/${id}`, token, {
     onRefresh,
   });
 

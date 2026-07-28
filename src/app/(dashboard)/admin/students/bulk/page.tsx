@@ -155,9 +155,11 @@ export default function BulkImportPage() {
             ]
           }))
         )
-        setGlobalErrors(globalErrors)
         setExpandTrigger(previous => previous + 1)
-        setGlobalErrors([{message: err.message}])
+        setGlobalErrors([
+          ...globalErrors,
+          { message: err.message },
+        ]);
       } else if (err instanceof Error) {
         setGlobalErrors([{message: `Unable to connect. ${err.message}`}]);
       }
@@ -261,9 +263,9 @@ export default function BulkImportPage() {
             )}
 
             {preview.length > 0 && (
-              <CSVPreviewCard 
+              <CSVPreviewCard
+                key={expandTrigger}
                 students={preview}
-                expandTrigger={expandTrigger}
               />
             )}
 

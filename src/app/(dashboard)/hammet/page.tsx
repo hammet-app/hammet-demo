@@ -13,6 +13,7 @@ import { getDashboardStats } from "@/lib/schools/getDashboardStats";
 import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
 import { Button } from "@/components/ui";
 import { useOnboardingContext } from "@/components/onboarding/onboarding-provider";
+import { HelpButton } from "@/components/onboarding/help-button";
 
 type TierFilter =
   | "all"
@@ -201,6 +202,7 @@ export default function HammetDashboardPage() {
           )}
         </>
       )}
+
     </PageShell>
   );
 }

@@ -16,6 +16,7 @@ export type PreviewStudent = {
   parentPhone?: string;
 
   dateOfBirth: string;
+  gender: string;
 
   errors: PreviewError[];
 };
@@ -27,4 +28,5 @@ export const CLASS_LEVELS = [
   "SSS1",
   "SSS2",
   "SSS3",
+  "summer",
 ] as const;

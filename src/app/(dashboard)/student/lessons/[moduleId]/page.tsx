@@ -118,27 +118,28 @@ export default function LessonDetailPage() {
   const pages = useMemo(() => {
     if (!lessonModule) return [];
     return buildPages(lessonModule.contentJson.sections, lessonModule.title);
-  }, [lessonModule, lessonMode]);
+  }, [lessonModule]);
 
+  
   useEffect(() => {
     if (loadState !== "ready") return;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExistingSubmission(initialData.existingSubmission)
     setReflectionText(initialData.reflectionText)
     setActivityText(initialData.activityText)
-    setAiForm(initialData.aiForm)
+    setAiForm(initialData.aiForm) 
     setTaskFiles(initialData.taskFiles)
     setTaskLinks(initialData.taskLinks)
     setLessonView(initialData.lessonView)
     setPreviewLinks(initialData.previewLinks)
     setStatus(initialData.status)
-    console.log(hasDispute)
 
     if (hasDispute) {
       
       setSubmitted(true)
     }
-  }, [loadState, initialData, hasDispute])
+  }, [loadState, initialData, hasDispute]) 
   
   // Setup Lesson Mode
   useLessonMode({status, lessonModule, setLessonMode})
@@ -318,7 +319,7 @@ export default function LessonDetailPage() {
         }));
       }
     },
-    [user, moduleId, taskFiles, accessToken]
+    [user, moduleId, accessToken]
   );
 
   const handleTaskFileRemove = useCallback(
@@ -549,11 +550,8 @@ export default function LessonDetailPage() {
         setIsSubmitting(false);
         return;
       } catch (err) {
-        console.log(err)
-        console.log()
         // Fall through to Dexie
         if (err instanceof ApiError) {
-          console.log(err)
           backendError = err.message
         }
       }
@@ -576,12 +574,10 @@ export default function LessonDetailPage() {
         submissionType: existingSubmission?.status === "flagged" ? "resubmit" : "submit",
       });
       setSavedOffline(true);
-      console.log(backendError)
       const errorMessage = [
         backendError,
         "Your work has been saved, so you won't lose it. Once this issue is resolved, you can submit again."
       ].filter(Boolean).join("\n\n");
-      console.log(errorMessage)
       setSubmitError(errorMessage);
     } catch {
       setSubmitError("Failed to save your work. Please try again.");

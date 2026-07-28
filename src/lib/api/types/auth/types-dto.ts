@@ -99,6 +99,7 @@ export type RegisterStudentRequestDto = {
   email: string;
   class_level: string;
   class_arm: string | null;
+  gender: string
   parent_email?: string;         // stored on user record, used for parent link
   parent_phone?: string;         // stored on user record, used for parent link
   date_of_birth: string;
@@ -115,6 +116,7 @@ export type BulkStudentInputDto = {
   email: string;
   class_level: string;
   class_arm: string;
+  gender: string;
   parent_email?: string;
   parent_phone?: string;
   date_of_birth: string;

@@ -6,6 +6,7 @@ import { apiClient } from "@/lib/api/api-client";
 import { useAuth } from "@/lib/auth/auth-context";
 import { PageShell } from "@/components/layout/common/PageShell";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SelectField, TIER_OPTIONS } from "@/components/forms";
 
 // ── Types ────────────────────────────────────────────────────
 type UploadState =
@@ -112,7 +113,7 @@ export default function UpdateModulesPage() {
 
   return (
     <PageShell
-      title="Bulk Module Upload"
+      title="Bulk Module Update"
       backHref="/hammet/modules"
       rounded={false}
       actions={
@@ -163,44 +164,13 @@ export default function UpdateModulesPage() {
               Tier
             </label>
 
-            <Select
+            <SelectField
+              id="tier"
+              label="Tier"
               value={tier}
-              onValueChange={(value) => setTier(value ?? "")}
-            >
-              <SelectTrigger className="h-11 w-full bg-white border-[var(--color-border)]">
-
-                <SelectValue placeholder="Select a subscription tier" />
-
-              </SelectTrigger>
-
-              <SelectContent>
-
-                <SelectItem value="pilot">
-                  Pilot
-                </SelectItem>
-
-                <SelectItem value="summer">
-                  Summer
-                </SelectItem>
-
-                <SelectItem value="spark">
-                  Spark
-                </SelectItem>
-
-                <SelectItem value="academy">
-                  Academy
-                </SelectItem>
-
-                <SelectItem value="premier">
-                  Premier
-                </SelectItem>
-
-                <SelectItem value="global">
-                  Global
-                </SelectItem>
-
-              </SelectContent>
-            </Select>
+              options={TIER_OPTIONS}
+              onChange={(value) => setTier(value)}
+            />
 
             <p className="mt-3 text-xs text-[var(--color-text-muted)]">
               The uploaded modules will only be

@@ -4,14 +4,19 @@ test("school admin can update term", async ({ page }) => {
 
   await page.goto("/admin")
 
+  await page.pause();
+
   await page.getByRole('button', { 
     name: 'Close' 
   }).click();
 
+  await page.getByRole('button', { name: 'Dismiss' }).click();
+
 
   await page.getByRole('button', { 
-    name: 'Manage term'
+    name: 'Manage term Update the',
   }).click();
+
   await page.getByRole('textbox')
   .first().fill('2026-06-01');
 

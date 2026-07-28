@@ -1,4 +1,5 @@
 import "./globals.css";
+import "../styles/lesson-reading.css"
 import type { Metadata } from "next";
 import { CookieNoticeBanner } from "@/components/layout/legal/CookieNoticeBanner";
 import { AuthProvider } from "@/lib/auth/auth-context";

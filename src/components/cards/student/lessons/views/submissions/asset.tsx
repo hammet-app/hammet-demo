@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image";
 import { FONT_BODY } from "@/lib/student/lessons/build";
 import { AssetPreviewProps, AssetPreviewModalProps } from "./types";
 import { ExternalLink, FileText, Globe, Play, X } from "lucide-react";
@@ -22,9 +23,9 @@ export function AssetPreview({
 
   if (isImage && artifact.url && isFile) {
     return (
-      <img
+      <Image
         src={artifact.url}
-        alt={name}
+        alt={name ?? ""}
         className={cn(
           "w-full transition-transform duration-300 hover:scale-105",
           className ?? "h-40 object-contain"
@@ -93,9 +94,9 @@ export function AssetPreviewModal({
         <div className="flex-1 bg-bg-page">
           {isImage ? (
             <div className="flex h-[70vh] items-center justify-center rounded-xl bg-bg-card border border-border p-6">
-              <img
+              <Image
                 src={artifact.url}
-                alt={name}
+                alt={name ?? ""}
                 className="max-h-full max-w-full object-contain rounded-lg"
                 title="Preview"
               />
@@ -117,7 +118,7 @@ export function AssetPreviewModal({
         <>
           <div className="flex flex-col items-center text-center">
             {artifact.faviconUrl ? (
-              <img
+              <Image
                 src={artifact.faviconUrl}
                 alt=""
                 className="mb-4 h-14 w-14 rounded-xl"

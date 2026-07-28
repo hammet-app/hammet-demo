@@ -145,6 +145,7 @@ export function fromRegisterStudentRequest(model: RegisterStudentRequest): Regis
         email: model.email,
         class_level: model.classLevel,
         class_arm: model.classArm,
+        gender: model.gender,
         parent_email: model.parentEmail ?? undefined,
         parent_phone: model.parentPhone ?? undefined,
         date_of_birth: model.dateOfBirth
@@ -165,6 +166,7 @@ export function fromBulkStudent(model: BulkStudentInput): BulkStudentInputDto {
         email: model.email,
         class_level: model.classLevel,
         class_arm: model.classArm,
+        gender: model.gender,
         parent_email: model.parentEmail ?? undefined,
         parent_phone: model.parentPhone ?? undefined,
         date_of_birth: model.dateOfBirth

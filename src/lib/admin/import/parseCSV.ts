@@ -24,6 +24,7 @@ export function parseCSV(
     parentPhone: row[5]?.trim() ?? "",
 
     dateOfBirth: row[6]?.trim() ?? "",
+    gender: row[7]?.trim() ?? "",
 
     errors: [],
   }));

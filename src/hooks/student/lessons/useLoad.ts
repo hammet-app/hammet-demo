@@ -39,15 +39,6 @@ export function useModuleLoader({
     existingSubmission: null as Submission | null
   })
 
-  let reflectionText = "";
-  let activityText = "";
-  let status = null;
-  let aiForm = EMPTY_AI_FORM;
-  let lessonView = LessonView.MISSION;
-  let existingSubmission = null
-  let previewLinks: PreviewLinkState = [];
-  let taskFiles = {};
-  let taskLinks = {};
 
 
   function previewKey(preview: PreviewLink): string {
@@ -63,16 +54,19 @@ export function useModuleLoader({
       );
     }
   
-  const addPreviews = (previews?: PreviewLink[]) => {
-    if (!previews) return;
+  function addPreviews(
+    current: PreviewLinkState,
+    previews?: PreviewLink[]
+  ): PreviewLinkState {
+    if (!previews) return current;
 
-    const existing = new Set(previewLinks.map(previewKey));
+    const existing = new Set(current.map(previewKey));
 
-    previewLinks = [
-      ...previewLinks,
+    return [
+      ...current,
       ...previews.filter((p) => !existing.has(previewKey(p))),
     ];
-  };
+  }
 
   useEffect(() => {
     if (!user) return;
@@ -105,8 +99,6 @@ export function useModuleLoader({
 
         const existing =
           history.submissions.find((s) => s.moduleId === moduleId) ?? null;
-
-        existingSubmission = existing;
 
         const [localDraft, localLinks, localFiles] = await Promise.all([
           getDraftForModule(user!.id, moduleId),
@@ -143,47 +135,52 @@ export function useModuleLoader({
           });
         }
 
-        status = (existing?.status ?? null);
+        const initial = {
+          reflectionText: "",
+          activityText: "",
+          status: existing?.status ?? null,
+          aiForm: EMPTY_AI_FORM,
+          taskFiles: recovered,
+          taskLinks: recoveredLinks,
+          previewLinks: [] as PreviewLinkState,
+          lessonView: LessonView.MISSION,
+          existingSubmission: existing,
+        };
 
         if (existing?.status === "flagged") {
-          reflectionText = localDraft?.reflectionText ?? existing.reflectionText ?? ""
-          
-          activityText = localDraft?.activityText ?? existing.activityText ?? ""
-          
-          aiForm = localDraft?.aiForm ?? existing.aiForm ?? EMPTY_AI_FORM
-          lessonView = LessonView.LESSON
+          initial.reflectionText =
+            localDraft?.reflectionText ?? existing.reflectionText ?? "";
+
+          initial.activityText =
+            localDraft?.activityText ?? existing.activityText ?? "";
+
+          initial.aiForm =
+            localDraft?.aiForm ?? existing.aiForm ?? EMPTY_AI_FORM;
+
+          initial.lessonView = LessonView.LESSON;
         } else {
           const source = existing ?? localDraft;
 
           if (source) {
-            reflectionText = source.reflectionText ?? ""
-            activityText = source.activityText ?? ""
-            aiForm = source.aiForm ?? EMPTY_AI_FORM
+            initial.reflectionText = source.reflectionText ?? "";
+            initial.activityText = source.activityText ?? "";
+            initial.aiForm = source.aiForm ?? EMPTY_AI_FORM;
 
-            addPreviews(existing?.fileUrls ?? undefined);
-            addPreviews(existing?.otherUrls ?? undefined);
+            initial.previewLinks = addPreviews(
+              initial.previewLinks,
+              existing?.fileUrls ?? undefined
+            );
 
-            taskFiles = recovered
-            taskLinks = recoveredLinks
-            lessonView = LessonView.LESSON
-          } else {
-            lessonView = LessonView.MISSION
+            initial.previewLinks = addPreviews(
+              initial.previewLinks,
+              existing?.otherUrls ?? undefined
+            );
+
+            initial.lessonView = LessonView.LESSON;
           }
         }
 
-        setInitialData({
-          reflectionText,
-          activityText,
-          status,
-          aiForm,
-          taskFiles: recovered,
-          taskLinks: recoveredLinks,
-          previewLinks,
-          lessonView,
-          existingSubmission: existing,
-          
-        })
-
+        setInitialData(initial);
         setLoadState("ready");
       } catch {
         if (!cancelled) {

@@ -58,7 +58,7 @@ export function buildPages(
   }
 
   // AI form page — only if lesson has tool links
-  if (toolLinkBlocks.length > 0) {
+  if (toolLinkBlocks.length > 0 || taskBlocks.length > 0) {
     pages.push({
       kind: "ai_form",
       toolNames: toolLinkBlocks

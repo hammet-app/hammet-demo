@@ -7,27 +7,13 @@ import {
 const EMAIL =
   /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const UPPER_TIERS = ["premier", "global"]
+
 export function validateCSV(
+  tier: string,
   students: PreviewStudent[],
   availableArms?: string[], 
 ): PreviewStudent[] {
-
-  const emails = new Map<
-    string,
-    number
-  >();
-
-  students.forEach((student) => {
-
-    const email =
-      student.email.toLowerCase();
-
-    emails.set(
-      email,
-      (emails.get(email) ?? 0) + 1
-    );
-
-  });
 
   return students.map((student) => {
     const errors: PreviewError[] = [];
@@ -35,12 +21,6 @@ export function validateCSV(
     if (!student.fullName)
       errors.push({
         message: "Missing full name",
-        source: "frontend"
-    });
-
-    if (!student.email)
-      errors.push({
-        message: "Missing email",
         source: "frontend"
     });
 
@@ -82,37 +62,17 @@ export function validateCSV(
         source: "frontend"
       });
     }
-
-    if (
-      student.email &&
-      !EMAIL.test(student.email)
-    ) {
-      errors.push({
-        message: "Invalid student email",
-        source: "frontend"
-      });
-    }
-
     
-    if (
-      student.parentEmail &&
-      !EMAIL.test(student.parentEmail)
-    ) {
-      errors.push({
-        message: "Invalid parent email",
-        source: "frontend"
-      });
-    }
-
-    if (
-      emails.get(
-        student.email.toLowerCase()
-      )! > 1
-    ) {
-      errors.push({
-        source: "frontend",
-        message: "Duplicate email in file"
-      });
+    if (UPPER_TIERS.includes(tier)) {
+      if (
+        student.parentEmail &&
+        !EMAIL.test(student.parentEmail)
+      ) {
+        errors.push({
+          message: "Invalid parent email",
+          source: "frontend"
+        });
+      }
     }
 
     if (

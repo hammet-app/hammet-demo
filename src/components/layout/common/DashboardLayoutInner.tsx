@@ -15,7 +15,6 @@ import { useAuth } from "@/lib/auth/auth-context";
 import type { UserRole } from "@/lib/utils/roles";
 import { CookieConsentModal } from "@/components/layout/legal/CookieConsentModal";
 import { OnboardingProvider } from '@/components/onboarding/onboarding-provider'
-import { HelpButton } from '@/components/onboarding/help-button'
 
 const CURRENT_COOKIE_POLICY_VERSION = "2026-07-12"; // bump when policy changes materially
 

@@ -14,7 +14,7 @@ type StudentDetailsProps ={
   student: AdminStudent;
   inFlight: InFlight | null;
   onAction: (action: RowAction) => void;
-  created?: { fullName: string; email: string; code: string };
+  created?: { fullName: string; email: string; password: string };
   canUseParentLink: boolean;
   expanded: boolean;
 }

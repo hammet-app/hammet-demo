@@ -30,6 +30,7 @@ export default function LoginPage() {
   const router = useRouter();
   const deviceId = getDeviceId();
 
+  const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
@@ -37,14 +38,22 @@ export default function LoginPage() {
 
   function validate(): boolean {
     const next: FormErrors = {};
-    if (!email.trim()) {
-      next.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      next.email = "Enter a valid email address";
+    const identifier = email.trim();
+
+    if (!identifier) {
+      next.email = "Email or username is required";
+    } else if (identifier.includes("@")) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier)) {
+        next.email = "Enter a valid email address";
+      }
+    } else if (identifier.length < 3) {
+      next.email = "Username must be at least 3 characters";
     }
+
     if (!password) {
       next.password = "Password is required";
     }
+
     setErrors(next);
     return Object.keys(next).length === 0;
   }
@@ -57,16 +66,16 @@ export default function LoginPage() {
     try {
       const response = await apiClient.post<LoginResponseDto>(
         "/auth/login",
-        ({ email, password, device_id: deviceId }) satisfies LoginRequestDto
+        ({ email: email, password, device_id: deviceId }) satisfies LoginRequestDto
       );
       const data = toLoginResponse(response);
       setSession(data.user, data.accessToken);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) {
-          setErrors({ form: "Incorrect email or password. Please try again." });
+          setErrors({ form: err.message });
         } else if (err.status === 403) {
-          setErrors({ form: "Your account has been suspended. Contact your school admin." });
+          setErrors({ form: err.message });
         } else if (err.status === 422) {
           setErrors({ form: `Please check your details and try again.` });
         } else {
@@ -126,7 +135,7 @@ useEffect(() => {
               type="email"
               value={email}
               onChange={setEmail}
-              placeholder="you@school.edu.ng"
+              placeholder="Enter your email or username"
               autoComplete="email"
               error={errors.email}
               disabled={isLoading}

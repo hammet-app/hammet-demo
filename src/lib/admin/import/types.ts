@@ -7,7 +7,6 @@ export type PreviewStudent = {
   row: number;
 
   fullName: string;
-  email: string;
 
   classLevel: string;
   classArm: string;

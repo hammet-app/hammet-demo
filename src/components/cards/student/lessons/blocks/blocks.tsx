@@ -77,7 +77,7 @@ export function ImageBlock({ block }: { block: CurriculumModuleBlock }) {
   }
   return (
     <figure className="rounded-[10px] overflow-hidden border border-border">
-      <Image
+      <img
         src={block.url || block.content}
         alt={block.content || "Lesson image"}
         className="w-full h-auto object-cover"

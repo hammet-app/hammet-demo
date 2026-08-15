@@ -16,6 +16,7 @@
 # next.js
 /.next/
 /out/
+dist/
 
 # production
 /build
@@ -49,3 +50,6 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Sanity
+.sanity/

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { bulkRegisterStudents } from "@/lib/api/admin";
+import { bulkRegisterStudents, getSchoolProfile } from "@/lib/api/admin";
 import { ApiError } from "@/lib/api/api-client";
 import { PageShell } from "@/components/layout/common/PageShell";
 import { Alert } from "@/components/ui/alert";
@@ -26,6 +26,8 @@ import {
 export default function BulkImportPage() {
   const { accessToken, refreshToken } = useAuth();
 
+  
+  const [tier, setTier] = useState<string | null>("")
   const [csvText, setCsvText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<BulkRegisterResponse | null>(null);
@@ -34,6 +36,29 @@ export default function BulkImportPage() {
   const [preview, setPreview] = useState<PreviewStudent[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [expandTrigger, setExpandTrigger] = useState<number>(0);
+
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    getSchoolProfile(accessToken, refreshToken)
+      .then((p) => {
+        setTier(p.tier)
+      })
+      .finally();
+  }, [accessToken, refreshToken]);
+
+  useEffect(() => {
+    if (!tier || !csvText.trim()) {
+      setPreview([]);
+      return;
+    }
+
+    const parsed = parseCSV(csvText);
+    const validated = validateCSV(tier, parsed);
+
+    setPreview(validated);
+  }, [tier, csvText]);
 
   const ready =
     preview.filter(
@@ -53,9 +78,9 @@ export default function BulkImportPage() {
   }
 
   function downloadCSVTemplate() {
-    const content = `full_name,email,class_level,class_arm,parent_email,parent_phone,date_of_birth
-      John Doe,john@example.com,SSS1,A,parent@example.com,+2348012345678,2010-05-14
-      Jane Smith,jane@example.com,JSS2,B,mum@example.com,+2348098765432,2012-08-22`;
+    const content = `full_name,class_level,class_arm,date_of_birth,gender,parent_email,parent_phone
+      John Doe,SSS1,A,2010-05-14,M,parent@example.com,+2348012345678
+      Jane Smith,JSS2,B,2012-08-22,F,mum@example.com,+2348098765432`;
 
     const blob = new Blob([content], {
       type: "text/csv",
@@ -72,28 +97,17 @@ export default function BulkImportPage() {
     URL.revokeObjectURL(url);
   }
 
-  async function buildPreview(text: string) {
-    const parsed = parseCSV(text);
-
-    const validated = validateCSV(
-      parsed
-    );
-
-    setPreview(validated);
-  }
-
   async function handleFile(file: File | null) {
     setFile(file);
 
     if (!file) {
+      setCsvText("")
       setPreview([]);
       return;
     }
 
     const text = await file.text();
-    setCsvText(text)
-
-    await buildPreview(text);
+    setCsvText(text);
   }
 
   async function handleSubmit() {
@@ -170,13 +184,13 @@ export default function BulkImportPage() {
   }
 
   function downloadCSV() {
-    if (!result?.codes.length) return;
+    if (!result?.passwords.length) return;
 
-    const rows = result.codes.map(
-      (s) => `${s.fullName},${s.email},${s.code}`
+    const rows = result.passwords.map(
+      (s) => `${s.fullName},${s.username},${s.password}`
     );
 
-    const content = `full_name,email,code\n${rows.join("\n")}`;
+    const content = `full_name,username,password\n${rows.join("\n")}`;
 
     const blob = new Blob([content], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -195,7 +209,11 @@ export default function BulkImportPage() {
       : "upload";
 
   return (
-    <PageShell title="Bulk Import Students" rounded>
+    <PageShell 
+      title="Bulk Import Students" 
+      rounded
+      backHref="/admin/students"
+    >
       <div className="max-w-2xl flex flex-col gap-6">
 
         {result ? (
@@ -255,10 +273,7 @@ export default function BulkImportPage() {
             ): (
               <CSVPasteCard
                 value={csvText}
-                onChange={(text) => {
-                  setCsvText(text)
-                  buildPreview(text);
-                }}
+                onChange={setCsvText}
               />
             )}
 

@@ -1,6 +1,6 @@
 import type { DriveStep } from 'driver.js'
 
-export const schoolAdminTourSteps: DriveStep[] = [
+export const schoolDashboardSteps: DriveStep[] = [
   {
     element: '[data-tour="school-hero"]',
     popover: {

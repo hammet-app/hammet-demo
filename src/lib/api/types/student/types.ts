@@ -1,5 +1,5 @@
 import { SubmissionStatus } from "@/components/ui";
-import { AiFormState } from "@/lib/api/types/submissions";
+import { AiFormState, QuestionAnswer } from "@/lib/api/types/submissions";
 
 
 export type PreviewLink = {
@@ -80,11 +80,13 @@ export type Submission = {
   reflectionText: string | null;
   fileUrls: PreviewLink[] | null;
   otherUrls: PreviewLink[] | null;
+  questionAnswers?: QuestionAnswer[]
   status: "submitted" | "approved" | "flagged";
   teacherNote: string | null;    // populated when flagged
   submittedAt: string;
   syncedAt: string | null;       // null = synced offline, not yet confirmed
   localId: string;               // client UUID used for offline dedup
+  dispute?: boolean | null;       // Is used when fetching a single submission
 };
 
 export type SubmissionHistory = {

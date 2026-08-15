@@ -2,7 +2,7 @@ import { BulkRegisterResponse } from "@/lib/api/types";
 import { useState } from "react";
 
 type ImportedCredentialListProps = {
-    codes: BulkRegisterResponse["codes"];
+    codes: BulkRegisterResponse["passwords"];
 };
 
 export function ImportedCredentialList({

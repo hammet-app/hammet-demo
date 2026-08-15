@@ -10,7 +10,7 @@ export function SuccessMetrics({
 
   return (
 
-    <div className="grid gap-4 p-8 md:grid-cols-3">
+    <div className="grid gap-4 p-8 md:grid-cols-2">
       <MetricCard
         title="Students Imported"
         value={total}
@@ -21,12 +21,6 @@ export function SuccessMetrics({
         title="Credentials Generated"
         value={codes}
         color="text-purple-mid"
-      />
-
-      <MetricCard
-        title="Expires"
-        value="48 Hours"
-        color="text-amber"
       />
     </div>
 

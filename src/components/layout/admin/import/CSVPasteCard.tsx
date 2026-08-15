@@ -8,9 +8,9 @@ type CSVPasteCardProps = {
   placeholder?: string;
 };
 
-const PLACEHOLDER = `Chisom Obi,chisom@school.edu.ng,SSS1,A,parent@email.com,+2348001234567,2011-01-09
-Motilola Lambo,moti@school.edu.ng,JSS2,B,dad@email.com,+2347012345678,2014-04-10
-Aisha Bello,aisha@school.edu.ng,SSS3,,mum@email.com,+2348098765432,2010-09-21`;
+const PLACEHOLDER = `Chisom Obi,SSS1,A,2011-01-09,M,parent@email.com,+2348001234567
+Motilola Lambo,JSS2,B,2014-04-10,F,dad@email.com,+2347012345678
+Aisha Bello,SSS3,,2010-09-21,F,mum@email.com,+2348098765432`;
 
 export function CSVPasteCard({
   value,
@@ -34,6 +34,7 @@ export function CSVPasteCard({
       </p>
 
       <textarea
+        id="paste-area"
         rows={12}
         value={value}
         placeholder={placeholder}

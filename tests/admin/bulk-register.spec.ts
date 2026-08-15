@@ -7,10 +7,6 @@ const rows = Array.from({ length: 10 }, () => {
 
   return [
     `${firstName} ${lastName}`,
-    faker.internet.email({
-      firstName,
-      lastName,
-    }).toLowerCase(),
     faker.helpers.arrayElement([
       "JSS1",
       "JSS2",
@@ -20,13 +16,12 @@ const rows = Array.from({ length: 10 }, () => {
       "SSS3",
     ]),
     faker.helpers.arrayElement(["A", "B", "C"]),
-    faker.internet.email().toLowerCase(),
-    `+2349090234444`,
     faker.date.birthdate({
       min: 10,
       max: 16,
       mode: "age",
     }).toISOString().split("T")[0],
+    faker.helpers.arrayElement(["M", "F"])
   ].join(",");
 }).join("\n");
 
@@ -49,12 +44,20 @@ test("school admin can bulk create students", async ({ page }) => {
   await page.getByRole('button', { name: 'Paste CSV' }).click();
 
   await page.getByRole('textbox', { 
-    name: 'Chisom Obi,chisom@school.edu.' 
+    name: 'Chisom Obi,SSS1,A,2011-01-09,'
   }).fill(rows);
 
-  await page.getByRole('button', { 
-    name: 'Import 10 students' 
-  }).click()
+  await page.pause();
+
+  const importButton = page.getByRole("button", {
+    name: /Import \d+ Students?/,
+  });
+
+  await expect(importButton).toBeEnabled({ timeout: 15_000 });
+
+  await importButton.click();
+
+  await page.pause();
 
   await page.getByText("10 students registered")
 

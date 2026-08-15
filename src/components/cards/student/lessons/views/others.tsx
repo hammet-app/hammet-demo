@@ -13,6 +13,8 @@ import {
 } from "@/lib/student/lessons/build";
 import { ContentBlock, RequiredBadge } from "../blocks";
 import { ReactNode } from "react";
+import { CurriculumQuestion, QuestionAnswer } from "@/lib/api/types";
+import { QuestionPageView } from "./question-view";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page renderers
@@ -115,6 +117,8 @@ export function ContentPageView({
 }: {
   page: ContentPage;
 }) {
+
+  if (page.items)
   return (
     <div className="flex flex-col gap-3">
       {page.heading && (
@@ -125,9 +129,12 @@ export function ContentPageView({
           {page.heading}
         </h2>
       )}
-      {page.blocks.map((block, i) => (
-        <ContentBlock key={i} block={block} />
-      ))}
+      {page.items.map((item, i) => {
+        if (item.type === "question") return
+        return (
+          <ContentBlock key={i} block={item} />
+        )
+      })}
     </div>
   );
 }
@@ -136,34 +143,86 @@ export function ActivityPageView({
   page,
   activityText,
   onActivityChange,
+  tools,
   readOnly,
 }: {
   page: EjectedPage;
   activityText: string;
   onActivityChange: (v: string) => void;
-  readOnly: boolean
+  tools: {
+    name: string;
+    url: string | undefined;
+  }[];
+  readOnly: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="bg-[#FAEEDA] border-l-[3px] border-[#EF9F27] rounded-r-[10px] px-3.5 py-3">
-        <p 
-            className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary"
-            style={{ fontFamily: FONT_HEAD }}
-          >
-            Practice
-          </p>
-        <p className="text-[16px] sm:text-[18px] text-[#633806] leading-[1.6]" style={{ fontFamily: FONT_BODY }}>
+    <div className="flex flex-col gap-5">
+      <div
+        data-tour="lesson-activity"
+        className="bg-[#FAEEDA] border-l-[3px] border-[#EF9F27] rounded-r-[10px] px-3.5 py-3"
+      >
+        <p
+          className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary"
+          style={{ fontFamily: FONT_HEAD }}
+        >
+          Practice
+        </p>
+
+        <p
+          className="text-[16px] sm:text-[18px] text-[#633806] leading-[1.6]"
+          style={{ fontFamily: FONT_BODY }}
+        >
           {page.block.content}
         </p>
       </div>
-      <div>
+
+      <div data-tour="lesson-response">
         <WritingSurface
           label="Your response"
           value={activityText}
           onChange={onActivityChange}
           placeholder="Write your response here..."
+          readOnly={readOnly}
         />
       </div>
+
+      {tools.length > 0 && (
+        <div
+          data-tour="lesson-tools"
+          className="rounded-xl border border-border bg-bg-card px-4 py-4"
+        >
+          <div className="mb-3">
+            <p
+              className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary"
+              style={{ fontFamily: FONT_HEAD }}
+            >
+              Tools for this lesson
+            </p>
+
+            <p
+              className="mt-1 text-[13px] leading-5 text-text-muted"
+              style={{ fontFamily: FONT_BODY }}
+            >
+              These are the AI tools available for this lesson.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {tools.map((tool, index) => (
+              <a
+                key={`${tool.name}-${index}`}
+                href={tool.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center rounded-lg bg-purple/10 px-3 py-2 text-[12px] font-semibold text-purple transition-colors hover:bg-purple/20"
+                style={{ fontFamily: FONT_BODY }}
+              >
+                {tool.name}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -192,7 +251,7 @@ export function ReflectionPageView({
   return (
     <div className="flex flex-col gap-6">
       
-      <div className="space-y-3">
+      <div className="space-y-3" data-tour="lesson-reflection">
         <div className="flex items-center justify-between">
           <p 
             className="text-[11px] font-semibold uppercase tracking-wide text-text-secondary"
@@ -211,18 +270,23 @@ export function ReflectionPageView({
         </p>
       </div>
       {!isTeacher && (
-        <WritingSurface
-          label="Your reflection"
-          value={reflectionText}
-          onChange={onReflectionChange}
-          placeholder="Write your reflection here..."
-          footer={
-            <p className={cn("text-[12px] text-right mt-1 tabular-nums", wcColor)} style={{ fontFamily: FONT_BODY }}>
-              {wc} / {REFLECTION_MAX} words
-            </p>
-          }
-          readOnly={readOnly}
-        />
+        <div data-tour="lesson-reflection-response">
+          <WritingSurface
+            label="Your reflection"
+            value={reflectionText}
+            onChange={onReflectionChange}
+            placeholder="Write your reflection here..."
+            footer={
+              <p 
+                data-tour="lesson-reflection-word-count"
+                className={cn("text-[12px] text-right mt-1 tabular-nums", wcColor)} style={{ fontFamily: FONT_BODY }}
+              >
+                {wc} / {REFLECTION_MAX} words
+              </p>
+            }
+            readOnly={readOnly}
+          />
+        </div>
       )}
     </div>
   );
@@ -242,7 +306,7 @@ export function SubmitPageView({
   isTeacher?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center text-center gap-5 py-8 px-4">
+    <div className="flex flex-col items-center text-center gap-5 py-8 px-4" data-tour="lesson-submit">
       <div className="w-14 h-14 rounded-full bg-[#E1F5EE] flex items-center justify-center">
         <Check size={28} className="text-[#1D9E75]" strokeWidth={2.5} />
       </div>
@@ -263,7 +327,7 @@ export function SubmitPageView({
         </p>
       </div>
       {(hasActivity || hasReflection || hasTask || hasAiForm) && !isTeacher && (
-        <div className="w-full bg-bg-page border border-border rounded-[10px] px-4 py-3.5 text-left">
+        <div className="w-full bg-bg-page border border-border rounded-[10px] px-4 py-3.5 text-left" data-tour="lesson-submit-summary">
           <p
             className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2.5"
             style={{ fontFamily: FONT_BODY }}

@@ -8,7 +8,8 @@ import {
     SyncSubmissionsResponseDto,
     AiFormStateDto,
     ResubmissionDto,
-    CreateSubmissionResponsesDto
+    CreateSubmissionResponsesDto,
+    QuestionAnswerDto
 } from "@/lib/api/types/submissions/types-dto";
 import {
     UploadRequest,
@@ -20,7 +21,8 @@ import {
     SyncSubmissionsResponse,
     AiFormState,
     Resubmission,
-    CreateSubmissionResponses
+    CreateSubmissionResponses,
+    QuestionAnswer
 } from "@/lib/api/types/submissions/types";
 import { fromPreviewLink, toPreviewLink } from "../student";
 
@@ -44,12 +46,20 @@ export function fromUploadRequest(model: UploadRequest): UploadRequestDto {
     }
 }
 
+export function fromQuestionAnswer(model: QuestionAnswer): QuestionAnswerDto {
+  return {
+    question_id: model.questionId,
+    option_id: model.optionId,
+  };
+}
+
+
 export function fromAiFormState(model: AiFormState): AiFormStateDto {
     return {
         used: model.used,
         no_reason: model.noReason,
         no_reason_other: model.noReasonOther,
-        tool_used: model.toolOther,
+        tool_used: model.toolUsed,
         tool_other: model.toolOther,
         task_desc: model.taskDesc,
         prompt_choice: model.promptChoice,
@@ -74,6 +84,14 @@ export function toAiFormState(dto: AiFormStateDto): AiFormState {
     }
 }
 
+export function toQuestionAnswer(
+  dto: QuestionAnswerDto
+): QuestionAnswer {
+  return {
+    questionId: dto.question_id,
+    optionId: dto.option_id,
+  };
+}
 
 export function fromCreateSubmissionRequest(model: CreateSubmissionRequest): CreateSubmissionRequestDto {
     return {
@@ -85,6 +103,7 @@ export function fromCreateSubmissionRequest(model: CreateSubmissionRequest): Cre
         ai_form: model.aiForm 
             ? fromAiFormState(model.aiForm)
             : null,
+        question_answers: model.questionAnswers?.map(fromQuestionAnswer) ?? [],
         local_id: model.localId
     }
 }
@@ -102,6 +121,7 @@ export function toCreateSubmissionResponse(dto: CreateSubmissionResponseDto): Cr
                 : null,
         fileUrls: dto.file_urls?.map(toPreviewLink) ?? null,
         otherUrls: dto.other_urls?.map(toPreviewLink) ?? null,
+        questionAnswers: dto.question_answers ? dto.question_answers.map(toQuestionAnswer) : undefined,
         teacherNote: dto.teacher_note,
         approvedAt: dto.approved_at,
         approvedBy: dto.approved_by,
@@ -132,9 +152,12 @@ export function toCreateSubmissionResponses(dto: CreateSubmissionResponsesDto): 
 export function fromSyncSubmissionItem(model: SyncSubmissionItem): SyncSubmissionItemDto {
     return {
         module_id: model.moduleId,
+        activity_text: model.activityText,
         reflection_text: model.reflectionText,
         file_urls: model.fileUrls,
         other_urls: model.otherUrls,
+        question_answers: model.questionAnswers?.map(fromQuestionAnswer),
+        ai_form: model.aiForm ? fromAiFormState(model.aiForm) : null,
         local_id: model.localId
     }
 }

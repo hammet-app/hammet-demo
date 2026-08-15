@@ -22,7 +22,7 @@ import {
     SubmissionHistory, 
     TermProgress
 } from "@/lib/api/types/student/types";
-import { fromAiFormState, toAiFormState } from "../submissions";
+import { fromAiFormState, fromQuestionAnswer, toAiFormState, toQuestionAnswer } from "../submissions";
 
 /**
  * Naming convention:
@@ -117,11 +117,13 @@ export function fromSubmission(model: Submission): SubmissionDto {
         reflection_text: model.reflectionText,
         file_urls: model.fileUrls?.map(fromPreviewLink) ?? null,
         other_urls: model.otherUrls?.map(fromPreviewLink) ?? null,
+        question_answers: model.questionAnswers?.map(fromQuestionAnswer),
         status: model.status,
         teacher_note: model.teacherNote,
         submitted_at: model.submittedAt,
         synced_at: model.syncedAt,
-        local_id: model.localId
+        local_id: model.localId,
+        dispute: model.dispute
     }
 }
 
@@ -137,11 +139,13 @@ export function toSubmission(dto: SubmissionDto): Submission {
         reflectionText: dto.reflection_text,
         fileUrls: dto.file_urls?.map(toPreviewLink)??null,
         otherUrls: dto.other_urls?.map(toPreviewLink)??null,
+        questionAnswers: dto.question_answers?.map(toQuestionAnswer),
         status: dto.status,
         teacherNote: dto.teacher_note,
         submittedAt: dto.submitted_at,
         syncedAt: dto.synced_at,
-        localId: dto.local_id
+        localId: dto.local_id,
+        dispute: dto.dispute,
     }
 }
 

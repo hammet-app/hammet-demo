@@ -1,6 +1,6 @@
 import type { DriveStep } from 'driver.js'
 
-export const hammetAdminTourSteps: DriveStep[] = [
+export const hammetDashboardSteps: DriveStep[] = [
   {
     element: '[data-tour="platform-overview"]',
     popover: {

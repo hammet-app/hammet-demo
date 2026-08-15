@@ -13,7 +13,6 @@ import { getDashboardStats } from "@/lib/schools/getDashboardStats";
 import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
 import { Button } from "@/components/ui";
 import { useOnboardingContext } from "@/components/onboarding/onboarding-provider";
-import { HelpButton } from "@/components/onboarding/help-button";
 
 type TierFilter =
   | "all"
@@ -101,7 +100,7 @@ export default function HammetDashboardPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={startTour}
+          onClick={() => startTour("hammet-dashboard")}
         >
           <CircleHelp className="h-4 w-4 mr-2" />
           Replay Tour

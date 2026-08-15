@@ -7,14 +7,22 @@ import {
     CurriculumContentJson,
     CurriculumModule,
     SectionProgress,
+    ModuleState,
+    ModuleStateResponse,
+    QuestionOption,
+    CurriculumQuestion,
 } from "@/lib/api/types/module/types";
 import { 
     CurriculumContentJsonDto,
     CurriculumModuleBlockDto, 
     CurriculumModuleDto, 
+    CurriculumQuestionDto, 
     CurriculumSectionDto,
     ModulesResponseDto, 
+    ModuleStateDto, 
+    ModuleStateResponseDto, 
     ModuleSummaryDto, 
+    QuestionOptionDto, 
     SectionProgressDto
 } from "@/lib/api/types/module/types-dto";
 
@@ -68,7 +76,6 @@ export function toModuleSummary(dto: ModuleSummaryDto): ModuleSummary {
         weekNumber: dto.week_number,
         level: dto.level,
         published: dto.published,
-        submissionStatus: dto.submission_status
     }
 }
 
@@ -77,6 +84,43 @@ export function toModuleResponse(dto: ModulesResponseDto): ModulesResponse {
         modules: dto.modules.map(toModuleSummary),
         total: dto.total
     }
+}
+
+export function toModuleState(dto: ModuleStateDto): ModuleState {
+    return {
+        submissionStatus: dto.submission_status,
+        stoppedAt: dto.stopped_at,
+        disputes: dto.disputes
+    }
+}
+
+export function toModuleStateResponse(dto: ModuleStateResponseDto): ModuleStateResponse {
+    return {
+        currentTerm: dto.current_term,
+        states: Object.fromEntries(
+            Object.entries(dto.states).map(([moduleId, moduleState]) => [
+                moduleId,
+                toModuleState(moduleState)
+            ])
+        )
+    }
+}
+
+export function toQuestionOption(dto: QuestionOptionDto): QuestionOption {
+  return {
+    id: dto.id,
+    text: dto.text,
+  };
+}
+
+export function toCurriculumQuestion(dto: CurriculumQuestionDto): CurriculumQuestion {
+  return {
+    type: "question",
+    id: dto.id,
+    question: dto.question,
+    options: dto.options.map(toQuestionOption),
+    required: dto.required,
+  };
 }
 
 export function toCurriculumModuleBlock(dto: CurriculumModuleBlockDto): CurriculumModuleBlock {
@@ -92,11 +136,16 @@ export function toCurriculumModuleBlock(dto: CurriculumModuleBlockDto): Curricul
 }
 
 export function toCurriculumSection(dto: CurriculumSectionDto): CurriculumSection {
-    return {
-        id: dto.id,
-        heading: dto.heading,
-        blocks: dto.blocks.map(toCurriculumModuleBlock)
-    }
+  return {
+    id: dto.id,
+    heading: dto.heading,
+    blocks: dto.blocks.map((block) => {
+      if (block.type === "question") {
+        return toCurriculumQuestion(block);
+      }
+      return toCurriculumModuleBlock(block);
+    }),
+  };
 }
 
 export function toCurriculumContentJson(dto: CurriculumContentJsonDto): CurriculumContentJson {
@@ -118,7 +167,6 @@ export function toCurriculumModule(dto: CurriculumModuleDto): CurriculumModule {
         createdAt: dto.created_at,
         updatedAt: dto.updated_at,
         published: dto.published,
-        stoppedAt: dto.stopped_at
     }
 }
 
@@ -128,6 +176,23 @@ export function fromSectionProgress(model: SectionProgress): SectionProgressDto 
         module_id: model.moduleId,
         section_id: model.sectionId
     }
+}
+
+export function fromQuestionOption(model: QuestionOption): QuestionOptionDto {
+  return {
+    id: model.id,
+    text: model.text,
+  };
+}
+
+export function fromCurriculumQuestion(model: CurriculumQuestion): CurriculumQuestionDto {
+  return {
+    type: "question",
+    id: model.id,
+    question: model.question,
+    options: model.options.map(fromQuestionOption),
+    required: model.required,
+  };
 }
 
 export function fromCurriculumModuleBlock(model: CurriculumModuleBlock): CurriculumModuleBlockDto {
@@ -143,11 +208,17 @@ export function fromCurriculumModuleBlock(model: CurriculumModuleBlock): Curricu
 }
 
 export function fromCurriculumSection(model: CurriculumSection): CurriculumSectionDto {
-    return {
-        id: model.id,
-        heading: model.heading,
-        blocks: model.blocks.map(fromCurriculumModuleBlock)
-    }
+  return {
+    id: model.id,
+    heading: model.heading,
+    blocks: model.blocks.map((block) => {
+      if (block.type === "question") {
+        return fromCurriculumQuestion(block);
+      }
+
+      return fromCurriculumModuleBlock(block);
+    }),
+  };
 }
 
 export function fromCurriculumContentJson(model: CurriculumContentJson): CurriculumContentJsonDto {
@@ -170,6 +241,5 @@ export function fromCurriculumModule(model: CurriculumModule): CurriculumModuleD
         created_at: model.createdAt,
         updated_at: model.updatedAt,
         published: model.published,
-        stopped_at: model.stoppedAt
     }
 }

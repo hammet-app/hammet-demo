@@ -33,47 +33,50 @@ export async function createClaimedUser(
   if (role === "school_admin") {
     // School admins receive token in query params
     await page.goto(`/claim?token=${claim_code}`);
-  } else {
-    // Students submit token through the form
-    await page.goto("/claim");
 
-    expect(page.getByRole('button', {
-      name: 'Continue'
-    })).toBeVisible()
+    // Email should be displayed on claim page
+    await expect(
+      page.getByText(email, {exact: false})
+    ).toBeVisible();
 
     await page.getByRole('textbox', { 
-      name: 'Email' 
-    }).fill(email);
+      name: 'Create password' 
+    }).fill(password);
 
     await page.getByRole('textbox', { 
-      name: 'Claim code' 
-    }).fill(claim_code);
+      name: 'Confirm password' 
+    }).fill(password);
 
     await page.getByRole('button', { 
-      name: 'Continue' 
+      name: 'Activate account' 
     }).click();
+
+    await expect(page).toHaveURL(/\/student|\/admin/,{
+      timeout: 15000,
+    });
+  } else {
+    await page.goto(`/login`)
+    // Students submit token through the form
+    expect(page.getByRole('button', {
+      name: 'Sign in'
+    })).toBeVisible()
+
+    await page.getByRole('textbox',{name: "Email address"})
+      .fill(email);
+
+    await page.getByRole("textbox", {name: "Password"})
+      .fill(password);
+
+    await page.getByRole("button", {
+      name: "Sign in",
+    }).click();
+
+    await expect(page).toHaveURL(/\/student|\/admin/,{
+      timeout: 15000,
+    });
   }
 
-  // Email should be displayed on claim page
-  await expect(
-    page.getByText(email, {exact: false})
-  ).toBeVisible();
-
-  await page.getByRole('textbox', { 
-    name: 'Create password' 
-  }).fill(password);
-
-  await page.getByRole('textbox', { 
-    name: 'Confirm password' 
-  }).fill(password);
-
-  await page.getByRole('button', { 
-    name: 'Activate account' 
-  }).click();
-
-  await expect(page).toHaveURL(/\/student|\/admin/,{
-    timeout: 15000,
-  }); 
+   
 
   return {
     email,

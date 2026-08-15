@@ -1,7 +1,11 @@
 import { 
+  CurriculumModuleBlock,
+  CurriculumQuestion,
   CurriculumSection, 
   TaskFilesState,
-  AiFormState
+  AiFormState,
+  QuestionAnswer,
+  CurriculumSectionItem
 } from "@/lib/api/types";
 import { StepperPage, REFLECTION_MAX, REFLECTION_MIN } from "./types";
 
@@ -14,50 +18,103 @@ export function wordCount(text: string): number {
 export function buildPages(
   sections: CurriculumSection[],
   moduleTitle: string,
+  enableQuestions: boolean = false
 ): StepperPage[] {
   const pages: StepperPage[] = [];
 
-  const allBlocks = sections.flatMap((s) => s.blocks);
-  const taskBlocks = allBlocks.filter((b) => b.type === "task");
-  const toolLinkBlocks = allBlocks.filter((b) => b.type === "toolLink");
+  const allItems = sections.flatMap((s) => s.blocks);
+
+  const taskBlocks = allItems.filter(
+    (b): b is CurriculumModuleBlock => b.type === "task"
+  );
+
+  const toolLinkBlocks = allItems.filter(
+    (b): b is CurriculumModuleBlock => b.type === "toolLink"
+  );
 
   sections.forEach((section, sectionIdx) => {
-    const sectionId = section.id ?? null
-    // Content page — exclude task, activity, reflection blocks
-    const contentBlocks = section.blocks.filter(
-      (b) =>
-        b.type !== "activity" &&
-        b.type !== "reflection" &&
-        b.type !== "task"
-    );
-    const ejected = section.blocks.filter(
-      (b) => b.type === "activity" || b.type === "reflection"
-    );
+    const sectionId = section.id ?? null;
 
-    pages.push({
-      kind: "content",
-      sectionId,
-      heading: section.heading,
-      blocks: contentBlocks,
-      isFirst: sectionIdx === 0,
-    });
+    let contentItems: CurriculumSectionItem[] = [];
+    let questionItems: CurriculumQuestion[] = [];
 
-    for (const block of ejected) {
+    const flushContent = () => {
+      if (contentItems.length === 0) return;
+
       pages.push({
-        kind: block.type as "activity" | "reflection",
+        kind: "content",
         sectionId,
-        block,
-        moduleTitle,
+        heading: section.heading,
+        items: contentItems,
+        isFirst: sectionIdx === 0 && pages.length === 0,
       });
+
+      contentItems = [];
+    };
+
+    const flushQuestions = () => {
+      if (questionItems.length === 0) return;
+
+      pages.push({
+        kind: "question",
+        sectionId,
+        questions: questionItems,
+      });
+
+      questionItems = [];
+    };
+
+    for (const block of section.blocks) {
+        if (block.type === "question") {
+          if (!enableQuestions) continue; 
+
+          flushContent();
+          questionItems.push(block);
+          continue;
+        }
+      
+      
+        // Questions are only grouped when they are consecutive.
+        flushQuestions();
+
+
+      if (
+        block.type === "activity" ||
+        block.type === "reflection"
+      ) {
+        flushContent();
+
+        pages.push({
+          kind: block.type,
+          sectionId,
+          block,
+          moduleTitle,
+        });
+
+        continue;
+      }
+
+      if (
+        block.type === "task" ||
+        block.type === "toolLink"
+      ) {
+        continue;
+      }
+
+      contentItems.push(block);
     }
+
+    flushContent();
+    flushQuestions();
   });
 
-  // Single task page for all task blocks
   if (taskBlocks.length > 0) {
-    pages.push({ kind: "task", blocks: taskBlocks });
+    pages.push({
+      kind: "task",
+      blocks: taskBlocks,
+    });
   }
 
-  // AI form page — only if lesson has tool links
   if (toolLinkBlocks.length > 0) {
     pages.push({
       kind: "ai_form",
@@ -68,6 +125,7 @@ export function buildPages(
   }
 
   pages.push({ kind: "submit" });
+
   return pages;
 }
 
@@ -81,8 +139,18 @@ export function isPageBlocked(
   reflectionText: string,
   taskFiles: TaskFilesState| null,
   aiForm: AiFormState | null,
+  questionAnswers?: QuestionAnswer[],
 ): boolean {
-  if (!taskFiles || !aiForm) return false;
+
+  if (page.kind === "question") {
+    return page.questions.some(
+      (question) =>
+        (question.required ?? true) &&
+        !questionAnswers?.some(
+          (answer) => answer.questionId === question.id
+        )
+    );
+  }
 
   if (page.kind === "activity" && page.block.required) {
     return activityText.trim().length < 5;
@@ -92,12 +160,14 @@ export function isPageBlocked(
     return wc < REFLECTION_MIN || wc > REFLECTION_MAX;
   }
   if (page.kind === "task") {
+    if (!taskFiles) return true;
     // Each required task block must have at least one file
     return page.blocks
       .filter((b) => b.required)
       .some((b) => !taskFiles[b.id]?.length);
   }
   if (page.kind === "ai_form") {
+    if (!aiForm) return true;
     return !isAiFormComplete(aiForm);
   }
   return false;

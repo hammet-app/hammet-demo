@@ -1,4 +1,4 @@
-import { CurriculumModuleBlock } from "@/lib/api/types";
+import { CurriculumModuleBlock, CurriculumQuestion, CurriculumSectionItem } from "@/lib/api/types";
 
 export const REFLECTION_MIN = 10;
 export const REFLECTION_MAX = 300;
@@ -12,6 +12,8 @@ export enum LessonMode {
   CORRECTION,
   REVIEW
 }
+
+export type LearningMode = "guided" | "focus"
 
 export enum LessonView {
   MISSION,
@@ -29,11 +31,17 @@ export enum LessonView {
 //   • Submit page
 // ─────────────────────────────────────────────────────────────────────────────
 
+export type QuestionPage = {
+  kind: "question";
+  sectionId: string | null;
+  questions: CurriculumQuestion[];
+};
+
 export type ContentPage = {
   kind: "content";
   sectionId: string | null;
   heading?: string | null;
-  blocks: CurriculumModuleBlock[];
+  items: CurriculumSectionItem[];
   isFirst: boolean;
 };
 
@@ -62,6 +70,7 @@ export type SubmitPage = { kind: "submit" };
 export type StepperPage =
   | ContentPage
   | EjectedPage
+  | QuestionPage
   | TaskPage
   | AiFormPage
   | SubmitPage;

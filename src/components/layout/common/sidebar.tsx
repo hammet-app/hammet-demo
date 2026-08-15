@@ -83,19 +83,6 @@ export function Sidebar({
         })}
       </nav>
       <div className="pt-4 border-t shrink-0 space-y-4">
-        <button
-          type="button"
-          onClick={() => {
-            startTour();
-          }}
-          className={cn(
-            "flex items-center gap-[10px] rounded-md px-3 py-2 text-sm font-medium transition-all w-full",
-            "bg-[var(--color-button)] text-[var(--color-purple-dark)] hover:bg-white"
-          )}
-        >
-          <CircleHelp size={16} className="shrink-0" />
-          <span className="text-sm font-medium leading-none">Help</span>
-        </button>
         <Button
           variant="ghost"
           onClick={() => {

@@ -41,15 +41,6 @@ test("school admin can update student", async ({ page }) => {
 
   await page.getByRole('combobox').selectOption('SSS1');
 
-  await page.getByRole('textbox', { 
-    name: 'Parent Email' 
-  }).fill(faker.internet.email());
-
-  
-  await page.getByRole('textbox', { 
-    name: 'Parent phone' 
-  }).fill('09091234567');
-
   
   await page.getByRole('button', { 
     name: 'Update student' 

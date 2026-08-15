@@ -6,18 +6,18 @@ import { motion, animate, useMotionValue, useTransform } from "motion/react";
 
 type ProgressHeroProps = {
   totalModules: number;
-  approvedModules: number;
+  completedModules: number;
   submittedModules: number;
   currentWeek: number;
 }
 
 export function ProgressHero({
   totalModules,
-  approvedModules,
+  completedModules,
   submittedModules,
   currentWeek
 }: ProgressHeroProps) {
-  const progress = Math.round((approvedModules / totalModules) * 100)
+  const progress = Math.round((completedModules / totalModules) * 100)
   const count = useMotionValue(0);
   const rounded = useTransform(count, (latest) => Math.round(latest));
 
@@ -25,7 +25,7 @@ export function ProgressHero({
     const controls = animate(count, progress, { duration: 0.8, ease: "easeOut" })
     return () => controls.stop();
   }, [count, progress])
-  const remainingModules = totalModules - approvedModules;
+  const remainingModules = totalModules - completedModules;
   const progressMessage =
     progress === 100
       ? "🎉 Outstanding! You've completed every module this term."
@@ -62,7 +62,7 @@ export function ProgressHero({
             className="mt-2 text-sm text-text-secondary"
             style={{ fontFamily: FONT_BODY }}
           >
-            {approvedModules} of {totalModules} modules completed
+            {completedModules} of {totalModules} modules completed
           </p>
           <motion.p 
             initial={{ opacity: 0, y: 4 }}
@@ -104,7 +104,7 @@ export function ProgressHero({
 
       <div className="mt-4 flex justify-between text-sm text-text-secondary">
         <span>{submittedModules} submitted </span>
-        <span>{approvedModules} approved</span>
+        <span>{completedModules} approved</span>
       </div>
     </div>
   )

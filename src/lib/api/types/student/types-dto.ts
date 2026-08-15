@@ -1,5 +1,5 @@
 import { SubmissionStatus } from "@/components/ui";
-import { AiFormState, AiFormStateDto } from "@/lib/api/types/submissions";
+import { AiFormState, AiFormStateDto, QuestionAnswer, QuestionAnswerDto } from "@/lib/api/types/submissions";
 
 export type PreviewLinkDto = {
   task_id: string;
@@ -81,11 +81,13 @@ export type SubmissionDto = {
   reflection_text: string | null;
   file_urls: PreviewLinkDto[] | null;
   other_urls: PreviewLinkDto[] | null;
+  question_answers?: QuestionAnswerDto[]
   status: "submitted" | "approved" | "flagged";
   teacher_note: string | null;    // populated when flagged
   submitted_at: string;
   synced_at: string | null;       // null = synced offline, not yet confirmed
   local_id: string;               // client UUID used for offline dedup
+  dispute?: boolean | null;       // Is used when fetching a single submission
 };
 
 export type SubmissionHistoryDto = {

@@ -1,7 +1,7 @@
 import {notFound} from 'next/navigation'
 import type {Metadata} from 'next'
 import {getPost, getRelatedPosts} from '@/lib/content'
-import {urlFor} from '../../../../sanity/lib/image'
+import { urlFor } from '@/lib/content/image' 
 import ArticleContent from '@/components/blog/ArticleContent'
 import AuthorCard from '@/components/blog/AuthorCard'
 import RelatedPosts from '@/components/blog/RelatedPosts'

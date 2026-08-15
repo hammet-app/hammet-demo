@@ -1,6 +1,6 @@
 import {PortableText} from '@portabletext/react'
 import type {PortableTextBlock} from '@portabletext/types'
-import {urlFor} from '../../../sanity/lib/image'
+import { urlFor } from '@/lib/content/image'
 
 type ArticleContentProps = {
   content: PortableTextBlock[]

@@ -1,5 +1,5 @@
 import type {Author} from '@/lib/content/types'
-import {urlFor} from '../../../sanity/lib/image'
+import { urlFor } from '@/lib/content/image'
 
 type AuthorCardProps = {
   author?: Author

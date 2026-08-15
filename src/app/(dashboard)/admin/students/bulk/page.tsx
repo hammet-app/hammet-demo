@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { bulkRegisterStudents, getSchoolProfile } from "@/lib/api/admin";
@@ -26,14 +26,13 @@ import {
 export default function BulkImportPage() {
   const { accessToken, refreshToken } = useAuth();
 
-  
+  const [backendErrors, setBackendErrors] = useState<Map<number, PreviewError[]>>(new Map());
   const [tier, setTier] = useState<string | null>("")
   const [csvText, setCsvText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<BulkRegisterResponse | null>(null);
   const [globalErrors, setGlobalErrors] = useState<BulkError[]>([]);
   const [method, setMethod] = useState<"upload" | "paste">("upload");
-  const [preview, setPreview] = useState<PreviewStudent[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [expandTrigger, setExpandTrigger] = useState<number>(0);
 
@@ -48,17 +47,24 @@ export default function BulkImportPage() {
       .finally();
   }, [accessToken, refreshToken]);
 
-  useEffect(() => {
+  const preview = useMemo(() => {
     if (!tier || !csvText.trim()) {
-      setPreview([]);
-      return;
+      return[];
     }
 
     const parsed = parseCSV(csvText);
-    const validated = validateCSV(tier, parsed);
+    const students =  validateCSV(tier, parsed);
 
-    setPreview(validated);
-  }, [tier, csvText]);
+    return students.map((student) => ({
+      ...student,
+      errors: [
+        ...student.errors.filter(
+          (error) => error.source === "frontend"
+        ),
+        ...(backendErrors.get(student.row) ?? [])
+      ],
+    }));
+  }, [tier, csvText, backendErrors]);
 
   const ready =
     preview.filter(
@@ -102,8 +108,7 @@ export default function BulkImportPage() {
 
     if (!file) {
       setCsvText("")
-      setPreview([]);
-      return;
+      return [];
     }
 
     const text = await file.text();
@@ -157,18 +162,7 @@ export default function BulkImportPage() {
             );
           });
         };
-        setPreview(previous => 
-          previous.map(student => ({
-            ...student,
-
-            errors: [
-              ...student.errors.filter(
-                error => error.source === "frontend"
-              ),
-              ...(errorMap.get(student.row) ?? [])
-            ]
-          }))
-        )
+        setBackendErrors(errorMap)
         setExpandTrigger(previous => previous + 1)
         setGlobalErrors([
           ...globalErrors,
@@ -222,7 +216,6 @@ export default function BulkImportPage() {
             onDownloadCSV={downloadCSV}
             onImportAgain={() => {
               setResult(null);
-              setPreview([]);
               setCsvText("");
               setFile(null);
               setMethod("upload")

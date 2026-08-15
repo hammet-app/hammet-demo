@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { ApiError, apiClient } from "@/lib/api/api-client";
 import { fromApplyForm, Role } from "@/lib/api/types/apply";
@@ -192,8 +193,8 @@ export default function CareersPage() {
           </span>
         </div>
         <div style={{ display: "flex", gap: 32, fontSize: 14, fontWeight: 500 }}>
-          <a href="/" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none" }}>Home</a>
-          <a href="#apply" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none" }}>Apply</a>
+          <Link href="/" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none" }}>Home</Link>
+          <Link href="#apply" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none" }}>Apply</Link>
         </div>
       </nav>
 

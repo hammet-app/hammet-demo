@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import {urlFor} from '../../../sanity/lib/image'
+import { urlFor } from '@/lib/content/image'
 import { Post } from '@/lib/content/types'
 
 type FeaturedPostProps = {

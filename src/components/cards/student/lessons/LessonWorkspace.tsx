@@ -122,7 +122,7 @@ export function LessonWorkspace({
   const pages = useMemo(() => {
     if (!currentModule) return [];
     return buildPages(currentModule.contentJson.sections, currentModule.title, lessonQuestionsEnabled);
-  }, [currentModule]);
+  }, [currentModule, lessonQuestionsEnabled]);
 
   const stoppedAt = moduleState[currentModule.id]?.stoppedAt
 
@@ -171,12 +171,6 @@ export function LessonWorkspace({
   useEffect(() => {
     saveSectionProgressRef.current = saveSectionProgress;
   }, [saveSectionProgress]);
-
-  // Saves the furthest part reached so students can jump back to a previous class
-
-  useEffect(() => {
-    setFurthestPageSeen((prev) => Math.max(prev, currentPage));
-  }, [currentPage]);
 
   // ── Dwell-based progress saving ───────────────────────────────────────────
   // After the student lands on a page, wait PROGRESS_DWELL_MS (10 s).
@@ -357,11 +351,20 @@ export function LessonWorkspace({
     ? isPageBlocked(pages[currentPage], activityText, reflectionText, taskFiles, aiForm, questionAnswers)
     : false;
 
+  // Saves the furthest part reached so students can jump back to a previous class
+
+  const navigateToPage = useCallback((page: number) => {
+    const nextPage = Math.max(0, Math.min(total - 1, page));
+
+    setCurrentPage(nextPage);
+    setFurthestPageSeen((prev) => Math.max(prev, nextPage));
+  }, [total]);
+
   const goNext = useCallback(() => {
     if (blocked) return;
     if (isLastPage) { handleSubmit(); return; }
-    setCurrentPage((p) => Math.min(total - 1, p + 1));
-  }, [blocked, isLastPage, total]); // eslint-disable-line react-hooks/exhaustive-deps
+    navigateToPage(currentPage + 1);
+  }, [blocked, isLastPage, total, navigateToPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goBack = useCallback(() => {
     if (currentPage === 0) {
@@ -370,8 +373,8 @@ export function LessonWorkspace({
         return;
       }
     }
-    setCurrentPage((p) => Math.max(0, p - 1));
-  }, [currentPage, prevMod]);
+    navigateToPage(currentPage - 1)
+  }, [currentPage, prevMod, navigateToPage]);
 
   function handleQuestionAnswer(answer: QuestionAnswer) {
     setQuestionAnswers((current) => {
@@ -606,13 +609,13 @@ export function LessonWorkspace({
 
             currentPage={currentPage}
             furthestPageSeen={furthestPageSeen}
-            onPageSelect={setCurrentPage}
+            onPageSelect={navigateToPage}
             onSwipeNext={goNext}
             onSwipeBack={goBack}
 
             lessonMode={lessonMode}
             lessonCoachEnabled={lessonCoachEnabled}
-            learningMode={user.learningMode!! ?? "focus"}
+            learningMode={user.learningMode ?? "focus"}
           />
           {showStepper && (
             <div className="fixed bottom-0 left-0 right-0 md:left-[240px] z-10 bg-bg-page border-t border-border">

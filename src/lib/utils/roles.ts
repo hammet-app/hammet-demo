@@ -7,6 +7,7 @@ export interface AuthUser {
   id: string;
   fullName: string;
   email: string;
+  username: string;
   roles: UserRole[];
   schoolId: string;
   cookieConsent: boolean;
@@ -14,6 +15,7 @@ export interface AuthUser {
   classLevel: string | null;
   classArm: string | null;
   term: number | null;
+  learningMode?: "focus" | "guided";
 }
 
 /** Derives the primary display role from the roles array. */

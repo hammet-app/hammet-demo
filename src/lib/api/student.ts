@@ -2,8 +2,10 @@ import { apiClient } from "@/lib/api/api-client";
 import { 
   getCachedModuleSummaries, 
   getCachedModule, 
+  getCachedModuleState,
   cacheModuleSummaries, 
-  cacheModule, 
+  cacheModule,
+  cacheModuleState,
   markSubmissionSynced,
   clearPendingProgress,
   clearSyncedSubmissions
@@ -15,34 +17,48 @@ import {
   type StudentPortfolio,
   type ModulesResponse,
   type CurriculumModule,
+  type Submission,
   type CreateSubmissionRequest,
   type CreateSubmissionResponse,
   type SectionProgress,
+  type SubmissionDto,
   type SubmissionHistoryDto,
   type StudentPortfolioDto,
   type CurriculumModuleDto,
   type ModulesResponseDto,
   type StudentProgressDto,
+  type ModuleStateResponseDto,
   type CreateSubmissionResponseDto,
   toStudentProgress,
   toSubmissionHistory,
   toStudentPortfolio,
   toCurriculumModule,
   toModuleResponse,
+  toModuleStateResponse,
   fromSectionProgress,
   fromCreateSubmissionRequest,
   toCreateSubmissionResponse, 
   fromResubmission,
   ModuleSummary,
   DisputeReview,
-  fromDisputeReview
+  fromDisputeReview,
+  toSubmission,
 } from "@/lib/api/types";
+import { useModuleStateStore, useModuleStore, useSubmissionStore } from "@/lib/store"
 
 export const studentApi = {
   getProgress: async (token: string, onRefresh: () => Promise<string | null>): Promise<StudentProgress> =>{
     const progress = await apiClient.get<StudentProgressDto>("/students/me/progress", token, { onRefresh })
 
     return toStudentProgress(progress)
+  },
+  getSubmission: async (moduleId:string, token: string, onRefresh: () => Promise<string | null>) => {
+    const submission = await apiClient.get<SubmissionDto | null>(`/students/me/submissions/${moduleId}`, token, { onRefresh })
+    if (submission) {
+      useSubmissionStore.getState().setSubmission(toSubmission(submission))
+    } else {
+      useSubmissionStore.getState().setSubmission(submission)
+    }
   },
   getSubmissions: async (token: string, onRefresh: () => Promise<string | null>): Promise<SubmissionHistory> =>{
     const history = await apiClient.get<SubmissionHistoryDto>("/students/me/submissions", token, { onRefresh })
@@ -60,13 +76,13 @@ export const studentApi = {
     level: string,
     token: string,
     onRefresh: () => Promise<string | null>,
-    onFresh?: (modules: ModuleSummary[]) => void
-  ): Promise<ModulesResponse> => {
+  ) => {
 
     // 1. Try cache first
     const cached = await getCachedModuleSummaries(term, level)
 
     if (cached.length > 0) {
+      useModuleStore.getState().setModules(cached)
       // Background refresh (optional)
       void apiClient
         .get<ModulesResponseDto>(
@@ -77,12 +93,11 @@ export const studentApi = {
         .then(async (fresh) => {
           const freshed = toModuleResponse(fresh)
           await cacheModuleSummaries(freshed.modules)
-          onFresh?.(freshed.modules)
         })
         .catch(console.error)
 
       // Return cached immediately
-      return { modules: cached, total: cached.length }
+      return 
     }
 
     // 2. No cache → fetch backend
@@ -96,20 +111,20 @@ export const studentApi = {
     // 3. Cache result
     await cacheModuleSummaries(modules.modules)
 
-    return modules
+    useModuleStore.getState().setModules(modules.modules)
   },
 
   getModule: async (
     moduleId: string,
     token: string,
     onRefresh: () => Promise<string | null>
-  ): Promise<CurriculumModule> => {
+  ) => {
 
     // 1. Check cache
     const cached = await getCachedModule(moduleId)
 
     if (cached) {
-
+      useModuleStore.getState().setCurrentModule(cached)
       // Background refresh
       void apiClient
         .get<CurriculumModuleDto>(
@@ -122,8 +137,7 @@ export const studentApi = {
           await cacheModule(freshed)
         })
         .catch(console.error)
-
-      return cached
+        return
     }
 
     // 2. Fetch from backend
@@ -136,7 +150,39 @@ export const studentApi = {
     // 3. Cache
     await cacheModule(lessonModule)
 
-    return lessonModule
+    useModuleStore.getState().setCurrentModule(lessonModule)
+  },
+  getModuleState: async (studentId: string, token: string, onRefresh: () => Promise<string | null>) => {
+
+    const cached = await getCachedModuleState(studentId)
+
+    if (cached) {
+      useModuleStateStore.getState().setModuleStates(
+        cached.currentTerm,
+        cached.states
+      )
+
+      // Background refresh
+      void apiClient
+        .get<ModuleStateResponseDto>(
+          '/students/me/module-state', token, { onRefresh }
+        )
+        .then(async (fresh) => {
+          const freshed = toModuleStateResponse(fresh)
+          await cacheModuleState(studentId, freshed)
+        })
+        .catch(console.error)
+        return
+    }
+    const fresh = await apiClient.get<ModuleStateResponseDto>('/students/me/module-state', token, { onRefresh })
+    const res = toModuleStateResponse(fresh)
+
+    await cacheModuleState(studentId, res)
+    
+    useModuleStateStore.getState().setModuleStates(
+      res.currentTerm,
+      res.states
+    )
   },
 
   saveProgress: (
@@ -150,6 +196,19 @@ export const studentApi = {
       undefined,
       token, 
       { onRefresh })
+  },
+
+  saveLearningMode: (
+    mode: "focus" | "guided",
+    token: string,
+    onRefresh: () => Promise<string | null>
+  ): Promise<boolean> => {
+    return apiClient.patch<boolean>(
+      `/students/me/learning-mode`,
+      {mode: mode},
+      token,
+      { onRefresh }
+    )
   },
 
   raiseDispute: (

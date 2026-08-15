@@ -8,7 +8,7 @@ type CredentialSectionProps = {
     created?: {
         fullName: string;
         email: string;
-        code: string;
+        password: string;
     };
 
     isPending: boolean;
@@ -39,11 +39,11 @@ export function CredentialSection({
             <div className="mt-2 flex items-center gap-2">
               <code className="text-sm font-mono font-bold bg-[var(--color-purple-light)]/40 text-[var(--color-purple-dark)] 
                 px-2.5 py-1 rounded-md border border-[var(--color-purple)]/10 select-all tracking-wider shadow-sm">
-                {created.code}
+                {created.password}
               </code>
               <Button
                 onClick={() => {
-                  navigator.clipboard.writeText(created.code);
+                  navigator.clipboard.writeText(created.password);
                   setCopied(true);
                   setTimeout(() => setCopied(false), 2000);
                 }}
@@ -66,8 +66,8 @@ export function CredentialSection({
             <div className="flex gap-2">
               <Button
                 onClick={() => {
-                  const label = isPending ? "Code" : "Password";
-                  const content = `Name: ${created.fullName}\nEmail: ${created.email}\n${label}: ${created.code}`;
+                  const label = "Password";
+                  const content = `Name: ${created.fullName}\nEmail: ${created.email}\n${label}: ${created.password}`;
                   const blob = new Blob([content], { type: "text/plain" });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement("a");
@@ -84,8 +84,8 @@ export function CredentialSection({
               </Button>
               <button
                 onClick={() => {
-                  const label = isPending ? "code" : "password";
-                  const content = `full_name,email,${label}\n${created.fullName},${created.email},${created.code}`;
+                  const label = "password";
+                  const content = `full_name,email,${label}\n${created.fullName},${created.email},${created.password}`;
                   const blob = new Blob([content], { type: "text/csv" });
                   const url = URL.createObjectURL(blob);
                   const a = document.createElement("a");

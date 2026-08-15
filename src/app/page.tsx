@@ -35,7 +35,7 @@ function Nav() {
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 shrink-0">
           <Image
-            src="/favicon.ico"
+            src="/icon-512x512.png"
             alt="HammetLtd"
             width={140}
             height={36}
@@ -144,7 +144,7 @@ function Footer() {
         <div className="grid md:grid-cols-4 gap-12 mb-12">
           <div className="md:col-span-1">
             <Image
-              src="/favicon.ico"
+              src="/icon-512x512.png"
               alt="Hammet"
               width={130}
               height={34}

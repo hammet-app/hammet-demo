@@ -14,6 +14,7 @@ import {
   persistSession,
   getPersistedSession,
   clearPersistedSession,
+  clearModuleState
 } from "@/lib/db";
 import { toRefreshResponse } from "../api/types";
 
@@ -34,6 +35,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   setSession: (user: AuthUser, accessToken: string) => void;
+  updateUser: (updates: Partial<AuthUser>) => void;
   logout: () => Promise<void>;
   refreshToken: () => Promise<string | null>;
 }
@@ -147,7 +149,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     // Step 1 — try IndexedDB first
-    const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
+    const SESSION_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000 // 7 days - this is the best it can stay at for now
 
     async function init() {
       const cached = await getPersistedSession()
@@ -197,8 +199,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [refreshToken]
   );
 
+  const updateUser = useCallback((updates: Partial<AuthUser>) => {
+    setState((prev) => {
+      if (!prev.user) return prev;
+
+      const user = {
+        ...prev.user,
+        ...updates,
+      };
+
+      if (prev.accessToken) {
+        persistSession(user, prev.accessToken);
+      }
+
+      return {
+        ...prev,
+        user,
+      };
+    });
+  }, []);
+
   const logout = useCallback(async () => {
     localStorage.setItem("logged_out", "true");
+    await clearModuleState();
     await clearPersistedSession();
     try {
       await fetch(`${API_BASE}/auth/logout`, {
@@ -214,7 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, setSession, logout, refreshToken }}>
+    <AuthContext.Provider value={{ ...state, setSession, updateUser, logout, refreshToken }}>
       {children}
     </AuthContext.Provider>
   );

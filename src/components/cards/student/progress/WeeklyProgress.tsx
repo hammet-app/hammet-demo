@@ -12,8 +12,8 @@ type WeeklyProgressSectionProps = {
 }
 
 type WeekStatusBadgeProps = {
-  status: "completed" | "current" | "upcoming"
-}
+  status: "completed" | "current" | "in-progress" | "upcoming";
+};
 
 
 export function WeeklyProgressSection({
@@ -37,11 +37,27 @@ export function WeeklyProgressSection({
         .sort(([a], [b]) => Number(a) - Number(b))
         .map(([week, modules]) => {
           const weekNumber = Number(week);
-          const status = weekNumber < currentWeek
+          const progressModules = modules.filter(
+            (module) =>
+              module.submissionStatus === "submitted" ||
+              module.submissionStatus === "approved"
+          ).length;
+
+          const progressPct =
+            modules.length > 0
+              ? Math.round((progressModules / modules.length) * 100)
+              : 0;
+
+          const isCompleted = progressModules === modules.length;
+
+          const status = isCompleted
             ? "completed"
             : weekNumber === currentWeek
               ? "current"
-              : "upcoming"
+              : weekNumber < currentWeek
+                ? "in-progress"
+                : "upcoming";
+
           return (
             <div
               key={week}

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { motion } from "motion/react"
+import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   getAdminStudents,
@@ -14,11 +15,10 @@ import { ApiError } from "@/lib/api/api-client";
 import { resendCode } from "@/lib/api/admin";
 import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
 import { SchoolProfile, type AdminStudent } from "@/lib/api/types";
-import { Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 import { EmptyState } from "@/components/cards/common";
 import { StudentDetails, ClassGroup, StudentSummary, RowAction, InFlight } from "@/components/cards/admin/student";
 import { Button } from "@/components/ui";
-
 
 
 const CLASS_LEVELS = [
@@ -61,7 +61,7 @@ function StudentRow({
   student: AdminStudent;
   inFlight: InFlight | null;
   onAction: (action: RowAction) => void;
-  created?: { fullName: string; email: string; code: string };
+  created?: { fullName: string; email: string; password: string };
   canUseParentLink: boolean
   expanded: boolean;
   onToggle: () => void;
@@ -104,6 +104,7 @@ function StudentRow({
 
 export default function AdminStudentsPage() {
   const { accessToken, refreshToken } = useAuth();
+  const router = useRouter();
 
   const [students, setStudents] = useState<AdminStudent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,7 +112,7 @@ export default function AdminStudentsPage() {
   const [inFlight, setInFlight] = useState<InFlight | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [createdMap, setCreatedMap] = useState<
-    Record<string, { fullName: string; email: string; code: string }>
+    Record<string, { fullName: string; email: string; password: string }>
   >({});
   const [expandedStudentId, setExpandedStudentId] = useState<string | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<
@@ -251,15 +252,15 @@ export default function AdminStudentsPage() {
           refreshToken
         );
 
-        if (typeof res.code === "string") {
-          const code = res.code;
+        if (typeof res.password === "string") {
+          const code = res.password;
 
           setCreatedMap((prev) => ({
             ...prev,
             [action.studentId]: {
               fullName: student.fullName,
               email: student.email,
-              code: code,
+              password: code,
             },
           }));
         }
@@ -275,6 +276,25 @@ export default function AdminStudentsPage() {
     <PageShell
       title="Students"
       description={`${students.length} registered`}
+      actions={
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/admin/students/new")}
+            className="inline-flex items-center px-4 py-2 rounded-md bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
+          >
+            <UserPlus size={16} className="mr-2 shrink-0" />
+            Add New Student
+          </button>
+
+          <button
+            onClick={() => router.push("/admin/students/bulk")}
+            className="inline-flex items-center px-4 py-2 rounded-md bg-white/80 text-purple text-sm font-medium hover:opacity-90 transition"
+          >
+            <Users size={16} className="mr-2 shrink-0" />
+            Bulk Register
+          </button>
+        </div>
+      }
     >
       {isLoading ? (
         <ListSkeleton rows={6} />

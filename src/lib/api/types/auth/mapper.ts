@@ -12,7 +12,8 @@ import {
     RegisterSchoolRequestDto,
     RegisterSchoolResponseDto,
     RegisterStudentRequestDto,
-    RegisterStudentResponseDto
+    RegisterStudentResponseDto,
+    UpdatePasswordDto
 } from "@/lib/api/types/auth/types-dto";
 import {
     BulkRegisterRequest,
@@ -27,7 +28,8 @@ import {
     RegisterSchoolRequest,
     RegisterSchoolResponse,
     RegisterStudentRequest,
-    RegisterStudentResponse
+    RegisterStudentResponse,
+    UpdatePassword
 } from "@/lib/api/types/auth/types";
 
 /**
@@ -50,13 +52,15 @@ function toUser(dto: UserDto): User {
         id: dto.id,
         fullName: dto.full_name,
         email: dto.email,
+        username: dto.username,
         roles: dto.roles,
         schoolId: dto.school_id,
         cookieConsent: dto.cookie_consent,
         cookiePolicyVersion: dto.cookie_policy_version,
         classLevel: dto.class_level,
         classArm: dto.class_arm,
-        term: dto.term
+        term: dto.term,
+        learningMode: dto.learning_mode
     }
 }
 
@@ -142,7 +146,6 @@ export function toRegisterSchoolResponse(dto: RegisterSchoolResponseDto): Regist
 export function fromRegisterStudentRequest(model: RegisterStudentRequest): RegisterStudentRequestDto {
     return {
         full_name: model.fullName,
-        email: model.email,
         class_level: model.classLevel,
         class_arm: model.classArm,
         gender: model.gender,
@@ -155,15 +158,14 @@ export function fromRegisterStudentRequest(model: RegisterStudentRequest): Regis
 export function toRegisterStudentResponse(dto: RegisterStudentResponseDto): RegisterStudentResponse {
     return {
         fullName: dto.full_name,
-        email: dto.email,
-        code: dto.code
+        username: dto.username,
+        password: dto.password
     }
 }
 
 export function fromBulkStudent(model: BulkStudentInput): BulkStudentInputDto {
     return {
         full_name: model.fullName,
-        email: model.email,
         class_level: model.classLevel,
         class_arm: model.classArm,
         gender: model.gender,
@@ -182,11 +184,18 @@ export function fromBulkRegisterRequest(model: BulkRegisterRequest): BulkRegiste
 export function toBulkRegisterResponse(dto: BulkRegisterResponseDto): BulkRegisterResponse {
     return {
         total: dto.total,
-        codes: dto.codes.map(toRegisterStudentResponse)
+        passwords: dto.passwords.map(toRegisterStudentResponse)
     }
 }
 export function toForgotPasswordResponse(dto: forgotPasswordResponseDto) {
     return {
         isAdmin: dto.is_admin
+    }
+}
+
+export function fromUpdatePassword(model: UpdatePassword): UpdatePasswordDto {
+    return {
+        current_password: model.currentPassword,
+        new_password: model.newPassword
     }
 }

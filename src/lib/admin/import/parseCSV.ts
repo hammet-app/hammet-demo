@@ -15,16 +15,15 @@ export function parseCSV(
     row: index + 1,
 
     fullName: row[0]?.trim() ?? "",
-    email: row[1]?.trim() ?? "",
 
-    classLevel: row[2]?.trim() ?? "",
-    classArm: row[3]?.trim() ?? "",
+    classLevel: row[1]?.trim() ?? "",
+    classArm: row[2]?.trim() ?? "",
 
-    parentEmail: row[4]?.trim() ?? "",
-    parentPhone: row[5]?.trim() ?? "",
+    dateOfBirth: row[3]?.trim() ?? "",
+    gender: row[4]?.trim() ?? "",
 
-    dateOfBirth: row[6]?.trim() ?? "",
-    gender: row[7]?.trim() ?? "",
+    parentEmail: row[5]?.trim() ?? "",
+    parentPhone: row[6]?.trim() ?? "",
 
     errors: [],
   }));

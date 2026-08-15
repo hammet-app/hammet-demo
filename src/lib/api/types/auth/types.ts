@@ -18,6 +18,7 @@ export type LoginResponse = {
     id: string;
     fullName: string;
     email: string;
+    username: string;
     roles: UserRole[];
     schoolId: string;
     cookieConsent: boolean;
@@ -25,6 +26,7 @@ export type LoginResponse = {
     classLevel: string | null; // null for non-students
     classArm: string | null;
     term: number | null;
+    learningMode?: "guided" | "focus"
   };
 };
 
@@ -58,7 +60,7 @@ export type ResendVerificationRequest = {
 };
 
 export type ResendVerificationResponse = {
-  code: string
+  password: string
 };
 
 
@@ -69,6 +71,7 @@ export type RefreshResponse = {
     id: string;
     fullName: string;
     email: string;
+    username: string;
     roles: UserRole[];
     schoolId: string;
     cookieConsent: boolean;
@@ -76,6 +79,7 @@ export type RefreshResponse = {
     classLevel: string | null; // null for non-students
     classArm: string | null;
     term: number | null;
+    learningMode?: "guided" | "focus"
   };
 };
 
@@ -110,7 +114,6 @@ export type RegisterSchoolResponse = {
 // POST /auth/register/student — school_admin only
 export type RegisterStudentRequest = {
   fullName: string;
-  email: string;
   classLevel: string;
   gender: string;
   classArm: string | null;
@@ -121,13 +124,12 @@ export type RegisterStudentRequest = {
 
 export type RegisterStudentResponse = {
   fullName: string;
-  email: string;
-  code: string;
+  username: string;
+  password: string;
 };
 
 export type BulkStudentInput = {
   fullName: string;
-  email: string;
   classLevel: string;
   classArm: string;
   gender: string;
@@ -150,7 +152,7 @@ export type BulkError = {
 // POST /auth/register/students/bulk — school_admin only (CSV upload)
 export type BulkRegisterResponse = {
   total: number;
-  codes: RegisterStudentResponse[];
+  passwords: RegisterStudentResponse[];
 };
 
 // POST /auth/reset
@@ -159,4 +161,10 @@ export type BulkRegisterResponse = {
 export type ResetPassword = {
   token: string; // This is for either the code or token
   password: string;
+}
+
+// PATCH /auth/update-password
+export type UpdatePassword = {
+  currentPassword: string;
+  newPassword: string;
 }

@@ -1,45 +1,44 @@
 // hooks/useModuleLoader.ts
+import { useEffect, useState } from "react";
 import { EMPTY_AI_FORM } from "@/components/cards/student/lessons";
 import { studentApi } from "@/lib/api/student";
-import { CurriculumModule, ModulesResponse, PreviewLink, PreviewLinkState, Submission, TaskFilesState, TaskLinksState } from "@/lib/api/types";
+import { AiFormState, CurriculumModule, ModulesResponse, PreviewLink, PreviewLinkState, Submission, TaskFilesState, TaskLinksState } from "@/lib/api/types";
 import { getDraftForModule, getFilesForPendingSubmissions, getLinks } from "@/lib/db";
 import { LessonView } from "@/lib/student/lessons/build";
 import { AuthUser } from "@/lib/utils/roles";
-import { useEffect, useState } from "react";
+import { useSubmissionStore, useModuleStore, useModuleStateStore} from "@/lib/store";
+
+export type LessonInitialData = {
+  reflectionText: string;
+  activityText: string;
+  status: string | null;
+  aiForm: AiFormState;
+  taskFiles: TaskFilesState,
+  taskLinks: TaskLinksState,
+  previewLinks: PreviewLinkState,
+  lessonView: LessonView,
+}
 
 
-type UseModuleLoaderProps = {
+type UseLessonLoaderProps = {
   user: AuthUser | null;
   moduleId: string;
   accessToken: string | null;
   refreshToken: () => Promise<string|null>;
 };
 
-export function useModuleLoader({
+export function useLessonLoader({
   user,
   moduleId,
   accessToken,
   refreshToken,
-}: UseModuleLoaderProps) {
-  const [lessonModule, setModule] = useState<CurriculumModule | null>(null);
-  const [allModules, setAllModules] = useState<ModulesResponse["modules"]>([]);
+}: UseLessonLoaderProps) {
+  const { modules, currentModule } = useModuleStore();
+  const { submission } = useSubmissionStore()
   const [loadState, setLoadState] =
     useState<"loading" | "ready" | "error">("loading");
-  const [hasDispute, setHasDispute] = useState<boolean>(false);
 
-  const [initialData, setInitialData] = useState({
-    reflectionText: "",
-    activityText: "",
-    status: null as string | null,
-    aiForm: EMPTY_AI_FORM,
-    taskFiles: {} as TaskFilesState,
-    taskLinks: {} as TaskLinksState,
-    previewLinks: [] as PreviewLinkState,
-    lessonView: LessonView.MISSION,
-    existingSubmission: null as Submission | null
-  })
-
-
+  const [initialData, setInitialData] = useState<LessonInitialData | null>(null);
 
   function previewKey(preview: PreviewLink): string {
       if (preview.type === "link") {
@@ -76,29 +75,22 @@ export function useModuleLoader({
 
     async function load() {
       try {
-        const [mod, list, history, dispute] = await Promise.all([
-          studentApi.getModule(moduleId, accessToken!, refreshToken),
-          studentApi.getModules(
-            user!.term!,
-            user!.classLevel!,
-            accessToken!,
-            refreshToken
-          ),
-          studentApi
-            .getSubmissions(accessToken!, refreshToken)
-            .catch(() => ({ submissions: [] })),
-          studentApi
-            .getDispute(moduleId, accessToken!, refreshToken)
-        ]);
+        let mod = currentModule;
+
+        if (!mod || mod.id !== moduleId) {
+          await studentApi.getModule(moduleId, accessToken!, refreshToken)
+
+          mod = useModuleStore.getState().currentModule
+        }
+        if (!mod) {
+          throw new Error("Module was not loaded");
+        }
+
+        await studentApi
+            .getSubmission(mod.id, accessToken!, refreshToken)
+            .catch(() => ({ submissions: [] }))
 
         if (cancelled) return;
-
-        setHasDispute(dispute)
-        setModule(mod);
-        setAllModules(list.modules);
-
-        const existing =
-          history.submissions.find((s) => s.moduleId === moduleId) ?? null;
 
         const [localDraft, localLinks, localFiles] = await Promise.all([
           getDraftForModule(user!.id, moduleId),
@@ -138,28 +130,27 @@ export function useModuleLoader({
         const initial = {
           reflectionText: "",
           activityText: "",
-          status: existing?.status ?? null,
+          status: submission?.status ?? null,
           aiForm: EMPTY_AI_FORM,
           taskFiles: recovered,
           taskLinks: recoveredLinks,
           previewLinks: [] as PreviewLinkState,
           lessonView: LessonView.MISSION,
-          existingSubmission: existing,
         };
 
-        if (existing?.status === "flagged") {
+        if (submission?.status === "flagged") {
           initial.reflectionText =
-            localDraft?.reflectionText ?? existing.reflectionText ?? "";
+            localDraft?.reflectionText ?? submission.reflectionText ?? "";
 
           initial.activityText =
-            localDraft?.activityText ?? existing.activityText ?? "";
+            localDraft?.activityText ?? submission.activityText ?? "";
 
           initial.aiForm =
-            localDraft?.aiForm ?? existing.aiForm ?? EMPTY_AI_FORM;
+            localDraft?.aiForm ?? submission.aiForm ?? EMPTY_AI_FORM;
 
           initial.lessonView = LessonView.LESSON;
         } else {
-          const source = existing ?? localDraft;
+          const source = submission ?? localDraft;
 
           if (source) {
             initial.reflectionText = source.reflectionText ?? "";
@@ -168,12 +159,12 @@ export function useModuleLoader({
 
             initial.previewLinks = addPreviews(
               initial.previewLinks,
-              existing?.fileUrls ?? undefined
+              submission?.fileUrls ?? undefined
             );
 
             initial.previewLinks = addPreviews(
               initial.previewLinks,
-              existing?.otherUrls ?? undefined
+              submission?.otherUrls ?? undefined
             );
 
             initial.lessonView = LessonView.LESSON;
@@ -204,9 +195,7 @@ export function useModuleLoader({
   ]);
 
   return {
-    lessonModule,
-    hasDispute,
-    allModules,
+    currentModule,
     initialData,
     loadState,
   };

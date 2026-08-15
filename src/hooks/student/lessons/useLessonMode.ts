@@ -3,15 +3,13 @@ import { LessonMode } from "@/lib/student/lessons/build";
 
 interface UseLessonModeProps {
   status: string | null;
-  lessonModule: {
-    stoppedAt?: unknown;
-  } | null;
+  stoppedAt?: string | null
   setLessonMode: React.Dispatch<React.SetStateAction<LessonMode>>;
 }
 
 export function useLessonMode({
   status,
-  lessonModule,
+  stoppedAt,
   setLessonMode,
 }: UseLessonModeProps) {
   useEffect(() => {
@@ -21,10 +19,10 @@ export function useLessonMode({
       setLessonMode(LessonMode.CORRECTION);
     } else {
       setLessonMode(
-        lessonModule?.stoppedAt
+        stoppedAt
           ? LessonMode.PROGRESS
           : LessonMode.FIRST
       );
     }
-  }, [status, lessonModule?.stoppedAt, setLessonMode]);
+  }, [status, stoppedAt, setLessonMode]);
 }

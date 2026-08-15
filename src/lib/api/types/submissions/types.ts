@@ -90,15 +90,21 @@ export type AiFormState = {
   ratingComment: string; // optional
 };
 
+export type QuestionAnswer = {
+  questionId: string;
+  optionId: string;
+};
+
 // POST /submissions — online submission
 export type CreateSubmissionRequest = {
   moduleId: string;
   activityText: string;
-  reflectionText: string| null;
+  reflectionText: string | null;
   fileUrls: PreviewLink[] | null;
   otherUrls: PreviewLink[] | null;
   aiForm?: AiFormState | null;
-  localId: string;             // client UUID for offline dedup
+  questionAnswers?: QuestionAnswer[];
+  localId: string;    // client UUID for offline dedup
 };
 
 export type CreateSubmissionResponse = {
@@ -111,6 +117,7 @@ export type CreateSubmissionResponse = {
   aiForm: AiFormState | null;
   fileUrls: PreviewLink[] | null;
   otherUrls: PreviewLink[] | null;
+  questionAnswers?: QuestionAnswer[];
   submittedAt: string;
   syncedAt: string;
   localId: string;  // echoed back so client can reconcile with Dexie
@@ -140,10 +147,12 @@ export type Resubmission = {
 // If JWT expired, refresh token silently renews it before sync fires
 export type SyncSubmissionItem = {
   moduleId: string;
+  activityText: string | null;
   reflectionText: string;
   fileUrls: string[] | null;
   otherUrls: string[] | null;
-  aiForm: AiFormState
+  aiForm: AiFormState | null;
+  questionAnswers?: QuestionAnswer[];
   localId: string;
 };
 

@@ -4,8 +4,7 @@ import { test, expect } from "@playwright/test";
 test("student can login", async ({ page }) => {
 
   await page.goto("/student/lessons")
-
-  await page.pause();
+ 
   await expect(
     page.getByRole('button', { 
       name: 'Close' 

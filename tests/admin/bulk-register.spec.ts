@@ -45,15 +45,13 @@ test("school admin can bulk create students", async ({ page }) => {
     name: 'Bulk import students'
   }).click();
 
-  await page.pause();
-
   await page.getByRole('button', { name: 'Paste CSV' }).click();
 
   await page.getByRole('textbox', { 
     name: 'Chisom Obi,SSS1,A,2011-01-09,'
   }).fill(rows);
 
-  await page.pause();
+  
 
   const importButton = page.getByRole("button", {
     name: /Import \d+ Students?/,
@@ -63,7 +61,7 @@ test("school admin can bulk create students", async ({ page }) => {
 
   await importButton.click();
 
-  await page.pause();
+  
 
   await page.getByText("10 students registered")
 

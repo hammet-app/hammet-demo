@@ -62,12 +62,12 @@ export default function StudentHomePage() {
       icon: Award,
       href: "/student/portfolio",
     },
-    {
-      title: "Performance",
-      description: "See your academic performance.",
-      icon: TrendingUp,
-      href: "/student/performance",
-    },
+    //{
+      //title: "Performance",
+      //description: "See your academic performance.",
+      //icon: TrendingUp,
+      //href: "/student/performance",
+    //},
   ]
 
   useEffect(() => {
@@ -150,6 +150,10 @@ export default function StudentHomePage() {
       return !["approved", "submitted"].includes(status);
     }) ?? sortedModules[sortedModules.length - 1];
 
+  const completedModules = progress
+    ? Math.max(progress.termProgress.submittedModules - progress.termProgress.flaggedModules, 0)
+    : 0;
+
   return (
     <PageShell
       title="Home"
@@ -218,7 +222,7 @@ export default function StudentHomePage() {
               <div className="lg:col-span-5" data-tour="progress-overview">
                 {progress?.termProgress && (
                   <ProgressOverviewCard
-                    approvedModules={progress.termProgress.approvedModules}
+                    completedModules={completedModules}
                     totalModules={progress.termProgress.totalModules}
                     onViewProgress={() => router.push("/student/progress")}
                   />

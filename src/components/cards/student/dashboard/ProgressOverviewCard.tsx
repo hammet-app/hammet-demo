@@ -5,20 +5,20 @@ import { ArrowRight, } from "lucide-react";
 import { getProgress } from "@/lib/student/progress";
 
 interface ProgressOverviewCardProps {
-  approvedModules: number;
+  completedModules: number;
   totalModules: number;
   onViewProgress?: () => void;
 }
 
 export function ProgressOverviewCard({
-  approvedModules,
+  completedModules,
   totalModules,
   onViewProgress,
 }: ProgressOverviewCardProps) {
   const percentage =
     totalModules === 0
       ? 0
-      : Math.round((approvedModules / totalModules) * 100);
+      : Math.round((completedModules / totalModules) * 100);
 
   const status = getProgress(percentage);
     
@@ -78,7 +78,7 @@ export function ProgressOverviewCard({
           </div>
           <p className="text-sm text-text-secondary">
             <span className="font-medium text-text-primary">
-              {approvedModules}
+              {completedModules}
             </span>{" "}
             of{" "}
             <span className="font-medium text-text-primary">

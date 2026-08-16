@@ -211,7 +211,8 @@ useEffect(() => {
             variants={fadeUp} 
             className="text-center text-[12px] text-text-muted leading-relaxed"
           >
-            Haven&apos;t received your invite?{" "}
+            New student? Haven&apos;t received your invite?{" "}
+            <br />
             <span className="text-text-secondary font-medium">Contact your school admin.</span>
           </motion.p>
           <motion.p 
@@ -221,15 +222,6 @@ useEffect(() => {
             Forgot your password?{" "}
             <Link href="/reset-password" className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors">
               Reset Your Password
-            </Link>
-          </motion.p>
-          <motion.p 
-            variants={fadeUp}
-            className="text-center text-[12px] text-text-muted leading-relaxed"
-          >
-            New student?{" "}
-            <Link href="/claim" className="text-purple dark:text-cyan font-medium hover:text-purple-dark dark:hover:text-cyan-light transition-colors">
-              Activate with a claim code
             </Link>
           </motion.p>
         </motion.div>

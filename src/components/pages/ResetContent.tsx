@@ -110,7 +110,7 @@ export default function ResetPassword() {
       if (toForgotPasswordResponse(response).isAdmin) {
         setStep(3)
       } else {
-        setStep(1)
+        setErrors({email: "Please contact your school admin for your password"})
       }
 
     } catch (err) {
@@ -247,8 +247,8 @@ export default function ResetPassword() {
             </p>
           </motion.div>
         )}
-          
-        {step === 1 && (
+         {/** This was for students before we switched over to normal login flow */}
+        {/**step === 1 && (
           <motion.div
             key="step-1"
             initial={{ opacity: 0, x: -16 }}
@@ -301,8 +301,8 @@ export default function ResetPassword() {
             </p>
 
           </motion.div>
-        )} 
-              
+        )*/} 
+       
         {step == 2 && (
           <motion.div
             key="step-2"
@@ -361,7 +361,7 @@ export default function ResetPassword() {
             </div>
           </motion.div> 
         )}
-        {step == 3 && (// STEP 3  
+        {step == 3 && (// STEP 3  For school admins
           <motion.div
             key="step-1"
             initial={{ opacity: 0, x: -16 }}

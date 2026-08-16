@@ -364,7 +364,7 @@ export function LessonWorkspace({
     if (blocked) return;
     if (isLastPage) { handleSubmit(); return; }
     navigateToPage(currentPage + 1);
-  }, [blocked, isLastPage, total, navigateToPage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [blocked, isLastPage, currentPage, total, navigateToPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goBack = useCallback(() => {
     if (currentPage === 0) {

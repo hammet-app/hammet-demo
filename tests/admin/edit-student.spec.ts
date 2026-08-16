@@ -6,9 +6,15 @@ test("school admin can edit student", async ({ page }) => {
 
   await page.pause();
 
+  await expect(
+    page.getByRole('button', { 
+      name: 'Close' 
+    })
+  ).toBeVisible();
+
   await page.getByRole('button', { 
-    name: 'Close' 
-  }).click();
+      name: 'Close' 
+  }).click()
 
   await page.getByRole('button', { name: 'Dismiss' }).click();
 

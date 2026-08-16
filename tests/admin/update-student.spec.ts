@@ -5,7 +5,6 @@ test("school admin can update student", async ({ page }) => {
 
   await page.goto("/admin")
 
-  await page.pause();
 
   await expect(
     page.getByRole('button', { 
@@ -26,8 +25,6 @@ test("school admin can update student", async ({ page }) => {
   await expect(page).toHaveURL(
     /\/admin\/students/
   );
-
-  await page.pause();
 
   await page.locator('.flex.items-center.justify-center.rounded-lg').first().click();
 

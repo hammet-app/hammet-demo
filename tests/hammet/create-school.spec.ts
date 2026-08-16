@@ -20,8 +20,6 @@ test("hammet admin can register a school", async ({ page, request }) => {
 
   await login(page, request);
 
-  await page.pause();
-
   await page.goto("/hammet/schools/new");
   
   await expect(page).toHaveURL(/schools\/new/);

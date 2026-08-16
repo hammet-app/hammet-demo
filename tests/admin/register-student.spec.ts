@@ -19,8 +19,6 @@ test("school admin can create student", async ({ page }) => {
 
     await page.goto("/admin/students/new");
 
-    await page.pause();
-
     await page.getByRole("textbox", {
       name: 'First Name', exact: true
     }).fill(faker.person.firstName());

@@ -4,8 +4,6 @@ test("school admin can edit student", async ({ page }) => {
 
   await page.goto("/admin")
 
-  await page.pause();
-
   await expect(
     page.getByRole('button', { 
       name: 'Close' 
@@ -21,7 +19,5 @@ test("school admin can edit student", async ({ page }) => {
   await page.getByRole('link', { 
     name: 'Students' 
   }).click();
-
-  await page.pause()
 
 })

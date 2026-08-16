@@ -4,8 +4,6 @@ test("school admin can update term", async ({ page }) => {
 
   await page.goto("/admin")
 
-  await page.pause();
-
   await expect(
     page.getByRole('button', { 
       name: 'Close' 

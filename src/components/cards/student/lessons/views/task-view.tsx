@@ -321,7 +321,7 @@ export function TaskPageView({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5" data-tour="lesson-task">
         <div className="w-8 h-8 rounded-[8px] bg-[#1D9E75] flex items-center justify-center shrink-0">
           <CheckSquare size={15} className="text-white" />
         </div>
@@ -373,7 +373,7 @@ export function TaskPageView({
             ) :(
               <>
                 {!isTeacher && (
-                  <>
+                  <div data-tour="lesson-task-links">
                     <UploadSurface
                       label="Upload your work"
                       helperText="(images, documents, videos)"
@@ -385,7 +385,7 @@ export function TaskPageView({
                       onRemove={(index) =>
                           onFileRemove(block.id, index)
                       }
-                  />
+                    />
                   <div className="flex items-center gap-3 my-2">
                     <div className="flex-1 h-px bg-border" />
                     <span 
@@ -396,14 +396,16 @@ export function TaskPageView({
                     </span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
-                  <LinkSubmissionSurface
-                    label="Submit a link"
-                    helperText="(GitHub, Portfolio, Figma...)"
-                    entries={links}
-                    onAdd={(url) => onLinkAdd(block.id, url)}
-                    onRemove={(index) => onLinkRemove(block.id, index)}
-                  />
-                </>
+                  <div data-tour="lesson-task-links">
+                    <LinkSubmissionSurface
+                      label="Submit a link"
+                      helperText="(GitHub, Portfolio, Figma...)"
+                      entries={links}
+                      onAdd={(url) => onLinkAdd(block.id, url)}
+                      onRemove={(index) => onLinkRemove(block.id, index)}
+                    />
+                  </div>
+                </div>
                 )}
               </>
             )}

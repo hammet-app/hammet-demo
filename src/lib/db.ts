@@ -7,7 +7,8 @@ import Dexie, { type Table } from 'dexie'
 import { apiClient } from '@/lib/api/api-client'
 import { AuthUser } from '@/lib/utils/roles'
 import { 
-  type CurriculumContentJson, 
+  type CurriculumContentJson,
+  type ModuleState,
   type ModuleSummary, 
   type AiFormState,
   type AiFormStateDto,
@@ -17,8 +18,11 @@ import {
   PreviewLinkDto,
   fromAiFormState,
   toCreateSubmissionResponses,
-  toPreviewLink,
   fromPreviewLink,
+  ModuleStateResponse,
+  QuestionAnswer,
+  fromQuestionAnswer,
+  QuestionAnswerDto,
 } from '@/lib/api/types'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -39,6 +43,7 @@ export interface LocalSubmission {
   reflectionText?: string
   fileUrls: PreviewLink[]       // uploaded Supabase Storage URLs (may be empty)
   otherUrls: PreviewLink[]
+  questionAnswers?: QuestionAnswer[],
   aiForm: AiFormState |null;
   submittedAt: string       // ISO timestamp
   syncStatus: 'pending' | 'synced' | 'failed' | 'draft'
@@ -54,6 +59,7 @@ type LocalSubmissionDto = {
   reflection_text: string
   file_urls: PreviewLinkDto[]
   other_urls: PreviewLinkDto[]
+  question_answers?: QuestionAnswerDto[]
   ai_form: AiFormStateDto | null,
   submitted_at: string
 }
@@ -80,7 +86,6 @@ export interface CachedModuleSummary {
   level: string
   title: string
   published: boolean
-  submissionStatus: "not_started" | "submitted" | "approved" | "flagged" | null
   cachedAt: string
 }
 
@@ -101,8 +106,13 @@ export interface CachedModule {
   updatedAt: string
   published: boolean
   createdAt: string
-  stoppedAt: string | null   // mirrors backend — section_id or null
   cachedAt: string
+}
+
+export interface CachedModuleStates {
+  studentId: string;
+  currentTerm: number;
+  states: Record<string, ModuleState>;
 }
 
 export interface PendingProgress {
@@ -152,6 +162,7 @@ class HammetDB extends Dexie {
   session!:          Table<CachedSession>
   pendingProgress!:  Table<PendingProgress>
   taskLinks!:        Table<LocalLinks>
+  modulesState!:     Table<CachedModuleStates>
 
   constructor() {
     super('hammet-db')
@@ -223,6 +234,18 @@ class HammetDB extends Dexie {
       pendingProgress:  'studentId',
       taskLinks:        'id, studentId, moduleId, blockId, [studentId+moduleId], [studentId+moduleId+blockId]'
     })
+
+    this.version(8).stores({
+      submissions:      'localId, studentId, moduleId, syncStatus, [studentId+moduleId]',
+      portfolioEntries: 'localId, studentId, moduleId',
+      modules:          'id, term, level, [term+level]',
+      moduleSummaries:  'id, term, level, [term+level]',
+      fileQueue:        'id, studentId, moduleId, blockId, uploadStatus, operation',
+      session:          'id',
+      pendingProgress:  'studentId',
+      taskLinks:        'id, studentId, moduleId, blockId, [studentId+moduleId], [studentId+moduleId+blockId]',
+      modulesState:     'studentId'
+    })
   }
 }
 
@@ -287,6 +310,7 @@ export async function submitLesson({
   aiForm,
   fileUrls,
   otherUrls,
+  questionAnswers,
   syncStatus,
   submissionType,
   accessToken,
@@ -298,7 +322,8 @@ export async function submitLesson({
   reflectionText?: string
   aiForm: AiFormState | null
   fileUrls:       PreviewLink[]
-  otherUrls:      PreviewLink[]
+  otherUrls:      PreviewLink[],
+  questionAnswers? : QuestionAnswer[],
   syncStatus: 'pending' | 'synced' | 'failed' | 'draft'
   submissionType: 'submit'  | 'resubmit'
   // Optional — if provided and online, we attempt immediate sync.
@@ -322,6 +347,7 @@ export async function submitLesson({
     reflectionText,
     fileUrls: fileUrls,
     otherUrls: otherUrls,
+    questionAnswers,
     aiForm,
     submittedAt,
     syncStatus,
@@ -671,9 +697,8 @@ export async function cacheModuleSummaries(
 }
 
 /**
- * Persist modules to Dexie after a successful API fetch.
- * Call this inside studentApi.getModules — not from the SW, which only
- * caches HTTP responses. Dexie is the structured offline store.
+ * Cached after getModules() — powers the lessons list page offline.
+ * Mirrors ModuleSummary.
  */
 
 export async function getCachedModuleSummaries(
@@ -690,27 +715,11 @@ export async function getCachedModuleSummaries(
   }
 }
 
-/**
- * After a student submits a module offline, update just the status
- * in the summary cache so the list page reflects it immediately.
- */
-export async function updateCachedSubmissionStatus(
-  moduleId: string,
-  status: CachedModuleSummary['submissionStatus']
-): Promise<void> {
-  try {
-    await db.moduleSummaries.update(moduleId, { submissionStatus: status })
-  } catch {
-    // best-effort
-  }
-}
-
 // ── Full module cache (lesson detail) ────────────────────────────────────────
 
 /**
- * Call inside studentApi.getModule() after every successful fetch.
- * Only updates if the incoming version is newer than what's cached,
- * but always preserves stepper_progress (client-only field).
+ * Call inside studentApi.getModules() after every successful fetch.
+ * Stores the lightweight module list for offline display.
  */
 export async function cacheModule(incoming: Omit<CachedModule, 'cachedAt'>): Promise<void> {
   try {
@@ -730,6 +739,33 @@ export async function getCachedModule(
 ): Promise<CachedModule | undefined> {
   return db.modules.get(moduleId)
 }
+
+export async function cacheModuleState(studentId: string, state: ModuleStateResponse) {
+  await db.modulesState.put({
+    studentId,
+    currentTerm: state.currentTerm,
+    states: state.states,
+  })
+}
+
+export async function getCachedModuleState(
+  studentId: string
+): Promise<CachedModuleStates | undefined> {
+  const cachedState = await db.modulesState.get(studentId)
+  if (cachedState){
+    return cachedState
+  }
+  return cachedState
+}
+
+export async function clearModuleState() {
+  try {
+    await db.modulesState.clear();
+  } catch {
+    // best-effort
+  }
+} 
+
 
 // ── Pending progress helpers ──────────────────────────────────────────────────
 
@@ -810,6 +846,7 @@ function fromLocalSubmission(model: LocalSubmission): LocalSubmissionDto {
     reflection_text: model.reflectionText!,
     file_urls: model.fileUrls.map(fromPreviewLink) ?? null,
     other_urls: model.otherUrls.map(fromPreviewLink) ?? null,
+    question_answers: model.questionAnswers ? model.questionAnswers.map(fromQuestionAnswer) : undefined,
     ai_form: model.aiForm
                 ? fromAiFormState(model.aiForm)
                 : null,

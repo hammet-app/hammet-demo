@@ -1,4 +1,7 @@
 // GET /modules?term=1&level=SSS1
+
+import { SubmissionStatus } from "../submissions";
+
 // Lightweight list — content_json excluded to keep payload small
 export type ModuleSummaryDto = {
   id: string;
@@ -7,9 +10,7 @@ export type ModuleSummaryDto = {
   week_number: number;
   level: string;
   published: boolean;
-  // Backend joins with student's submissions to attach current status.
-  // null = student has no submission yet (same as "not_started")
-  submission_status: "not_started" | "submitted" | "approved" | "flagged" | null;
+  
 };
 
 export type ModulesResponseDto = {
@@ -17,6 +18,16 @@ export type ModulesResponseDto = {
   total: number;
 };
 
+export type ModuleStateDto = {
+  stopped_at: string | null;
+  submission_status: SubmissionStatus
+  disputes: boolean
+}
+
+export type ModuleStateResponseDto = {
+  current_term: number;
+  states: Record<string, ModuleStateDto>
+}
 
 export type CurriculumModuleBlockDto = {
   type:
@@ -37,15 +48,34 @@ export type CurriculumModuleBlockDto = {
   id: string;
 };
 
+export type QuestionOptionDto = {
+  id: string;
+  text: string;
+}
+
+export type CurriculumQuestionDto = {
+  type: "question";
+  id: string;
+  question: string;
+  options: QuestionOptionDto[]
+  required?: boolean;
+}
+
+export type CurriculumSectionItemDto = 
+  | CurriculumModuleBlockDto
+  | CurriculumQuestionDto
+
+
 export interface CurriculumSectionDto {
   id: string
   heading?: string | null;
-  blocks: CurriculumModuleBlockDto[];
+  blocks: CurriculumSectionItemDto[];
 }
 
 export interface CurriculumContentJsonDto {
   sections: CurriculumSectionDto[];
 }
+
 
 export interface CurriculumModuleDto {
   id: string;
@@ -60,7 +90,6 @@ export interface CurriculumModuleDto {
   created_at: string;
   updated_at: string;
   published: boolean;
-  stopped_at: string | null;
 }
 
 export interface SectionProgressDto {

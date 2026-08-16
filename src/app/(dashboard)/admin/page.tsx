@@ -19,7 +19,6 @@ import {
 } from "@/components/cards/admin/dashboard";
 import { Button } from "@/components/ui";
 import { useOnboardingContext } from "@/components/onboarding/onboarding-provider";
-import { HelpButton } from "@/components/onboarding/help-button";
 
 const sessions = Array.from(
   { length: 10 },
@@ -364,7 +363,7 @@ export default function AdminDashboardPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={startTour}
+              onClick={() => startTour("school-dashboard")}
             >
               <CircleHelp className="h-4 w-4 mr-2" />
               Replay Tour

@@ -29,8 +29,10 @@ test("email is required", async ({ page }) => {
     name: "Sign in",
   }).click();
 
+  await page.pause()
+
   await expect(
-    page.getByText(/Email is required/i)
+    page.getByText(/Email or username is required/i)
   ).toBeVisible();
 });
 
@@ -47,23 +49,5 @@ test("password is required", async ({ page }) => {
 
   await expect(
     page.getByText(/Password is required/i)
-  ).toBeVisible();
-});
-
-test("invalid email format", async ({ page }) => {
-  await page.goto("/login");
-
-  await page.getByRole('textbox',{name: "Email address"})
-    .fill("invalid-email");
-
-  await page.getByRole("textbox", {name: "Password"})
-    .fill("password");
-
-  await page.getByRole("button", {
-    name: "Sign in",
-  }).click();
-
-  await expect(
-    page.getByText(/Enter a valid email address/i)
   ).toBeVisible();
 });

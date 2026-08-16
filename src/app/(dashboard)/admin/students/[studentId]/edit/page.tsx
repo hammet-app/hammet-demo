@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { StudentUpdateSuccessCard } from "@/components/cards/admin/update/UpdateSuccessCard";
 
 const LEVELS = ["JSS1", "JSS2", "JSS3", "SSS1", "SSS2", "SSS3"] as const;
+const UPPER_TIERS = ["premier", "global"]
 
 export default function UpdateStudentPage() {
   const { accessToken, refreshToken } = useAuth();
@@ -32,6 +33,7 @@ export default function UpdateStudentPage() {
   const [dateOfBirth, setDOB] = useState("");
 
   const [availableArms, setAvailableArms] = useState<string[]>([]);
+  const [tier, setTier] = useState<string|null>(null)
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,8 +46,14 @@ export default function UpdateStudentPage() {
 
     Promise.all([
       getSchoolProfile(accessToken, refreshToken)
-        .then((p) => setAvailableArms(p.availableArms ?? []))
-        .catch(() => setAvailableArms([])),
+        .then((p) => {
+          setAvailableArms(p.availableArms ?? [])
+          setTier(p.tier)
+        })
+        .catch(() => {
+          setAvailableArms([])
+          setTier(null)
+        }),
       getAdminStudent(studentId, accessToken, refreshToken)
         .then((res) => {
           setFullName(res.fullName ?? "");
@@ -217,29 +225,31 @@ export default function UpdateStudentPage() {
                   </div>
                 </FormSection>
 
-                <FormSection
-                  title="Parent Information"
-                  description="Used for progress reports"
-                >
-                  <AuthInput
-                    id="parent-email"
-                    label="Parent Email"
-                    type="email"
-                    value={parentEmail}
-                    onChange={(val) => setParentEmail(val)}
-                    placeholder="Enter Parent email"
-                  />
+                {tier && UPPER_TIERS.includes(tier) && (
+                  <FormSection
+                    title="Parent Information"
+                    description="Used for progress reports"
+                  >
+                    <AuthInput
+                      id="parent-email"
+                      label="Parent Email"
+                      type="email"
+                      value={parentEmail}
+                      onChange={(val) => setParentEmail(val)}
+                      placeholder="Enter Parent email"
+                    />
 
-                  {/* Parent Phone */}
-                  <AuthInput
-                    id="parent-phone"
-                    label="Parent Phone"
-                    type="text"
-                    value={parentPhone}
-                    onChange={(val) => setParentPhone(val)}
-                    placeholder="Enter Parent phone"
-                  />
-                </FormSection>
+                    {/* Parent Phone */}
+                    <AuthInput
+                      id="parent-phone"
+                      label="Parent Phone"
+                      type="text"
+                      value={parentPhone}
+                      onChange={(val) => setParentPhone(val)}
+                      placeholder="Enter Parent phone"
+                    />
+                  </FormSection>
+                )}
 
                 {/* Submit Button */}
                 <Button

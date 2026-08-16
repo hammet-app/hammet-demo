@@ -32,6 +32,11 @@ export type UploadRequestDto = {
   module_id: string
 }
 
+export type QuestionAnswerDto = {
+  question_id: string;
+  option_id: string;
+};
+
 // POST /submissions — online submission
 export type CreateSubmissionRequestDto = {
   module_id: string;
@@ -40,17 +45,19 @@ export type CreateSubmissionRequestDto = {
   file_urls: PreviewLinkDto[] | null;
   other_urls: PreviewLinkDto[] | null;
   ai_form?: AiFormStateDto | null;
+  question_answers?: QuestionAnswerDto[];
   local_id: string;             // client UUID for offline dedup
 };
 
 export type CreateSubmissionResponseDto = {
-  id: string
-  student_id: string
-  module_id: string
-  activity_text: string | null
-  reflection_text: string
-  file_urls: PreviewLinkDto[]| null
+  id: string;
+  student_id: string;
+  module_id: string;
+  activity_text: string | null;
+  reflection_text: string;
+  file_urls: PreviewLinkDto[]| null;
   other_urls: PreviewLinkDto[] | null;
+  question_answers?: QuestionAnswerDto[];
   ai_form: AiFormStateDto|null
   status: SubmissionStatus
   teacher_note: string | null
@@ -82,9 +89,12 @@ export type CreateSubmissionResponsesDto = {
 // If JWT expired, refresh token silently renews it before sync fires
 export type SyncSubmissionItemDto = {
   module_id: string;
-  reflection_text: string | null;
+  activity_text: string| null;
+  reflection_text: string;
   file_urls: string[] | null;
   other_urls: string[] | null;
+  question_answers?: QuestionAnswerDto[];
+  ai_form: AiFormStateDto|null
   local_id: string;
 };
 

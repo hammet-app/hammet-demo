@@ -1,4 +1,4 @@
-import { CurriculumModuleBlock, CurriculumSection } from "@/lib/api/types";
+import { CurriculumModuleBlock, CurriculumSection, CurriculumQuestion } from "@/lib/api/types";
 
 import { Card } from "@/components/cards/common/Card";
 import { BlockEditor } from "./BlockEditor";
@@ -43,14 +43,15 @@ export function SectionEditor({
 
       </div>
 
-      {section.blocks.map((block) => (
-        <Card key={block.id}>
+      {section.blocks.map((block) => {
+        if (block.type === "question") return;
+        return (<Card key={block.id}>
             <BlockEditor
                 block={block}
                 onChange={(value) => onBlockChange(block.id!, value)}
             />
-        </Card>
-      ))}
+        </Card>)
+      })}
 
     </div>
   );

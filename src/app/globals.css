@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@config "../../tailwind.config.ts";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -176,4 +177,73 @@
 :root {
   --font-head: 'Nunito', sans-serif;
   --font-body: 'Atkinson Hyperlegible', sans-serif;
+}
+
+@keyframes blog-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes blog-card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.blog-fade-up {
+  animation: blog-fade-up 700ms ease-out both;
+}
+
+.blog-card-enter {
+  animation: blog-card-enter 500ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .blog-fade-up,
+  .blog-card-enter {
+    animation: none;
+  }
+}
+
+.blog-hero {
+  background:
+    radial-gradient(circle at 85% 20%, rgba(34, 211, 238, 0.12), transparent 30%),
+    radial-gradient(circle at 25% 100%, rgba(124, 58, 237, 0.2), transparent 35%),
+    #24113f;
+}
+
+.blog-hero-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+.blog-hero-glow-one {
+  width: 260px;
+  height: 260px;
+  right: -80px;
+  top: -80px;
+  background: rgba(34, 211, 238, 0.1);
+}
+
+.blog-hero-glow-two {
+  width: 320px;
+  height: 320px;
+  left: 20%;
+  bottom: -220px;
+  background: rgba(124, 58, 237, 0.16);
 }

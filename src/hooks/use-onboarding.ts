@@ -1,26 +1,33 @@
-// hooks/use-onboarding.ts
-import { useCallback, useState } from 'react'
-import type { UserRole } from '@/lib/utils/roles'
+import { useCallback, useState } from "react";
+import type { TourId } from "@/hooks/use-tour";
 import {
-  hasCompletedOnboarding,
-  setRoleCompleted,
-  resetRoleOnboarding,
-} from '@/lib/onboarding/storage'
+  hasCompletedTour,
+  resetTourOnboarding,
+  setTourCompleted,
+} from "@/lib/onboarding/storage";
+import { UserRole } from "@/lib/utils/roles";
 
-export function useOnboarding(userId: string, role: UserRole) {
+export function useOnboarding(
+  userId: string,
+  tourId: TourId
+) {
   const [hasCompleted, setHasCompleted] = useState(() =>
-    hasCompletedOnboarding(userId, role)
-  )
+    hasCompletedTour(userId, tourId)
+  );
 
   const markComplete = useCallback(() => {
-    setRoleCompleted(userId, role)
-    setHasCompleted(true)
-  }, [userId, role])
+    setTourCompleted(userId, tourId);
+    setHasCompleted(true);
+  }, [userId, tourId]);
 
   const reset = useCallback(() => {
-    resetRoleOnboarding(userId, role)
-    setHasCompleted(false)
-  }, [userId, role])
+    resetTourOnboarding(userId, tourId);
+    setHasCompleted(false);
+  }, [userId, tourId]);
 
-  return { hasCompleted, markComplete, reset }
+  return {
+    hasCompleted,
+    markComplete,
+    reset,
+  };
 }

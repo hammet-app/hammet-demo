@@ -5,11 +5,16 @@ test("school admin can update student", async ({ page }) => {
 
   await page.goto("/admin")
 
-  await page.pause();
+
+  await expect(
+    page.getByRole('button', { 
+      name: 'Close' 
+    })
+  ).toBeVisible();
 
   await page.getByRole('button', { 
-    name: 'Close' 
-  }).click();
+      name: 'Close' 
+  }).click()
 
   await page.getByRole('button', { name: 'Dismiss' }).click();
 
@@ -20,8 +25,6 @@ test("school admin can update student", async ({ page }) => {
   await expect(page).toHaveURL(
     /\/admin\/students/
   );
-
-  await page.pause();
 
   await page.locator('.flex.items-center.justify-center.rounded-lg').first().click();
 
@@ -40,15 +43,6 @@ test("school admin can update student", async ({ page }) => {
   await page.locator('input[type="date"]').fill('2024-06-18');
 
   await page.getByRole('combobox').selectOption('SSS1');
-
-  await page.getByRole('textbox', { 
-    name: 'Parent Email' 
-  }).fill(faker.internet.email());
-
-  
-  await page.getByRole('textbox', { 
-    name: 'Parent phone' 
-  }).fill('09091234567');
 
   
   await page.getByRole('button', { 

@@ -94,7 +94,7 @@ export function AiFormPageView({
   return (
     <div className="flex flex-col gap-5">
       {/* Header */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-2.5" data-tour="lesson-ai-form">
         <div className="w-8 h-8 rounded-[8px] bg-[#5B21B6] flex items-center justify-center shrink-0">
           <Bot size={15} className="text-white" />
         </div>
@@ -112,7 +112,7 @@ export function AiFormPageView({
       </div>
 
       {/* Q1: Did you use AI? */}
-      <AiFormQuestion label="Did you use AI for this lesson?" required>
+      <AiFormQuestion label="Did you use AI for this lesson?" required data-tour="lesson-ai-used">
         <div className="flex gap-2">
           {[
             { value: true, label: "Yes, I did" },
@@ -155,7 +155,7 @@ export function AiFormPageView({
 
       {/* No branch: why not? */}
       {aiForm.used === false && (
-        <AiFormQuestion label="Why didn't you use AI?" required>
+        <AiFormQuestion label="Why didn't you use AI?" required data-tour="lesson-ai-no-reason">
           <>
             <div className="flex flex-col gap-1.5">
               {NO_REASON_OPTIONS.map((opt) => (
@@ -231,7 +231,7 @@ export function AiFormPageView({
       {aiForm.used === true && (
         <>
           {/* Q2a: Which AI? */}
-          <AiFormQuestion label="Which AI tool did you use?" required>
+          <AiFormQuestion label="Which AI tool did you use?" required data-tour="lesson-ai-tool">
             <div className="flex flex-col gap-1.5">
               {toolOptions.map((opt) => (
                 <button
@@ -301,7 +301,7 @@ export function AiFormPageView({
           </AiFormQuestion>
 
           {/* Q2b: What did you use it for? */}
-          <AiFormQuestion label="What did you use it for?" required>
+          <AiFormQuestion label="What did you use it for?" required data-tour="lesson-ai-task">
             <textarea
               {...textProps}
               value={aiForm.taskDesc}
@@ -321,7 +321,7 @@ export function AiFormPageView({
           </AiFormQuestion>
 
           {/* Q3: Prompts */}
-          <AiFormQuestion label="What prompts did you use?" required>
+          <AiFormQuestion label="What prompts did you use?" required data-tour="lesson-ai-prompt">
             <div className="flex flex-col gap-1.5">
               {[
                 {
@@ -390,7 +390,7 @@ export function AiFormPageView({
           </AiFormQuestion>
 
           {/* Q4: Experience rating */}
-          <AiFormQuestion label="How was your experience using the AI?" required>
+          <AiFormQuestion label="How was your experience using the AI?" required data-tour="lesson-ai-rating">
             <div className="flex gap-2 justify-between">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button

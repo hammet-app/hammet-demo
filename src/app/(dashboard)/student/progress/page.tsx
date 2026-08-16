@@ -5,7 +5,6 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
 import { PageShell, StatsSkeleton, ListSkeleton } from "@/components/layout/common/PageShell";
 import { StatCard } from "@/components/cards/stat-card";
-import { StatusPill } from "@/components/ui/status-pill";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";
 import type { StudentProgress, ModuleProgress } from "@/lib/api/types";
 import { cn } from "@/lib/utils/utils";
@@ -29,8 +28,12 @@ export default function ProgressPage() {
   }, [accessToken, refreshToken]);
 
   const tp = progress?.termProgress;
-  const approvedPct = tp
-    ? Math.round((tp.approvedModules / tp.totalModules) * 100)
+  const completedModules = tp
+    ? Math.max(tp.submittedModules - tp.flaggedModules, 0)
+    : 0;
+
+  const completedPct = tp
+    ? Math.round((completedModules / tp.totalModules) * 100)
     : 0;
   const submittedPct = tp
     ? Math.round((tp.submittedModules / tp.totalModules) * 100)
@@ -45,12 +48,19 @@ export default function ProgressPage() {
     return acc;
   }, {});
 
-  const currentWeek = Math.max(...Object.keys(byWeek).map(Number), 0);
+  const weeks = Object.keys(byWeek)
+    .map(Number)
+    .sort((a, b) => a - b);
+
+  const currentWeek =
+    weeks.find((week) => !byWeek[week].every((m) => m.completed)) ??
+    weeks.at(-1) ??
+    0;
 
   const summaryStats = tp ? [
     {
-      label: "Approved",
-      value: tp.approvedModules,
+      label: "Completed",
+      value: completedModules,
       icon: CheckCircle2,
       iconVariant: "green" as const,
     },
@@ -62,7 +72,7 @@ export default function ProgressPage() {
     },
     {
       label: "Remaining",
-      value: tp.totalModules - tp.approvedModules,
+      value: Math.max(tp.totalModules - completedModules, 0),
       icon: BookOpen,
       iconVariant: "purple" as const,
     },
@@ -99,7 +109,7 @@ export default function ProgressPage() {
             <>
               <ProgressHero
                 totalModules={tp?.totalModules}
-                approvedModules={tp.approvedModules}
+                completedModules={completedModules}
                 submittedModules={tp.submittedModules}
                 currentWeek={currentWeek}
               />
@@ -119,10 +129,10 @@ export default function ProgressPage() {
 
                 <div className="bg-bg-page border border-border rounded-[14px] p-4 mb-0 flex flex-col gap-4">
                   <ProgressBar
-                    label="Approved"
-                    pct={approvedPct}
+                    label="Completed"
+                    pct={completedPct}
                     color="bg-cyan"
-                    value={`${tp.approvedModules} / ${tp.totalModules}`}
+                    value={`${completedModules} / ${tp.totalModules}`}
                   />
                   <ProgressBar
                     label="Submitted"
@@ -135,8 +145,6 @@ export default function ProgressPage() {
             </>
           )}
             
-
-
           <WeeklyProgressSection
             weeks={byWeek}
             currentWeek={currentWeek}

@@ -7,7 +7,7 @@ import { FadeIn } from "@/components/animations/FadeIn";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/api-client";
-import type { ModuleSummary, StudentProgress } from "@/lib/api/types";
+import type { StudentProgress } from "@/lib/api/types";
 import { 
   Award ,
   BarChart2,
@@ -26,13 +26,15 @@ import {
 import { Alert, Button } from "@/components/ui";
 import { Section } from "@/components/cards/common";
 import { useOnboardingContext } from "@/components/onboarding/onboarding-provider";
+import { useModuleStateStore, useModuleStore } from "@/lib/store";
 
 export default function StudentHomePage() {
   const { user, accessToken, refreshToken, isResolved } = useAuth();
   const router = useRouter();
   const { startTour } = useOnboardingContext();
+  const { modules } = useModuleStore();
+  const { moduleState, currentTerm } = useModuleStateStore();
 
-  const [modules, setModules] = useState<ModuleSummary[]>([]);
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [activities] = useState<StudentActivity[]>([])
   const [isLoading, setIsLoading] = useState(true);
@@ -60,12 +62,12 @@ export default function StudentHomePage() {
       icon: Award,
       href: "/student/portfolio",
     },
-    {
-      title: "Performance",
-      description: "See your academic performance.",
-      icon: TrendingUp,
-      href: "/student/performance",
-    },
+    //{
+      //title: "Performance",
+      //description: "See your academic performance.",
+      //icon: TrendingUp,
+      //href: "/student/performance",
+    //},
   ]
 
   useEffect(() => {
@@ -82,23 +84,29 @@ export default function StudentHomePage() {
         if (!accessToken || !user || profileIncomplete || !user.term  || !user.classLevel) {
             return;
         }
-        const [modulesData, progressData] = await Promise.all([
-          studentApi.getModules(
+
+        if (modules.length === 0) {
+          await studentApi.getModules(
             user.term,
             user.classLevel,
             accessToken,
             refreshToken,
-            (freshModules) => {
-              setModules(freshModules);
-            }
-          ),
+          )
+        }
+
+        if (currentTerm === null) {
+          await studentApi.getModuleState(
+            user.id,
+            accessToken,
+            refreshToken
+          )
+        }
+        const [progressData] = await Promise.all([
           studentApi.getProgress(
             accessToken!,
             refreshToken
           ).catch(() => null),
         ]);
-
-        setModules(modulesData.modules);
 
         if (progressData) {
           setProgress(progressData);
@@ -129,11 +137,22 @@ export default function StudentHomePage() {
     }
 
     void load();
-  }, [accessToken, refreshToken, user, profileIncomplete]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isResolved, accessToken, refreshToken, user, profileIncomplete]);
 
-  const currentModule = useMemo(() => {
-    return modules[0] ?? null;
-  }, [modules])
+  const sortedModules = [...modules].sort(
+    (a, b) => a.weekNumber - b.weekNumber
+  );
+
+  const currentModule =
+    sortedModules.find((module) => {
+      const status = moduleState[module.id]?.submissionStatus;
+
+      return !["approved", "submitted"].includes(status);
+    }) ?? sortedModules[sortedModules.length - 1];
+
+  const completedModules = progress
+    ? Math.max(progress.termProgress.submittedModules - progress.termProgress.flaggedModules, 0)
+    : 0;
 
   return (
     <PageShell
@@ -171,7 +190,7 @@ export default function StudentHomePage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={startTour}
+                onClick={() => startTour("student-lesson")}
               >
                 <CircleHelp className="h-4 w-4 mr-2" />
                 Replay Tour
@@ -203,7 +222,7 @@ export default function StudentHomePage() {
               <div className="lg:col-span-5" data-tour="progress-overview">
                 {progress?.termProgress && (
                   <ProgressOverviewCard
-                    approvedModules={progress.termProgress.approvedModules}
+                    completedModules={completedModules}
                     totalModules={progress.termProgress.totalModules}
                     onViewProgress={() => router.push("/student/progress")}
                   />

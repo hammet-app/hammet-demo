@@ -10,13 +10,15 @@ import { StatCard } from "@/components/cards/stat-card";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";
 import type { ModuleSummary, StudentProgress } from "@/lib/api/types";
 import { ApiError } from "@/lib/api/api-client";
-import type { SubmissionStatus } from "@/components/ui/status-pill";
+import { useModuleStateStore, useModuleStore } from "@/lib/store";
 
 export default function LessonsPage() {
   const { accessToken, refreshToken, user, isResolved } = useAuth();
   const router = useRouter();
 
-  const [modules, setModules] = useState<ModuleSummary[]>([]);
+  const { modules } = useModuleStore();
+  const { moduleState } = useModuleStateStore();
+
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -30,29 +32,45 @@ export default function LessonsPage() {
     }
 
     async function load() {
+      if (!accessToken || !user || profileIncomplete || !user.term  || !user.classLevel) {
+            return;
+      }
       setError("");
 
-      try {
-        if (!accessToken || !user || profileIncomplete || !user.term  || !user.classLevel) {
-            return;
+      if (modules.length > 0) {
+        setIsLoading(false);
+
+        const progressData = await studentApi.getProgress(
+          accessToken,
+          refreshToken
+        ).catch(() => null);
+
+        if (progressData) {
+          setProgress(progressData);
         }
-        const [modulesData, progressData] = await Promise.all([
+        return;
+      }
+
+      try {
+        const [progressData] = await Promise.all([
+          studentApi.getProgress(
+            accessToken!,
+            refreshToken
+          ),
           studentApi.getModules(
             user.term,
             user.classLevel,
             accessToken,
             refreshToken,
-            (freshModules) => {
-              setModules(freshModules);
-            }
           ),
-          studentApi.getProgress(
-            accessToken!,
-            refreshToken
+          
+          
+          studentApi.getModuleState(
+            user.id,
+            accessToken,
+            refreshToken,
           ).catch(() => null),
         ]);
-
-        setModules(modulesData.modules);
 
         if (progressData) {
           setProgress(progressData);
@@ -84,14 +102,6 @@ export default function LessonsPage() {
 
     void load();
   }, [accessToken, refreshToken, user, profileIncomplete]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Build a map of moduleId → submission status from progress data
-  const statusMap = new Map<string, SubmissionStatus>(
-    (progress?.modules ?? []).map((m) => [
-      m.moduleId,
-      m.submissionStatus as SubmissionStatus,
-    ])
-  );
 
   // Group modules by week
   const byWeek = modules.reduce<Record<number, ModuleSummary[]>>((acc, m) => {
@@ -202,13 +212,13 @@ export default function LessonsPage() {
             .sort((a, b) => a - b)
             .map((week, index, arr) => {
               const lessonModule = byWeek[week][0]; // only one module per week
-
+              
               let unlocked = true;
 
               if (index > 0) {
                 const prevWeek = arr[index - 1];
                 const prevModule = byWeek[prevWeek][0];
-                const prevStatus = statusMap.get(prevModule.id);
+                const prevStatus = moduleState[prevModule.id]?.submissionStatus
 
                 unlocked =
                   prevStatus === "submitted" || prevStatus === "approved";
@@ -216,16 +226,16 @@ export default function LessonsPage() {
 
               return (
                 <div key={week} className="mb-6">
-                  <p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2.5">
+                  {/**<p className="text-[11px] font-semibold uppercase tracking-widest text-text-muted mb-2.5">
                     Week {week}
-                  </p>
+                  </p>*/}
 
                   <ModuleCard
                     key={lessonModule.id}
                     title={lessonModule.title}
                     weekNumber={lessonModule.weekNumber}
                     term={lessonModule.term}
-                    status={statusMap.get(lessonModule.id) ?? "not_started"}
+                    status={moduleState[lessonModule.id]?.submissionStatus}
                     //locked={!unlocked}
                     onClick={() => {
                       //if (!unlocked) return;

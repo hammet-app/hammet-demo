@@ -14,13 +14,13 @@ import { FormSection } from "@/components/forms/FormSection";
 import { motion, AnimatePresence } from "motion/react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { SelectField, SelectOption, LEVEL_OPTIONS, GENDER_OPTIONS } from "@/components/forms";
+import { SelectField, LEVEL_OPTIONS, GENDER_OPTIONS } from "@/components/forms";
 
-const upper_tiers = ["premier", "global"]
+const upperTiers = ["premier", "global"]
 
 type FormState = {
-  fullName: string;
-  email: string;
+  firstName: string;
+  lastName: string;
   classLevel: string;
   classArm: string;
   gender: string;
@@ -34,13 +34,13 @@ type FormErrors = Partial<Record<keyof FormState, string>>;
 function validate(form: FormState, availableArms: string[], tier: string): FormErrors {
   const errs: FormErrors = {};
   
-  if (!form.fullName.trim()) errs.fullName = "Full name is required";
-  if (!form.email.trim()) {
-    errs.email = "Email is required";
+  if (!form.firstName.trim()) errs.firstName = "First name is required";
+  if (!form.lastName.trim()) {
+    errs.lastName = "Last Name is required";
   }
   if (!form.classLevel) errs.classLevel = "Select level";
   if (availableArms.length > 0 && !form.classArm) errs.classArm = "Select arm";
-  if (upper_tiers.includes(tier)) {
+  if (upperTiers.includes(tier)) {
     if (!form.parentEmail.trim()) errs.parentEmail = "Parent email is required";
     if (!form.parentPhone.trim()) errs.parentPhone = "Phone is required";
   }
@@ -58,8 +58,8 @@ export default function NewStudentPage() {
   const [countryCode, setCountryCode] = useState("+234");
 
   const [form, setForm] = useState<FormState>({
-    fullName: "",
-    email: "",
+    firstName: "",
+    lastName: "",
     classLevel: "",
     classArm: "",
     gender: "",
@@ -112,7 +112,7 @@ export default function NewStudentPage() {
     let finalPhone = null
     let finalEmail = null
 
-    if (upper_tiers.includes(tier)) {
+    if (upperTiers.includes(tier)) {
       const clean = form.parentPhone.replace(/^0/, "");
 
       finalPhone = `${countryCode}${clean}`;
@@ -125,9 +125,11 @@ export default function NewStudentPage() {
     
 
     try {
+      const { firstName, lastName, ...rest } = form
       const res = await registerStudent(
         {
-          ...form,
+          ...rest,
+          fullName: `${firstName.trim()} ${lastName.trim()}`,
           parentPhone: finalPhone,
           parentEmail: finalEmail,
         },
@@ -138,8 +140,8 @@ export default function NewStudentPage() {
       setCreated(res);
 
       setForm({
-        fullName: "",
-        email: "",
+        firstName: "",
+        lastName: "",
         classLevel: "",
         classArm: "",
         gender: "",
@@ -175,7 +177,7 @@ export default function NewStudentPage() {
   function downloadTXT() {
     if (!created) return;
 
-    const content = `Name: ${created.fullName}\nEmail: ${created.email}\nCode: ${created.code}`;
+    const content = `Name: ${created.fullName}\nUsername: ${created.username}\nCode: ${created.password}`;
 
     const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
@@ -189,7 +191,7 @@ export default function NewStudentPage() {
   function downloadCSV() {
     if (!created) return;
 
-    const content = `fullName,email,code\n${created.fullName},${created.email},${created.code}`;
+    const content = `fullName,username,code\n${created.fullName},${created.username},${created.password}`;
 
     const blob = new Blob([content], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -209,7 +211,11 @@ export default function NewStudentPage() {
   }
 
   return (
-    <PageShell title="Register Student" rounded>
+    <PageShell 
+      title="Register Student" 
+      rounded
+      backHref="/admin/students"
+    >
       {isLoading ? (
         <ListSkeleton rows={4} />
       ) : (
@@ -226,22 +232,26 @@ export default function NewStudentPage() {
                 title="Student Information"
                 description="Basic Information about the student"
               >
-                <AuthInput
-                  ref={fullNameRef}
-                  id="full-name"
-                  label="Full name"
-                  value={form.fullName}
-                  onChange={(e) => set("fullName", e)}
-                />
-                <FieldError message={errors.fullName} />
+                <div className="flex gap-2">
+                  <AuthInput
+                    ref={fullNameRef}
+                    id="first-name"
+                    label="First Name"
+                    value={form.firstName}
+                    onChange={(e) => set("firstName", e)}
+                    className="flex-1"
+                  />
+                  <FieldError message={errors.firstName} />
 
-                <AuthInput
-                  id="email"
-                  label="Email"
-                  value={form.email}
-                  onChange={(e) => set("email", e)}
-                />
-                <FieldError message={errors.email} />
+                  <AuthInput
+                    id="last-name"
+                    label="Last Name"
+                    value={form.lastName}
+                    onChange={(e) => set("lastName", e)}
+                    className="flex-1"
+                  />
+                  <FieldError message={errors.lastName} />
+                </div>
 
                 <label className="text-sm font-medium mb-1 block">
                   Date of Birth
@@ -304,7 +314,7 @@ export default function NewStudentPage() {
                 )}
               </FormSection>
               
-              {tier && upper_tiers.includes(tier) && (
+              {tier && upperTiers.includes(tier) && (
                 <FormSection
                   title="Parent Information"
                   description="Used for progress reports"
@@ -378,10 +388,7 @@ export default function NewStudentPage() {
                     </h2>
 
                     <p className="mt-1 text-sm text-text-muted">
-                      The verification code expires in
-                      <span className="font-semibold text-warning-dark">
-                        {" "}48 hours
-                      </span>.
+                      Please see the student&apos;s password below. They can change it on their profile pages.
                     </p>
                   </div>
                 </div>
@@ -401,14 +408,14 @@ export default function NewStudentPage() {
                     </span>
 
                     <span className="font-medium">
-                      {created.email}
+                      {created.username}
                     </span>
                   </div>
                 </div>
                 <div>
 
                   <p className="text-xs uppercase text-text-muted tracking-wide">
-                    Verification Code
+                    Student Password
                   </p>
 
                   <div
@@ -418,12 +425,12 @@ export default function NewStudentPage() {
                   "
                   >
                     <code className="text-xl font-bold tracking-[0.35em] text-purple-dark">
-                      {created.code}
+                      {created.password}
                     </code>
                     <div className="flex items-center gap-2">
                       <Button
                         onClick={() => {
-                          navigator.clipboard.writeText(created.code);
+                          navigator.clipboard.writeText(created.password);
                           setCopied(true);
                           setTimeout(
                             () => setCopied(false),

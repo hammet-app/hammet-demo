@@ -20,15 +20,19 @@ test("hammet admin can register a school", async ({ page, request }) => {
 
   await login(page, request);
 
-  await page.pause();
-
   await page.goto("/hammet/schools/new");
   
   await expect(page).toHaveURL(/schools\/new/);
 
+  await expect(
+    page.getByRole('button', { 
+      name: 'Close' 
+    })
+  ).toBeVisible();
+
   await page.getByRole('button', { 
-    name: 'Close' 
-  }).click();
+      name: 'Close' 
+  }).click()
 
   await page.getByRole('button', { name: 'Dismiss' }).click();
 

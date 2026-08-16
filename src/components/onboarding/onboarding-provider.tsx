@@ -9,16 +9,22 @@ import {
 } from 'react'
 import type { UserRole } from '@/lib/utils/roles'
 import { useOnboarding } from '@/hooks/use-onboarding'
-import { useTour } from '@/hooks/use-tour'
+import { useTour, TourId } from '@/hooks/use-tour'
+
+const DEFAULT_TOURS: Record<UserRole, TourId> = {
+  student: "student-dashboard",
+  school_admin: "school-dashboard",
+  hammet_admin: "hammet-dashboard",
+}
 
 interface OnboardingContextValue {
-    startTour: () => void;
+    startTour: (tourId: TourId) => void;
     resetAndStartTour: () => void;
     hasCompleted: boolean;
 }
 
 const OnboardingContext = createContext<OnboardingContextValue>({
-  startTour: () => {},
+  startTour: (tourId: TourId) => {},
   resetAndStartTour: () => {},
   hasCompleted: false
 })
@@ -37,16 +43,17 @@ interface Props {
 
 
 export function OnboardingProvider({ userId, role, children }: Props) {
-  const { hasCompleted, markComplete, reset } = useOnboarding(userId, role)
+  const initialTour = DEFAULT_TOURS[role]
+  const { hasCompleted, markComplete, reset } = useOnboarding(userId, initialTour)
 
-  const { startTour } = useTour({ role, onComplete: markComplete })
+  const { startTour } = useTour({ onComplete: markComplete })
 
   // Auto-trigger on first login
   useEffect(() => {
     if (hasCompleted) return;
 
     const timer = setTimeout(() => {
-        startTour();
+        startTour(DEFAULT_TOURS[role]);
     }, TOUR_DELAY);
 
     return () => clearTimeout(timer);
@@ -55,7 +62,9 @@ export function OnboardingProvider({ userId, role, children }: Props) {
 
   const resetAndStartTour = useCallback(() => {
     reset()
-    setTimeout(startTour, 50)
+    setTimeout(() =>{
+      startTour(DEFAULT_TOURS[role])
+    }, 50)
   }, [reset, startTour])
 
   return (

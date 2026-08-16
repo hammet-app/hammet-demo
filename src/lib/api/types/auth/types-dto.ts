@@ -24,6 +24,7 @@ export type LoginResponseDto = {
     id: string;
     full_name: string;
     email: string;
+    username: string;
     roles: UserRole[];
     school_id: string;
     cookie_consent: boolean;
@@ -31,6 +32,7 @@ export type LoginResponseDto = {
     class_level: string | null; // null for non-students
     class_arm: string | null;
     term: number | null;
+    learning_mode?: "guided" | "focus"
   };
 };
 
@@ -52,6 +54,7 @@ export type RefreshResponseDto = {
     id: string;
     full_name: string;
     email: string;
+    username: string;
     roles: UserRole[];
     school_id: string;
     cookie_consent: boolean;
@@ -59,6 +62,7 @@ export type RefreshResponseDto = {
     class_level: string | null; // null for non-students
     class_arm: string | null;
     term: number | null;
+    learning_mode?: "guided" | "focus"
   };
 };
 
@@ -96,7 +100,6 @@ export type RegisterAdminRequestDto = {
 // POST /auth/register/student — school_admin only
 export type RegisterStudentRequestDto = {
   full_name: string;
-  email: string;
   class_level: string;
   class_arm: string | null;
   gender: string
@@ -107,13 +110,12 @@ export type RegisterStudentRequestDto = {
 
 export type RegisterStudentResponseDto = {
   full_name: string;
-  email: string;
-  code: string;
+  username: string;
+  password: string;
 };
 
 export type BulkStudentInputDto = {
   full_name: string;
-  email: string;
   class_level: string;
   class_arm: string;
   gender: string;
@@ -130,9 +132,15 @@ export type BulkRegisterRequestDto = {
 // POST /auth/register/students/bulk — school_admin only (CSV upload)
 export type BulkRegisterResponseDto = {
   total: number;
-  codes: RegisterStudentResponseDto[];
+  passwords: RegisterStudentResponseDto[];
 };
 
 export type forgotPasswordResponseDto = {
   is_admin: boolean;
+}
+
+// PATCH /auth/update-password
+export type UpdatePasswordDto = {
+  current_password: string;
+  new_password: string;
 }

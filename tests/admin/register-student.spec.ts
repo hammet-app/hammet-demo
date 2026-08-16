@@ -5,42 +5,36 @@ test("school admin can create student", async ({ page }) => {
 
     await page.goto("/admin")
 
+    await expect(
+      page.getByRole('button', { 
+        name: 'Close' 
+      })
+    ).toBeVisible();
+
     await page.getByRole('button', { 
         name: 'Close' 
-    }).click();
+    }).click()
     
     await page.getByRole('button', { name: 'Dismiss' }).click();
 
     await page.goto("/admin/students/new");
 
-    await page.pause();
+    await page.getByRole("textbox", {
+      name: 'First Name', exact: true
+    }).fill(faker.person.firstName());
 
     await page.getByRole("textbox", {
-      name: 'Full name', exact: true
-    }).fill(faker.person.fullName());
-
-    await page.getByRole("textbox", {
-      name: 'Email', exact: true
-    }).fill(faker.internet.email().toLowerCase());
-
-    await page.pause();
+      name: 'Last Name', exact: true
+    }).fill(faker.person.lastName());
 
     await page.getByRole('combobox', { name: 'Gender' }).click();
 
-    await page.pause();
-
     await page.getByRole('option', { name: 'Male', exact: true }).click();
-
-    await page.pause();
 
     await page.getByRole('combobox', { name: 'Class' }).click();
     await page.getByText('JSS2').click();
 
-    await page.pause();
-
     await page.locator('input[type="date"]').fill("2026-06-03");
-
-    await page.pause();
 
     await page.getByRole("button", {
       name: 'Register student', exact: true

@@ -1,5 +1,5 @@
-import { PreviewStudent, PreviewError } from "@/lib/admin/import/types";
-import { useEffect, useRef, useState } from "react";
+import {PreviewStudent } from "@/lib/admin/import/types";
+import { useRef, useState } from "react";
 
 type CSVPreviewCardProps = {
   students: PreviewStudent[];
@@ -85,10 +85,6 @@ export function CSVPreviewCard({
               <div>
                 <p className="font-semibold">
                   {student.fullName}
-                </p>
-
-                <p className="text-sm text-text-muted">
-                  {student.email}
                 </p>
 
                 <p className="mt-1 text-sm text-text-secondary">

@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils/utils";
 import { useTheme } from "@/lib/use-theme";
-import { Menu, Sun, Moon } from "lucide-react";
+import { ChevronDown, Menu, Sun, Moon } from "lucide-react";
 import type { UserRole } from "@/lib/utils/roles";
 import { type AuthUser, getRoleLabel, getInitials } from "@/lib/utils/roles";
 import Image from "next/image";
 import { getDashboardRoute } from "@/lib/auth/routes";
+import { isFeatureEnabled } from "@/lib/features/flags";
 
 interface TopbarProps {
   user: AuthUser;
@@ -34,6 +35,10 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
   const initials = getInitials(user.fullName);
   const primaryRole = activeRole;
   const roleLabel = getRoleLabel(primaryRole);
+  const lessonCoachEnabled = isFeatureEnabled(
+      "lesson_coach",
+      user.schoolId
+    );
 
   const { theme, toggle } = useTheme();  
 
@@ -104,22 +109,40 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
       </span>
 
       {/* User */}
-      <div className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-white/[0.08] transition-colors cursor-pointer active:scale-[0.98]">
-        <div
-          className={cn(
-            "w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0",
-            avatarStyles[primaryRole]
+      <Link
+        href="/profile"
+        aria-label="Profile"
+        className="..."
+      >
+        <div className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-white/[0.08] transition-colors cursor-pointer active:scale-[0.98]">
+          <div
+            className={cn(
+              "w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0",
+              avatarStyles[primaryRole]
+            )}
+            style={{ fontFamily: "var(--font-head)" }}
+          >
+            {initials}
+          </div>
+          {/* Name + meta — hidden on small screens */}
+          <div className="hidden md:flex flex-col leading-none">
+            <span className="text-[13px] font-medium text-white">
+              {user.fullName}
+            </span>
+            <span className="text-[11px] text-white/40">
+              {metaLine}
+            </span>
+          </div>
+
+          {lessonCoachEnabled && (
+            <ChevronDown
+              size={15}
+              className="text-white/60 shrink-0"
+              aria-hidden="true"
+            />
           )}
-          style={{ fontFamily: "var(--font-head)" }}
-        >
-          {initials}
         </div>
-        {/* Name + meta — hidden on small screens */}
-        <div className="hidden md:flex flex-col leading-none">
-          <span className="text-[13px] font-medium text-white">{user.fullName}</span>
-          <span className="text-[11px] text-white/40">{metaLine}</span>
-        </div>
-      </div>
+      </Link>
     </header>
   );
 }

@@ -4,12 +4,12 @@ import { type NextRequest, NextResponse } from "next/server";
  * Protected path prefixes.
  * Any route starting with these requires a valid refresh token cookie.
  */
-const PROTECTED_PREFIXES = ["/student", "/teacher", "/admin", "/hammet"];
+const PROTECTED_PREFIXES = ["/profile", "/student", "/admin", "/hammet"];
 
 /**
  * Auth routes — logged-in users should not see these.
  */
-const AUTH_PREFIXES = ["/claim", "/login", "/check-email"];
+const AUTH_PREFIXES = ["/claim", "/login", "/check-email", "/blog"];
 
 /** The name of the httpOnly refresh token cookie set by FastAPI. */
 const REFRESH_COOKIE = "refresh_token";

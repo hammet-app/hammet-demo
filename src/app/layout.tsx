@@ -3,6 +3,8 @@ import "../styles/lesson-reading.css"
 import type { Metadata } from "next";
 import { CookieNoticeBanner } from "@/components/layout/legal/CookieNoticeBanner";
 import { AuthProvider } from "@/lib/auth/auth-context";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import { Nunito, Atkinson_Hyperlegible } from "next/font/google";
 
 const nunito = Nunito({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-head" });
@@ -21,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${nunito.variable} ${atkinson.variable}`}>
-      <body><AuthProvider>{children}</AuthProvider><CookieNoticeBanner /></body>
+      <body><AuthProvider>{children}</AuthProvider><SpeedInsights /> <Analytics /> <CookieNoticeBanner /></body>
     </html>
   );
 }

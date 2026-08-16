@@ -8,7 +8,7 @@ export function HelpButton() {
 
   return (
     <button
-      onClick={startTour}
+      onClick={() =>startTour("hammet-dashboard")}
       aria-label="Help — take the tour"
       className="fixed bottom-6 right-6 z-40 flex items-center justify-center
         w-11 h-11 rounded-full bg-cyan-500 hover:bg-cyan-400 text-white shadow-lg 

@@ -5,9 +5,15 @@ test("school admin can create student", async ({ page }) => {
 
     await page.goto("/admin")
 
+    await expect(
+      page.getByRole('button', { 
+        name: 'Close' 
+      })
+    ).toBeVisible();
+
     await page.getByRole('button', { 
         name: 'Close' 
-    }).click();
+    }).click()
     
     await page.getByRole('button', { name: 'Dismiss' }).click();
 

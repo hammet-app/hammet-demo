@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, X } from "lucide-react";
 import {
   AuthShell,
   AuthHeading,
@@ -29,7 +29,7 @@ import { fadeUp } from "../animations/home";
 
 type Step = "identify" | "set_password" | "success";
 
-export default function ClaimPage() {
+export default function ClaimContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
@@ -51,8 +51,8 @@ export default function ClaimPage() {
     if (!token) return;
     apiClient
       .get<InviteInfoDto>(`/auth/claim/${token}`)
-      .then((data) => { setInvite(toInviteInfo(data)); })
-      .catch(() => { setError("Invalid or expired link"); setStep("identify"); })
+      .then((data) => { setInvite(toInviteInfo(data));})
+      .catch(() => { setError("Invalid or expired link");})
       .finally(() => setIsVerifying(false));
   }, [token]);
 
@@ -135,6 +135,32 @@ export default function ClaimPage() {
       setIsLoading(false);
     }
   }
+
+  if (!token) return (
+    <AuthShell>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.35 }}
+        className="flex flex-col items-center py-6 gap-4 text-center"
+      >
+        <motion.div
+          initial={{ scale: 0, rotate: -90 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+          className="w-16 h-16 rounded-full flex items-center justify-center dark:bg-emerald-500/15"
+          style={{ background: "rgba(5,150,105,0.1)" }}
+        >
+          <X size={32} className="text-emerald-600 dark:text-emerald-400" />
+        </motion.div>
+        <div>
+          <p className="text-[17px] font-bold text-text-primary" style={{ fontFamily: "var(--font-head)" }}>
+            Invalid or expired token
+          </p>
+        </div>
+      </motion.div>
+    </AuthShell>
+  )
 
   if (step === "success") {
     return (

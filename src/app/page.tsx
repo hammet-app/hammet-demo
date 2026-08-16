@@ -118,10 +118,6 @@ function Nav() {
   );
 }
 
-
-// ─── Section 6 — Callback Form ────────────────────────────────────────────────
-
-
 // ─── Footer ───────────────────────────────────────────────────────────────────
 
 function Footer() {
@@ -129,6 +125,7 @@ function Footer() {
     { label: "How It Works", href: "#how-it-works" },
     { label: "Features", href: "#features" },
     { label: "For Schools", href: "#callback" },
+    { label: "Blog", href: "/blog" },
     { label: "Request to Test the Software", href: "#callback" },
   ];
 

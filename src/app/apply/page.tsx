@@ -93,10 +93,10 @@ export default function CareersPage() {
     }
     setSubmitting(true);
     try{
-      const response = await apiClient.post(
-              "/callback/apply",
-              {...fromApplyForm(form)}
-            );
+      await apiClient.post(
+        "/callback/apply",
+        {...fromApplyForm(form)}
+      );
 
       setSubmittedData(form)
       setForm({
@@ -232,7 +232,7 @@ export default function CareersPage() {
           </h1>
 
           <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 16, lineHeight: 1.7, maxWidth: 500, margin: "0 auto" }}>
-            In-person roles for SIWES Interns open to working in Ibadan.
+            In-person roles for SIWES Interns open to working in Lagos.
             Creative, hardworking, and excited about what we&apos;re building? Apply below.
           </p>
         </div>
@@ -260,7 +260,7 @@ export default function CareersPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
               "Your name, email, and WhatsApp number",
-              "Your location — you must be open to working in Ibadan",
+              "Your location — you must be open to working in Lagos",
               "A portfolio link — this is the most important thing",
             ].map((item) => (
               <div key={item} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 14, color: "rgba(255,255,255,0.7)" }}>
@@ -326,9 +326,9 @@ export default function CareersPage() {
                 {errors.role && <p style={{ color: "#F87171", fontSize: 12, marginTop: 4 }}>{errors.role}</p>}
               </div>
 
-              <Field label="Location" name="location" type="text" placeholder="Ibadan, Oyo State"
+              <Field label="Location" name="location" type="text" placeholder="Yaba, Lagos State"
                 value={form.location} error={errors.location} onChange={handleChange}
-                note="This role is in-person in Ibadan." />
+                note="This role is in-person in Lagos." />
               <Field label="Portfolio Link" name="portfolio" type="url" placeholder="https://drive.google.com/…"
                 value={form.portfolio} error={errors.portfolio} onChange={handleChange}
                 note="Paste a link to your portfolio, Google Drive folder, or any work samples. This is the most important part of your application."

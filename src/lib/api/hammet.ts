@@ -30,6 +30,8 @@ import {
   toDisputes,
   DisputeReviewPayload,
   fromDisputeReviewPayload,
+  ResendVerificationRequest,
+  ResendVerificationResponse,
 } from "@/lib/api/types";
 
 // ------------------------------------------------------------
@@ -55,6 +57,18 @@ export async function getSchool(
   return toSchoolDetailsItem(response)
 }
 
+export async function resendCode(
+  body:ResendVerificationRequest,
+  token: string,
+  onRefresh: () => Promise<string | null>
+): Promise<boolean> {
+  return apiClient.post<boolean>(
+    "/auth/resend/student",
+    body,
+    token,
+    { onRefresh }
+  );
+}
 
 
 export async function registerSchool(

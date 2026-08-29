@@ -1,5 +1,6 @@
 import { CurriculumModuleBlock } from "@/lib/api/types/module";
 import { UserRole } from "@/lib/utils/roles";
+import { UserStatus } from "../admin";
 
 // GET /hammet/schools
 // Full list of all registered schools — hammet_admin only
@@ -38,6 +39,7 @@ export type AdminDetails = {
   fullName: string;
   email: string;
   role: UserRole[];
+  status: UserStatus
   lastLogin: string | null;
 }
 

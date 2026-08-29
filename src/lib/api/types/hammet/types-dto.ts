@@ -1,6 +1,7 @@
 // GET /hammet/schools
 
 import { UserRole } from "@/lib/utils/roles";
+import { UserStatus } from "../admin";
 
 // Full list of all registered schools — hammet_admin only
 export type SchoolListItemDto = {
@@ -43,6 +44,7 @@ export type AdminDetailsDto = {
   full_name: string;
   email: string;
   role: UserRole[];
+  status: UserStatus;
   last_login: string | null;
 }
 

@@ -59,6 +59,7 @@ function toAdminDetails(dto: AdminDetailsDto): AdminDetails {
         fullName: dto.full_name,
         email: dto.email,
         role: dto.role,
+        status: dto.status,
         lastLogin: dto.last_login
     }
 }

@@ -7,7 +7,7 @@ import { SchoolInformationCard,  SchoolAdminsCard } from "@/components/cards/ham
 import { StatCard } from "@/components/cards/stat-card";
 import { ListSkeleton, PageShell } from "@/components/layout/common/PageShell";
 import { Alert } from "@/components/ui";
-import { getSchool } from "@/lib/api/hammet";
+import { getSchool, resendCode } from "@/lib/api/hammet";
 import { AdminDetails, SchoolDetails, } from "@/lib/api/types";
 import { useAuth } from "@/lib/auth/auth-context";
 import { TIER_CONFIG } from "@/lib/schools/tier-config";
@@ -41,6 +41,20 @@ export default function HammetSchoolPage() {
       .catch(() => setError("Failed to load schools."))
       .finally(() => setIsLoading(false));
   }, [schoolId, accessToken, refreshToken]);
+
+  const handleRegenerateCode = async (admin: AdminDetails) => {
+    if (!accessToken) return;
+
+    try {
+      await resendCode(
+        {id: admin.id, role: admin.role[0], reset: false},
+        accessToken,
+        refreshToken
+      );
+    } catch {
+      setError("Failed to regenerate admin code.");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -112,6 +126,7 @@ export default function HammetSchoolPage() {
               onAddAdmin={() => 
                 router.push(`/hammet/schools/${school?.id}/admin/new`)
               }
+              onRegenerateCode={handleRegenerateCode}
             />
           </div>
         </div>

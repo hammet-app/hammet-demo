@@ -275,6 +275,7 @@ export default function NewSchoolPage() {
           type="submit"
           disabled={isLoading}
           className="h-11 rounded-sm bg-purple text-white flex items-center justify-center gap-2 text-md cursor-pointer"
+          onClick={handleSubmit}
         >
           {isLoading ? (
             <>

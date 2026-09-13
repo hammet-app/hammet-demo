@@ -127,7 +127,7 @@ export function LessonCoach({
               <button
                 type="button"
                 onClick={() => setCollapsed((value) => !value)}
-                className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-card hover:text-text-primary"
+                className="cursor-pointer rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-card hover:text-text-primary"
                 aria-label={
                   collapsed
                     ? "Expand coach"
@@ -145,7 +145,7 @@ export function LessonCoach({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-card hover:text-text-primary"
+                  className="cursor-pointer rounded-lg p-1.5 text-text-muted transition-colors hover:bg-bg-card hover:text-text-primary"
                   aria-label="Close coach"
                 >
                   <X className="h-4 w-4" />

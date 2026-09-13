@@ -23,6 +23,7 @@ export function SchoolCard({
   return (
     <div
       className={`
+        cursor-pointer
         rounded-2xl
         border
         border-[var(--color-border)]
@@ -109,7 +110,7 @@ export function SchoolCard({
                   setConfirming(false);
                 }}
                 disabled={deactivating}
-                className="text-xs font-semibold text-red-600"
+                className="cursor-pointer text-xs font-semibold text-red-600"
               >
                 {deactivating ? "Suspending…" : "Confirm"}
               </button>
@@ -124,7 +125,7 @@ export function SchoolCard({
           ) : (
             <button
               onClick={() => setConfirming(true)}
-              className="flex items-center gap-2 text-xs text-[var(--color-text-muted)] hover:text-red-600"
+              className="cursor-pointer flex items-center gap-2 text-xs text-[var(--color-text-muted)] hover:text-red-600"
             >
                 <AlertTriangle size={18} />
                 Deactivate school

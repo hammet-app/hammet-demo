@@ -11,3 +11,10 @@ export type CallbackFormDto = {
   phone: string;
   city: string;
 }
+
+export type PaginationDto = {
+  page: number
+  page_size: number;
+  total: number;
+  total_pages: number
+}

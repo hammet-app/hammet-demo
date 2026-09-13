@@ -10,7 +10,6 @@ import {
     UserUpdateRequestDto
 } from "@/lib/api/types/admin/types-dto"
 import {
-    UserStatus,
     AdminStudent,
     SchoolProfile,
     SchoolStats,
@@ -22,6 +21,7 @@ import {
     DashboardAttention
 } from "@/lib/api/types/admin/types"
 import {toCurriculumModule} from "@/lib/api/types/module"
+import { toPagination } from "../support"
 
 /**
  * Naming convention:
@@ -94,7 +94,7 @@ export function toAdminStudent(dto: AdminStudentDto): AdminStudent {
 export function toAdminStudentResponse(dto: AdminStudentsResponseDto): AdminStudentsResponse {
     return {
         students: dto.students.map(toAdminStudent),
-        total: dto.total
+        pagination: toPagination(dto.pagination)
     }
 }
 

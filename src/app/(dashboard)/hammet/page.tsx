@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Building2, Users, UserCheck, Ban, CircleHelp } from "lucide-react";
-import type { SchoolListItem } from "@/lib/api/types";
+import type { SchoolListItem, Pagination } from "@/lib/api/types";
 import { StatCard } from "@/components/cards/stat-card";
 import { SchoolCard, SchoolToolbar } from "@/components/cards/hammet";
 import { getTierCounts } from "@/lib/schools/getTierCounts";
@@ -30,7 +30,10 @@ export default function HammetDashboardPage() {
   const { startTour } = useOnboardingContext();
 
   const [schools, setSchools] = useState<SchoolListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -41,11 +44,44 @@ export default function HammetDashboardPage() {
   useEffect(() => {
     if (!accessToken) return;
 
-    getSchools(accessToken, refreshToken)
-      .then((res) => setSchools(res.schools))
-      .catch(() => setError("Failed to load schools."))
-      .finally(() => setIsLoading(false));
-  }, [accessToken, refreshToken]);
+    let cancelled = false;
+
+    getSchools(
+      accessToken,
+      refreshToken,
+      page,
+      pageSize,
+      tierFilter,
+      search
+    )
+      .then((res) => {
+        if (cancelled) return;
+
+        setSchools(res.schools);
+        setPagination(res.pagination);
+        setError(null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+
+        setError("Failed to load schools.");
+      })
+      .finally(() => {
+        if (cancelled) return;
+
+        setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    accessToken,
+    refreshToken,
+    page,
+    tierFilter,
+    search,
+  ]);
 
   async function handleDeactivate(schoolId: string) {
     if (!accessToken) return;
@@ -68,20 +104,6 @@ export default function HammetDashboardPage() {
     }
   }
 
-  const filtered = useMemo(() => {
-      return schools
-          .filter(
-              school =>
-                  tierFilter === "all" ||
-                  school.tier === tierFilter
-          )
-          .filter(school =>
-              school.name
-                  .toLowerCase()
-                  .includes(search.toLowerCase())
-          );
-  }, [schools, tierFilter, search]);
-
   const tierCounts = useMemo(
     () => getTierCounts(schools),
     [schools]
@@ -95,7 +117,7 @@ export default function HammetDashboardPage() {
   return (
     <PageShell
       title="Schools"
-      description={`${schools.length} registered`}
+      description={`${pagination?.total ?? 0} registered`}
       actions={
         <Button
           variant="ghost"
@@ -167,9 +189,17 @@ export default function HammetDashboardPage() {
           {schools.length > 0 && (
             <SchoolToolbar
               search={search}
-              onSearchChange={setSearch}
+              onSearchChange={(value) => {
+                setSearch(value);
+                setPage(1)
+                setIsLoading(true);
+              }}
               tierFilter={tierFilter}
-              onTierChange={setTierFilter}
+              onTierChange={(value) => {
+                setTierFilter(value);
+                setPage(1);
+                setIsLoading(true);
+              }}
               tierCounts={tierCounts}
               onCreateSchool={() => 
                 router.push("/hammet/schools/new")
@@ -178,26 +208,57 @@ export default function HammetDashboardPage() {
             />
           )}
 
-          {filtered.length === 0 ? (
+          {schools.length === 0 ? (
             <div className="text-center py-24">
               <p className="text-sm text-[var(--color-text-secondary)]">
                 No schools found.
               </p>
             </div>
           ) : (
-            <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(360px,1fr))]" data-tour="school-directory">
-              {filtered.map((school, index) => (
-                <div key={school.id} data-tour={index===0 ? "school-card" : undefined}>
-                  <SchoolCard
-                    school={school}
-                    onDeactivate={handleDeactivate}
-                    deactivating={deactivatingId === school.id}
-                    
+            <>
+              <div className="grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(360px,1fr))]" data-tour="school-directory">
+                {schools.map((school, index) => (
+                  <div key={school.id} data-tour={index===0 ? "school-card" : undefined}>
+                    <SchoolCard
+                      school={school}
+                      onDeactivate={handleDeactivate}
+                      deactivating={deactivatingId === school.id}
+                    />
+                  </div>
+                ))}
+              </div>
+              {pagination && pagination.totalPages > 1 && (
+                <div className="flex items-center justify-center gap-4 mt-8">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={page <= 1}
+                    onClick={() => {
+                      setIsLoading(true);
+                      setPage((prev) => prev - 1)
+                    }}
+                  >
+                    Previous
+                  </Button>
 
-                  />
+                  <span className="text-sm text-[var(--color-text-secondary)]">
+                    Page {pagination.page} of {pagination.totalPages}
+                  </span>
+
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    disabled={page >= pagination.totalPages}
+                    onClick={() => {
+                      setIsLoading(true)
+                      setPage((prev) => prev + 1)
+                    }}
+                  >
+                    Next
+                  </Button>
                 </div>
-              ))}
-            </div>
+              )}
+            </>
           )}
         </>
       )}

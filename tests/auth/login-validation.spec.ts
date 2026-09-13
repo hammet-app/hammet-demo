@@ -29,8 +29,6 @@ test("email is required", async ({ page }) => {
     name: "Sign in",
   }).click();
 
-  await page.pause()
-
   await expect(
     page.getByText(/Email or username is required/i)
   ).toBeVisible();

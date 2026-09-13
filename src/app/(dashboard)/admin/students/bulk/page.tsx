@@ -284,7 +284,7 @@ export default function BulkImportPage() {
                 issues > 0 ||
                 submitting
               }
-              className="inline-flex items-center justify-center gap-2 self-end rounded-xl
+              className="cursor-pointer inline-flex items-center justify-center gap-2 self-end rounded-xl
                 bg-purple-mid px-6 py-3 text-sm font-medium text-white transition-all
                 duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-purple-mid/20
                 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50

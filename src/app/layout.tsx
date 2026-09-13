@@ -23,7 +23,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${nunito.variable} ${atkinson.variable}`}>
-      <body><AuthProvider>{children}</AuthProvider><SpeedInsights /> <Analytics /> <CookieNoticeBanner /></body>
+      <body><AuthProvider>{children}</AuthProvider>
+      {/**<SpeedInsights /> <Analytics /> <CookieNoticeBanner />*/}
+      </body>
     </html>
   );
 }

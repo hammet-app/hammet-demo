@@ -24,7 +24,7 @@ export function ProgressOverviewCard({
     
   return (
     <motion.article
-      className="rounded-2xl border border-border bg-bg-card p-6 shadow-sm shadow-slate-200/10"
+      className="cursor-pointer rounded-2xl border border-border bg-bg-card p-6 shadow-sm shadow-slate-200/10"
       whileHover={{ y: -3, }}
       transition={{ duration: 0.2, ease: "easeOut", }}
     >

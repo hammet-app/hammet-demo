@@ -90,7 +90,7 @@ export function CSVUploadCard({
                     e.stopPropagation();
                     inputRef.current?.click();
                   }}
-                  className="rounded-xl bg-purple-mid px-4 py-2 text-sm font-medium text-white"
+                  className="cursor-pointer rounded-xl bg-purple-mid px-4 py-2 text-sm font-medium text-white"
                 >
                   Replace
                 </button>
@@ -100,7 +100,7 @@ export function CSVUploadCard({
                     e.stopPropagation();
                     onFileChange(null);
                   }}
-                  className="rounded-xl border border-border px-4 -2 text-sm"
+                  className="cursor-pointer rounded-xl border border-border px-4 -2 text-sm"
                 >
                   Remove
                 </button>
@@ -110,7 +110,7 @@ export function CSVUploadCard({
           ) : (
             <>
               <div
-                className="mx-auto mb-5 flex h-14 w-14 items-center justify-center 
+                className="cursor-pointer mx-auto mb-5 flex h-14 w-14 items-center justify-center 
                   rounded-2xl bg-purple-light text-purple-mid"
               >
                   <UploadCloud size={28}/>
@@ -133,7 +133,7 @@ export function CSVUploadCard({
                   e.stopPropagation();
                   inputRef.current?.click()
                 }}
-                className="mt-6 rounded-xl bg-purple-mid px-5 py-2.5 text-sm
+                className="cursor-pointer mt-6 rounded-xl bg-purple-mid px-5 py-2.5 text-sm
                   font-medium text-white transition hover:opacity-90 "
               >
                 Choose CSV File
@@ -145,7 +145,7 @@ export function CSVUploadCard({
 
               <button
                 onClick={onDownloadTemplate}
-                className="mt-3 text-sm font-medium text-purple-mid hover:underline"
+                className="cursor-pointer mt-3 text-sm font-medium text-purple-mid hover:underline"
               >
                 Download Template
               </button>

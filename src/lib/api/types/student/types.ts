@@ -1,5 +1,6 @@
 import { SubmissionStatus } from "@/components/ui";
 import { AiFormState, QuestionAnswer } from "@/lib/api/types/submissions";
+import { Pagination } from "../support";
 
 
 export type PreviewLink = {
@@ -91,7 +92,7 @@ export type Submission = {
 
 export type SubmissionHistory = {
   submissions: Submission[];
-  total: number;
+  pagination: Pagination
 };
 
 
@@ -117,7 +118,7 @@ export type PortfolioEntry = {
 
 export type StudentPortfolio = {
   entries: PortfolioEntry[];
-  total: number;
+  pagination: Pagination;
 };
 
 export interface PerformancePoint {

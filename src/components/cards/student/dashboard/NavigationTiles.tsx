@@ -20,7 +20,7 @@ export function NavigationTiles({
 }: NavigationTilesProps) {
   const MotionLink = motion.create(Link)
   return(  
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-2">
+    <div className="cursor-pointer grid grid-cols-2 gap-4 sm:grid-cols-2">
       {actions.map((action) => { 
         const Icon = action.icon; 
         return(

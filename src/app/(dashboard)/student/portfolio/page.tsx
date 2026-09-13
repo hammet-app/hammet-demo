@@ -4,32 +4,64 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { studentApi } from "@/lib/api/student";
 import { useAuth } from "@/lib/auth/auth-context";
-import { PreviewLink, type PortfolioEntry } from "@/lib/api/types";
+import {
+  PreviewLink,
+  Pagination,
+  type PortfolioEntry,
+} from "@/lib/api/types";
 import { PageShell, ListSkeleton } from "@/components/layout/common/PageShell";
-import { FileText, Award } from "lucide-react";
+import { FileText, Award, ChevronLeft, ChevronRight } from "lucide-react";
 import { StatusPill } from "@/components/ui";
-import { AssetPreview, AssetPreviewModal } from "@/components/cards/student/lessons/views";
+import {
+  AssetPreview,
+  AssetPreviewModal,
+} from "@/components/cards/student/lessons/views";
 import { ModalShell } from "@/components/modals/ModalShell";
 
 export default function PortfolioPage() {
   const { accessToken, refreshToken } = useAuth();
+
   const [entries, setEntries] = useState<PortfolioEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
+
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState("");
   const [selectedEntry, setSelectedEntry] = useState<PortfolioEntry | null>(null);
-  
 
   useEffect(() => {
     if (!accessToken) return;
+
+    let cancelled = false;
+
     studentApi
-      .getPortfolio(accessToken, refreshToken)
-      .then((data) => setEntries(data.entries))
-      .catch(() => setError("Failed to load portfolio. Please try again."))
-      .finally(() => setIsLoading(false));
-  }, [accessToken]); // eslint-disable-line react-hooks/exhaustive-deps
+      .getPortfolio(accessToken, refreshToken, page, pageSize)
+      .then((data) => {
+        if (cancelled) return;
+
+        setEntries(data.entries);
+        setPagination(data.pagination);
+      })
+      .catch(() => {
+        if (cancelled) return;
+
+        setError("Failed to load portfolio. Please try again.");
+      })
+      .finally(() => {
+        if (cancelled) return;
+
+        setHasLoaded(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accessToken, refreshToken, page]);
 
   const approvedCount = entries.filter(
-    entry => entry.status === "approved"
+    (entry) => entry.status === "approved"
   ).length;
 
   return (
@@ -38,7 +70,7 @@ export default function PortfolioPage() {
       description="Approved work that showcases your AI literacy journey"
       rounded={true}
     >
-      {isLoading ? (
+      {hasLoaded ? (
         <ListSkeleton rows={4} />
       ) : error ? (
         <div className="text-[13px] text-danger bg-danger-light border border-danger/20 rounded-[10px] px-4 py-3">
@@ -52,17 +84,54 @@ export default function PortfolioPage() {
           <div className="flex items-center gap-2 mb-5">
             <div className="flex items-center gap-1.5 bg-success-light text-success-dark text-[12px] font-semibold px-3 py-1.5 rounded-full">
               <Award size={13} />
-              {approvedCount} approved {approvedCount === 1 ? "entry" : "entries"}
+              {approvedCount} approved{" "}
+              {approvedCount === 1 ? "entry" : "entries"}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {entries.map((entry) => (
-              <PortfolioEntryCard key={entry.id} entry={entry} onOpen={setSelectedEntry} />
-            ))}
+                <PortfolioEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onOpen={setSelectedEntry}
+                />
+              )
+            )}
           </div>
+
+          {pagination && pagination.totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <p className="text-[12px] text-text-muted">
+                Page {pagination.page} of {pagination.totalPages}
+              </p>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={pagination.page <= 1}
+                  onClick={() => setPage((previous) => previous - 1)}
+                  className="cursor-pointer inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-border bg-bg-card text-[12px] font-medium text-text-secondary hover:border-purple hover:text-purple disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                >
+                  <ChevronLeft size={14} />
+                  Previous
+                </button>
+
+                <button
+                  type="button"
+                  disabled={pagination.page >= pagination.totalPages}
+                  onClick={() => setPage((previous) => previous + 1)}
+                  className="cursor-pointer inline-flex items-center gap-1 px-3 py-1.5 rounded-md border border-border bg-bg-card text-[12px] font-medium text-text-secondary hover:border-purple hover:text-purple disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                >
+                  Next
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            </div>
+          )}
         </>
       )}
+
       <PortfolioEntryModal
         open={selectedEntry !== null}
         entry={selectedEntry}
@@ -72,26 +141,27 @@ export default function PortfolioPage() {
   );
 }
 
-function PortfolioEntryCard({ entry, onOpen }: { entry: PortfolioEntry, onOpen: (entry: PortfolioEntry) => void; }) {
-
-  
-
+function PortfolioEntryCard({
+  entry,
+  onOpen,
+}: {
+  entry: PortfolioEntry;
+  onOpen: (entry: PortfolioEntry) => void;
+}) {
   const approvedDate = new Date(entry.approvedAt).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
+
   const files = entry.fileUrls?.filter(Boolean) ?? [];
   const hasFiles = files.length > 0;
-  const hasReflection = Boolean(entry.reflectionText?.trim());
-
-  const hasActivity = false;
 
   const previewArtifacts = files.slice(0, 4);
-  const remainingCount = files.length - 4
-;
+  const remainingCount = files.length - 4;
+
   return (
-    <div 
+    <div
       className="group bg-bg-card border border-border rounded-[14px] overflow-hidden transition-all
       duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-purple/30"
       onClick={() => onOpen(entry)}
@@ -140,12 +210,11 @@ function PortfolioEntryCard({ entry, onOpen }: { entry: PortfolioEntry, onOpen: 
           <StatusPill status={entry.status} />
 
           <span className="text-[11px] text-text-muted">
-             {entry.approvedAt ? approvedDate : ""}
+            {entry.approvedAt ? approvedDate : ""}
           </span>
         </div>
       </div>
     </div>
-    
   );
 }
 
@@ -155,15 +224,18 @@ function EmptyPortfolio() {
       <div className="w-14 h-14 rounded-full bg-purple-light flex items-center justify-center">
         <Award size={26} className="text-purple-mid" />
       </div>
+
       <div>
         <p className="text-[15px] font-medium text-text-primary mb-1">
           Your portfolio is empty
         </p>
+
         <p className="text-[13px] text-text-muted max-w-[260px] mx-auto leading-relaxed">
           Approved submissions are automatically added here. Complete a lesson
           and get it approved by your teacher to get started.
         </p>
       </div>
+
       <Link
         href="/student/lessons"
         className="mt-2 text-[13px] font-semibold text-purple-mid hover:text-purple transition-colors no-underline"
@@ -173,29 +245,30 @@ function EmptyPortfolio() {
     </div>
   );
 }
+
 type PortfolioEntryModalProps = {
   open: boolean;
   entry: PortfolioEntry | null;
   onClose: () => void;
-}
+};
 
 function PortfolioEntryModal({
-  open, 
-  entry, 
-  onClose
+  open,
+  entry,
+  onClose,
 }: PortfolioEntryModalProps) {
-  const [selectedArtifact, setSelectedArtifact] = useState<PreviewLink | null>(null);
-  
+  const [selectedArtifact, setSelectedArtifact] =
+    useState<PreviewLink | null>(null);
+
   if (!open || !entry) return null;
-  
-  const files = entry?.fileUrls?.filter(Boolean) ?? [];
+
+  const files = entry.fileUrls?.filter(Boolean) ?? [];
+
   const approvedDate = new Date(entry.approvedAt).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
-
-  
 
   return (
     <ModalShell
@@ -211,17 +284,17 @@ function PortfolioEntryModal({
             key={artifact.url}
             type="button"
             onClick={() => setSelectedArtifact(artifact)}
-            className="group rounded-xl overflow-hidden border border-border bg-bg-card hover:border-purple transition"
+            className="cursor-pointer group rounded-xl overflow-hidden border border-border bg-bg-card hover:border-purple transition"
           >
             <div className="aspect-square">
-              <AssetPreview
-                artifact={artifact}
-                className="h-full"
-              />
+              <AssetPreview artifact={artifact} className="h-full" />
             </div>
           </button>
         ))}
-        {entry.reflectionText && (
+
+      </div>
+
+      {entry.reflectionText && (
           <section className="mt-8">
             <h3 className="text-sm font-semibold text-text-primary mb-2">
               Reflection
@@ -235,7 +308,6 @@ function PortfolioEntryModal({
           </section>
         )}
 
-      </div>
       <div className="mt-8">
         <h3 className="mb-3 text-sm font-semibold text-text-primary">
           Details
@@ -249,22 +321,17 @@ function PortfolioEntryModal({
 
           <div>
             <p className="text-xs text-text-muted">Approved</p>
-            <p className="text-sm text-text-primary">
-              {approvedDate}
-            </p>
+            <p className="text-sm text-text-primary">{approvedDate}</p>
           </div>
+
           <div>
             <p className="text-xs text-text-muted">Week</p>
-            <p className="text-sm text-text-primary">
-              {entry.weekNumber}
-            </p>
+            <p className="text-sm text-text-primary">{entry.weekNumber}</p>
           </div>
 
           <div>
             <p className="text-xs text-text-muted">Term</p>
-            <p className="text-sm text-text-primary">
-              {entry.term}
-            </p>
+            <p className="text-sm text-text-primary">{entry.term}</p>
           </div>
         </div>
       </div>

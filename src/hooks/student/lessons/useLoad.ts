@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { EMPTY_AI_FORM } from "@/components/cards/student/lessons";
 import { studentApi } from "@/lib/api/student";
-import { AiFormState, CurriculumModule, ModulesResponse, PreviewLink, PreviewLinkState, Submission, TaskFilesState, TaskLinksState } from "@/lib/api/types";
+import { AiFormState, PreviewLink, PreviewLinkState, Submission, TaskFilesState, TaskLinksState } from "@/lib/api/types";
 import { getDraftForModule, getFilesForPendingSubmissions, getLinks } from "@/lib/db";
 import { LessonView } from "@/lib/student/lessons/build";
 import { AuthUser } from "@/lib/utils/roles";
@@ -33,7 +33,7 @@ export function useLessonLoader({
   accessToken,
   refreshToken,
 }: UseLessonLoaderProps) {
-  const { modules, currentModule } = useModuleStore();
+  const { currentModule } = useModuleStore();
   const { submission } = useSubmissionStore()
   const [loadState, setLoadState] =
     useState<"loading" | "ready" | "error">("loading");

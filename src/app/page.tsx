@@ -73,7 +73,7 @@ function Nav() {
 
         <button
           onClick={() => setOpen(!open)}
-          className="md:hidden p-2 text-gray-600"
+          className="cursor-pointer md:hidden p-2 text-gray-600"
           aria-label="Toggle menu"
         >
           {open ? (

@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils/utils";
+import Image from "next/image";
 
 interface ParentShellProps {
   children: React.ReactNode;
@@ -22,7 +23,7 @@ export function ParentShell({ children, className }: ParentShellProps) {
       {/* Footer */}
       <footer className="w-full py-5 flex items-center justify-center gap-2">
         <div className="w-5 h-5 rounded-[5px] bg-cyan flex items-center justify-center shrink-0">
-          <img src="/favicon.ico" alt="" className="w-5 h-5 rounded-[5px]" />
+          <Image src="/favicon.ico" alt="" className="w-5 h-5 rounded-[5px]" />
         </div>
         <span className="text-[12px] text-text-muted">
           Powered by{" "}

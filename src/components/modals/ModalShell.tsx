@@ -47,7 +47,7 @@ export function ModalShell({
 
           <button
             onClick={onClose}
-            className="rounded-lg p-2 hover:bg-bg-page transition"
+            className="cursor-pointer rounded-lg p-2 hover:bg-bg-page transition"
           >
             <X size={18} />
           </button>

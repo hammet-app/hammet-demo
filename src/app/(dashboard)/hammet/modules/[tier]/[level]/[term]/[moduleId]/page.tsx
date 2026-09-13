@@ -156,7 +156,7 @@ export default function HammetModuleEditor() {
           <button
             disabled={!hasChanges || isLoading}
             onClick={handleSave}
-            className="inline-flex items-center px-4 py-2 rounded-md bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition
+            className="cursor-pointer inline-flex items-center px-4 py-2 rounded-md bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition
             disabled:opacity-50 disabled:cursor-not-allowed hover:enabled:opacity-90"
           >
             <Save size={16} className="mr-2 shrink-0" />

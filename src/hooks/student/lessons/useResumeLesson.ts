@@ -39,5 +39,5 @@ export function useResumeLesson({
         setFurthestPageSeen((prev) => Math.max(prev, resumeIdx))
       });
     }
-  }, [currentModule, stoppedAt, pages, setCurrentPage]);
+  }, [currentModule, stoppedAt, pages, setCurrentPage, setFurthestPageSeen]);
 }

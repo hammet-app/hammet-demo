@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshTimerRef.current = setTimeout(() => {
       void refreshTokenRef.current();
     }, REFRESH_INTERVAL_MS);
-  }; // eslint-disable-line react-hooks/exhaustive-deps
+  };  
 
   const refreshToken = useCallback(async (): Promise<string | null> => {
     if (localStorage.getItem("logged_out") === "true") return null;
@@ -136,7 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })();
 
     return refreshPromiseRef.current;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   useEffect(() => {
     refreshTokenRef.current = refreshToken;

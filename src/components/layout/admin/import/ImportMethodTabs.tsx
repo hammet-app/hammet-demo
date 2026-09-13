@@ -16,6 +16,7 @@ export function ImportMethodTabs({
       <button
         onClick={() => onChange("upload")}
         className={`
+          cursor-pointer
           rounded-lg
           px-4
           py-2
@@ -35,6 +36,7 @@ export function ImportMethodTabs({
       <button
         onClick={() => onChange("paste")}
         className={`
+          cursor-pointer
           rounded-lg
           px-4
           py-2

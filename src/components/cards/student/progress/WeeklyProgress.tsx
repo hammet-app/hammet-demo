@@ -65,7 +65,7 @@ export function WeeklyProgressSection({
             >
               <button
                 onClick={() => toggleWeek(Number(week))}
-                className="flex w-full items-center justify-between px-5 py-4 hover:bg-bg-page transition-colors"
+                className="cursor-pointer flex w-full items-center justify-between px-5 py-4 hover:bg-bg-page transition-colors"
               >
                 <div>
                   <h3 className="text-sm font-semibold">

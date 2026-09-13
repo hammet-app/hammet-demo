@@ -58,7 +58,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
       <button
         onClick={onMenuClick}
         aria-label="Open menu"
-        className="md:hidden flex items-center justify-center text-white/70 hover:text-white transition-colors p-1 -ml-1"
+        className="cursor-pointer md:hidden flex items-center justify-center text-white/70 hover:text-white transition-colors p-1 -ml-1"
       >
         <Menu size={20} />
       </button>
@@ -88,7 +88,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
       {/* Dark theme */}
       <button
         onClick={toggle}
-        className="flex h-9 w-9 items-center justify-center rounded-xl text-white hover:bg-white/10 transition-colors"
+        className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-xl text-white hover:bg-white/10 transition-colors"
         aria-label="Toggle theme"
       >
         {theme === "dark" ? (

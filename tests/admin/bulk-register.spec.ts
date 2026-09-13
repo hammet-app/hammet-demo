@@ -39,8 +39,6 @@ test("school admin can bulk create students", async ({ page }) => {
       name: 'Close' 
   }).click();
 
-  await page.getByRole('button', { name: 'Dismiss' }).click();
-
   await page.getByRole('button', { 
     name: 'Bulk import students'
   }).click();

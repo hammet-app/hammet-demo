@@ -42,7 +42,7 @@ export function CookieConsentModal({ open, onAccept, onManagePreferences }: Cook
           {onManagePreferences && (
             <button
               onClick={onManagePreferences}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+              className="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
             >
               Manage preferences
             </button>
@@ -50,7 +50,7 @@ export function CookieConsentModal({ open, onAccept, onManagePreferences }: Cook
           <button
             onClick={handleAccept}
             disabled={submitting}
-            className="px-4 py-2 rounded-lg text-sm font-medium text-white bg-[var(--color-purple)] hover:bg-[var(--color-purple-dark)] transition-colors disabled:opacity-60"
+            className="cursor-pointer px-4 py-2 rounded-lg text-sm font-medium text-white bg-[var(--color-purple)] hover:bg-[var(--color-purple-dark)] transition-colors disabled:opacity-60"
           >
             {submitting ? "Saving…" : "Accept and continue"}
           </button>

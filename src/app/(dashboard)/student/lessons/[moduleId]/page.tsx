@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
 import { LessonWorkspace } from "@/components/cards/student/lessons";
 import { PageShell } from "@/components/layout/common/PageShell";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronDown } from "lucide-react";
 import { DisputeReview } from "@/lib/api/types";
 import { useLessonLoader } from "@/hooks/student/lessons";
 import { Alert } from "@/components/ui";
@@ -27,6 +27,38 @@ export default function LessonDetailPage() {
   const [review, setReview] = useState("");
   const [submitted, setSubmitted] = useState(false); // Is used for the students' feedback
   
+  const [pageRequiresScroll, setPageRequiresScroll] = useState(false);
+  const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false);
+
+  useEffect(() => {
+    const container = document.getElementById("lesson-scroll");
+    if (!container) return;
+
+    const checkScroll = () => {
+      const requiresScroll =
+        container.scrollHeight > container.clientHeight + 8;
+
+      const atBottom =
+        container.scrollTop + container.clientHeight >=
+        container.scrollHeight - 8;
+
+      setPageRequiresScroll(requiresScroll);
+      setHasScrolledToBottom(!requiresScroll || atBottom);
+    };
+
+    checkScroll();
+
+    container.addEventListener("scroll", checkScroll);
+
+    const observer = new ResizeObserver(checkScroll);
+    observer.observe(container);
+
+    return () => {
+      container.removeEventListener("scroll", checkScroll);
+      observer.disconnect();
+    };
+  }, []);
+
   // ── Load ─────────────────────────────────────────────────────────────────
   const { 
     currentModule,
@@ -85,7 +117,23 @@ export default function LessonDetailPage() {
 
   return (
     <>
-      <div className="w-full px-4 sm:px-6 lg:px-8 pt-5 pb-[72px]" id="lesson-scroll">
+      <div className="relative w-full px-4 sm:px-6 lg:px-8 pt-5 pb-[72px]" id="lesson-scroll">
+        {pageRequiresScroll && !hasScrolledToBottom && (
+          <div className="pointer-events-none fixed bottom-[76px] left-1/2 z-20 -translate-x-1/2">
+            <button
+              type="button"
+              onClick={() => {
+                document.getElementById("lesson-scroll")?.scrollTo({
+                  top: document.getElementById("lesson-scroll")?.scrollHeight,
+                  behavior: "smooth",
+                });
+              }}
+              className="cursor-pointer pointer-events-auto flex h-9 w-9 items-center justify-center rounded-full border border-border bg-bg-card shadow-md"
+            >
+              <ChevronDown size={18} className="text-purple" />
+            </button>
+          </div>
+        )}
         <div className="w-full max-w-[680px] mx-auto flex flex-col gap-4">
 
           {submission?.status === "flagged" && submission?.teacherNote && (
@@ -112,7 +160,7 @@ export default function LessonDetailPage() {
                     <button
                       type="button"
                       onClick={() => setFeedback("disagree")}
-                      className="rounded-md border border-border bg-white px-3 py-2 text-sm hover:bg-gray-50"
+                      className="cursor-pointer rounded-md border border-border bg-white px-3 py-2 text-sm hover:bg-gray-50"
                     >
                       👎 I disagree
                     </button>
@@ -134,7 +182,7 @@ export default function LessonDetailPage() {
                             setFeedback(null);
                             setReview("");
                           }}
-                          className="rounded-md border border-border bg-white px-4 py-2 text-sm"
+                          className="cursor-pointer rounded-md border border-border bg-white px-4 py-2 text-sm"
                         >
                           Cancel
                         </button>
@@ -143,7 +191,7 @@ export default function LessonDetailPage() {
                           type="button"
                           disabled={review.trim().length < 10}
                           onClick={handleDisagree}
-                          className="rounded-md bg-warning px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+                          className="cursor-pointer rounded-md bg-warning px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Send feedback
                         </button>
@@ -165,6 +213,7 @@ export default function LessonDetailPage() {
             user={user!}
             accessToken={accessToken}
             refreshToken={refreshToken}
+            hasScrolledToBottom={hasScrolledToBottom}
           />
         </div>
       </div>

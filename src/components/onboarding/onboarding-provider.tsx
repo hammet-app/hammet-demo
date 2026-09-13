@@ -57,7 +57,7 @@ export function OnboardingProvider({ userId, role, children }: Props) {
     }, TOUR_DELAY);
 
     return () => clearTimeout(timer);
-  }, [hasCompleted, startTour]);
+  }, [hasCompleted, startTour, role]);
   // intentionally not re-running when startTour ref changes
 
   const resetAndStartTour = useCallback(() => {

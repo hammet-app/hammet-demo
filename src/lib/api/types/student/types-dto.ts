@@ -1,5 +1,6 @@
 import { SubmissionStatus } from "@/components/ui";
 import { AiFormState, AiFormStateDto, QuestionAnswer, QuestionAnswerDto } from "@/lib/api/types/submissions";
+import { PaginationDto } from "../support";
 
 export type PreviewLinkDto = {
   task_id: string;
@@ -92,7 +93,7 @@ export type SubmissionDto = {
 
 export type SubmissionHistoryDto = {
   submissions: SubmissionDto[];
-  total: number;
+  pagination: PaginationDto;
 };
 
 
@@ -118,7 +119,7 @@ export type PortfolioEntryDto = {
 
 export type StudentPortfolioDto = {
   entries: PortfolioEntryDto[];
-  total: number;
+  pagination: PaginationDto;
 };
 
 

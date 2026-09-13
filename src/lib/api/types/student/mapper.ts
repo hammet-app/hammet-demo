@@ -23,6 +23,7 @@ import {
     TermProgress
 } from "@/lib/api/types/student/types";
 import { fromAiFormState, fromQuestionAnswer, toAiFormState, toQuestionAnswer } from "../submissions";
+import { toPagination } from "../support";
 
 /**
  * Naming convention:
@@ -152,7 +153,7 @@ export function toSubmission(dto: SubmissionDto): Submission {
 export function toSubmissionHistory(dto: SubmissionHistoryDto): SubmissionHistory {
     return {
         submissions: dto.submissions.map(toSubmission),
-        total: dto.total
+        pagination: toPagination(dto.pagination)
     }
 }
 
@@ -176,7 +177,7 @@ export function toPortfolioEntry(dto: PortfolioEntryDto): PortfolioEntry {
 export function toStudentPortfolio(dto: StudentPortfolioDto): StudentPortfolio {
     return {
         entries: dto.entries.map(toPortfolioEntry),
-        total: dto.total
+        pagination: toPagination(dto.pagination)
     }
 }
 

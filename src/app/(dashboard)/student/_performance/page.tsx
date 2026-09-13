@@ -250,7 +250,7 @@ function FilterChip({
     <button
       onClick={onClick}
       className={cn(
-        "text-[12px] font-medium px-3.5 py-1.5 rounded-full border transition-colors",
+        "cursor-pointer text-[12px] font-medium px-3.5 py-1.5 rounded-full border transition-colors",
         active
           ? "bg-purple text-white border-purple"
           : "bg-bg-card text-text-secondary border-border hover:border-purple hover:text-purple"

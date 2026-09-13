@@ -50,7 +50,7 @@ export async function createClaimedUser(
     await page.getByRole('button', { 
       name: 'Activate account' 
     }).click();
-
+    
     await expect(page).toHaveURL(/\/student|\/admin/,{
       timeout: 15000,
     });

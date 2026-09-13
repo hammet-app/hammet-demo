@@ -1,4 +1,5 @@
 import { CurriculumModule } from "../module";
+import { Pagination } from "../support";
 
 export type UserStatus = "pending" | "active" | "suspended"| "graduated" | "inactive"; 
 // ============================================================
@@ -59,7 +60,7 @@ export type AdminStudent = {
 
 export type AdminStudentsResponse = {
   students: AdminStudent[];
-  total: number;
+  pagination: Pagination;
 };
 
 // PATCH /admin/students/[id]

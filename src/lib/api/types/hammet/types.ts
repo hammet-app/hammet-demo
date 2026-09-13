@@ -1,6 +1,7 @@
 import { CurriculumModuleBlock } from "@/lib/api/types/module";
 import { UserRole } from "@/lib/utils/roles";
 import { UserStatus } from "../admin";
+import { Pagination, PaginationDto } from "../support";
 
 // GET /hammet/schools
 // Full list of all registered schools — hammet_admin only
@@ -53,7 +54,7 @@ export type SchoolDetailsItem ={
 
 export type SchoolsListResponse = {
   schools: SchoolListItem[];
-  total: number;
+  pagination: Pagination
 };
 
 // POST /hammet/schools/[schoolId]/deactivate
@@ -104,6 +105,7 @@ export type  Dispute = {
 }
 
 export type Disputes = {
-  disputes: Dispute[]
+  disputes: Dispute[];
+  pagination: Pagination
 }
 

@@ -40,14 +40,34 @@ import {
 
 export async function getSchools(
   token: string,
-  onRefresh: () => Promise<string | null>
+  onRefresh: () => Promise<string | null>,
+  page: number = 1,
+  pageSize: number = 20,
+  tier?: string,
+  search?: string
 ): Promise<SchoolsListResponse> {
-  const response = await apiClient.get<SchoolsListResponseDto>("/hammet/schools", token, {
-    onRefresh,
-  });
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: String(pageSize),
+    });
 
+    if (tier && tier !== "all") {
+      params.set("tier", tier);
+    }
+
+    if (search) {
+      params.set("search", search);
+    }
+
+
+  const response = await apiClient.get<SchoolsListResponseDto>(
+    `/hammet/schools?${params.toString()}`, 
+    token, {onRefresh});
+  
   return toSchoolListResponse(response)
+
 }
+
 export async function getSchool(
   schoolId: string,
   token: string,
@@ -189,10 +209,20 @@ export async function editModule(
 // ------------------------------------------------------------
 export async function fetchDisputes(
   token: string,
-  onRefresh: () => Promise<string | null>
+  onRefresh: () => Promise<string | null>,
+  page : number = 1,
+  pageSize: number = 20,
+  reviewed?: boolean
 ): Promise<Disputes> {
+  const params = new URLSearchParams({
+    page: String(page),
+    page_size: String(pageSize)
+  });
+
+  if (reviewed !== undefined) params.set("reviewed", String(reviewed))
+
   const response = await apiClient.get<DisputesDto>(
-    "/hammet/disputes",
+    `/hammet/disputes?${params.toString()}`,
     token,
     { onRefresh }
   )

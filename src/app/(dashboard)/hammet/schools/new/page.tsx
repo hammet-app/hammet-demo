@@ -126,7 +126,7 @@ export default function NewSchoolPage() {
       <PageShell title="School Registered" backHref="/hammet">
         <button
           onClick={() => router.push("/hammet")}
-          className="px-4 py-2 rounded-xl bg-purple text-white"
+          className="cursor-pointer px-4 py-2 rounded-xl bg-purple text-white"
         >
           Back to schools
         </button>

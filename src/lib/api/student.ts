@@ -60,12 +60,47 @@ export const studentApi = {
       useSubmissionStore.getState().setSubmission(submission)
     }
   },
-  getSubmissions: async (token: string, onRefresh: () => Promise<string | null>): Promise<SubmissionHistory> =>{
-    const history = await apiClient.get<SubmissionHistoryDto>("/students/me/submissions", token, { onRefresh })
+  getSubmissions: async (
+    token: string, 
+    onRefresh: () => Promise<string | null>,
+    page: number = 1,
+    pageSize: number = 20,
+    terms?: number[],
+    levels?: string[]
+  ): Promise<SubmissionHistory> =>{
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: String(pageSize)
+    });
+
+    terms?.forEach((term) => params.append("terms", String(term)))
+    levels?.forEach((level) => params.append("levels", level))
+    const history = await apiClient.get<SubmissionHistoryDto>(
+      `/students/me/submissions?${params.toString()}`, 
+      token, { onRefresh }
+    )
     return toSubmissionHistory(history)
   }, 
-  getPortfolio: async (token: string, onRefresh: () => Promise<string | null>): Promise<StudentPortfolio> =>{
-    const portfolio = await apiClient.get<StudentPortfolioDto>("/students/me/portfolio", token, { onRefresh })
+  getPortfolio: async (
+    token: string, 
+    onRefresh: () => Promise<string | null>,
+    page: number = 1,
+    pageSize: number = 20,
+    terms?: number[],
+    levels?: string[]
+  ): Promise<StudentPortfolio> =>{
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: String(pageSize)
+    });
+
+    terms?.forEach((term) => params.append("terms", String(term)))
+    levels?.forEach((level) => params.append("levels", level))
+
+    const portfolio = await apiClient.get<StudentPortfolioDto>(
+      `/students/me/portfolio?${params.toString()}`, 
+      token, { onRefresh }
+    )
     return toStudentPortfolio(portfolio)
   },
   getDispute: async (moduleId: string, token: string, onRefresh: () => Promise<string | null>): Promise<boolean> => {

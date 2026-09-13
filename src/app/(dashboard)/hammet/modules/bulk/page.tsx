@@ -120,7 +120,7 @@ export default function BulkModulesPage() {
         uploadState.status === "success" ? (
           <button
             onClick={() => router.push("/hammet/modules")}
-            className="px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-semibold hover:opacity-90 transition"
+            className="cursor-pointer px-4 py-2 rounded-xl bg-[var(--color-purple)] text-white text-sm font-semibold hover:opacity-90 transition"
           >
             View modules
           </button>
@@ -200,7 +200,7 @@ export default function BulkModulesPage() {
 
           <button
             onClick={downloadTemplate}
-            className="shrink-0 rounded-lg border border-[var(--color-border)] bg-white
+            className="cursor-pointer shrink-0 rounded-lg border border-[var(--color-border)] bg-white
               px-4 py-2 text-sm font-medium text-[var(--color-purple)] transition
               hover:border-[var(--color-purple)] hover:bg-[var(--color-purple-light)]
             "
@@ -410,7 +410,7 @@ export default function BulkModulesPage() {
             </div>
             <button
               onClick={reset}
-              className="text-sm text-[var(--color-purple)] font-medium hover:underline"
+              className="cursor-pointer text-sm text-[var(--color-purple)] font-medium hover:underline"
             >
               Upload another file
             </button>
@@ -430,7 +430,7 @@ export default function BulkModulesPage() {
               </div>
               <button
                 onClick={reset}
-                className="text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition"
+                className="cursor-pointer text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text-secondary)] transition"
               >
                 Try again
               </button>

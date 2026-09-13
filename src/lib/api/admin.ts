@@ -78,11 +78,29 @@ export async function updateTerm(
 
 export async function getAdminStudents(
   token: string,
-  onRefresh: () => Promise<string | null>
+  onRefresh: () => Promise<string | null>,
+  page : number = 1,
+  pageSize: number = 20,
+  search?: string,
+  classLevel?: string,
+  status?: string,
 ): Promise<AdminStudentsResponse> {
-  const response = await apiClient.get<AdminStudentsResponseDto>("/admin/students", token, {
-    onRefresh,
+  const params = new URLSearchParams({
+    page: String(page),
+    page_size: String(pageSize)
   });
+
+  if (search) params.set("search", search);
+  if (classLevel) params.set("class_level", classLevel);
+  if (status) params.set("status", status);
+
+  const response = await apiClient.get<AdminStudentsResponseDto>(
+    `/admin/students?${params.toString()}`, 
+    token, 
+    {
+      onRefresh,
+    }
+  );
 
   return toAdminStudentResponse(response)
 }

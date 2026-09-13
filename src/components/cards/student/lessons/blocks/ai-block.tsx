@@ -49,7 +49,7 @@ export function AiPromptBlock({ block }: { block: CurriculumModuleBlock }) {
       
         <div className="mt-5 flex justify-end">
           <button
-            className="inline-flex items-center gap-2 rounded-lg bg-purple px-4 py-2
+            className="cursor-pointer inline-flex items-center gap-2 rounded-lg bg-purple px-4 py-2
             text-sm font-semibold text-button transition-all duration-200 hover:bg-purple-hover active:scale-[0.98]"
             style={{ fontFamily: FONT_BODY }}
           >
@@ -137,7 +137,7 @@ export function AiFormPageView({
                 })
               }
               className={cn(
-                "flex-1 px-3 py-2.5 rounded-[10px] border text-[14px] font-bold transition-all",
+                "cursor-pointer flex-1 px-3 py-2.5 rounded-[10px] border text-[14px] font-bold transition-all",
                 aiForm.used === opt.value
                   ? "bg-[#3B0764] border-[#3B0764] text-white"
                   : "border-border bg-bg-card text-text-primary hover:border-[#5B21B6]/50",
@@ -166,7 +166,7 @@ export function AiFormPageView({
                     set({ noReason: opt.value, noReasonOther: "" })
                   }
                   className={cn(
-                    "flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
+                    "cursor-pointer flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
                     aiForm.noReason === opt.value
                       ? "bg-[#3B0764] border-[#3B0764] text-white"
                       : "border-border bg-bg-card text-text-primary hover:border-[#5B21B6]/50",
@@ -241,7 +241,7 @@ export function AiFormPageView({
                     set({ toolUsed: opt.value, toolOther: "" })
                   }
                   className={cn(
-                    "flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
+                    "cursor-pointer flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
                     aiForm.toolUsed === opt.value
                       ? "bg-[#3B0764] border-[#3B0764] text-white"
                       : "border-border bg-bg-card text-text-primary hover:border-[#5B21B6]/50",
@@ -340,7 +340,7 @@ export function AiFormPageView({
                     set({ promptChoice: opt.value, editedPrompt: "" })
                   }
                   className={cn(
-                    "flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
+                    "cursor-pointer flex items-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border text-left transition-all",
                     aiForm.promptChoice === opt.value
                       ? "bg-[#3B0764] border-[#3B0764] text-white"
                       : "border-border bg-bg-card text-text-primary hover:border-[#5B21B6]/50",
@@ -397,7 +397,7 @@ export function AiFormPageView({
                   {...interactionProps}
                   key={star}
                   onClick={() => set({ rating: star })}
-                  className={`flex flex-col items-center gap-1 flex-1 group
+                  className={`cursor-pointer flex flex-col items-center gap-1 flex-1 group
                     ${readOnly
                       ? "cursor-default opacity-80"
                       : "hover:border-[#5B21B6]/50"}

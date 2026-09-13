@@ -18,7 +18,7 @@ const tier = randomItem([
 test("hammet admin can register a school", async ({ page, request }) => {
   const school = (generateSchoolData());
 
-  await login(page, request);
+  await page.goto("/login")
 
   await page.goto("/hammet/schools/new");
   
@@ -33,8 +33,6 @@ test("hammet admin can register a school", async ({ page, request }) => {
   await page.getByRole('button', { 
       name: 'Close' 
   }).click()
-
-  await page.getByRole('button', { name: 'Dismiss' }).click();
 
   await page.getByRole("textbox", {
     name: "School name",

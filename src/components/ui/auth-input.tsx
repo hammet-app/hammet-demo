@@ -124,8 +124,12 @@ export const AuthInput = forwardRef<
           autoComplete={autoComplete}
           disabled={disabled}
           className={cn(
-            "w-full h-10 px-3 rounded-[10px] border text-[13.5px] text-text-primary",
-            "placeholder:text-text-muted/70 bg-white/80 focus:bg-white dark:bg-black/20 outline-none",
+            "w-full h-10 px-3 rounded-[10px] border text-[13.5px]",
+            "text-black dark:text-white caret-current",
+            "bg-bg-card dark:bg-bg-card",
+            "placeholder:text-text-muted/70",
+            "focus:bg-bg-card dark:focus:bg-bg-card",
+            "outline-none",
             "transition-all duration-200",
             "disabled:opacity-50 disabled:cursor-not-allowed",
             error
@@ -164,7 +168,7 @@ export const AuthInput = forwardRef<
             onClick={() => setShowPassword((p) => !p)}
             tabIndex={-1}
             aria-label={showPassword ? "Hide password" : "Show password"}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-purple dark:hover:text-cyan transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-purple dark:hover:text-cyan transition-colors [&::-ms-reveal]:hidden"
           >
             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
           </motion.button>

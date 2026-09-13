@@ -186,7 +186,7 @@ function TermModal({
           <button
             onClick={onClose}
             disabled={saving}
-            className=" h-10 px-5 rounded-xl border border-[var(--color-border)] 
+            className="cursor-pointer h-10 px-5 rounded-xl border border-[var(--color-border)] 
               text-sm font-medium text-[var(--color-text-secondary)] 
               hover:bg-[var(--color-bg-page)] transition-colors"
           >
@@ -195,7 +195,7 @@ function TermModal({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="h-10 px-4 rounded-xl bg-[var(--color-purple)] text-white 
+            className="cursor-pointer h-10 px-4 rounded-xl bg-[var(--color-purple)] text-white 
               text-sm font-semibold hover:opacity-90 transition-all
               disabled:opacity-60 disabled:cursor-not-allowed"
           >
@@ -350,7 +350,7 @@ export default function AdminDashboardPage() {
             Unable to load school profile
           </h3>
           <p className="mt-1 text-sm text-danger-dark">
-            Your account isn&apos;t linked ot a school. Please contact Hammet support
+            Your account isn&apos;t linked to a school. Please contact Hammet support
           </p>
         </div>
       ) : (

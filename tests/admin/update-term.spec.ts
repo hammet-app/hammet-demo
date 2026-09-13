@@ -14,9 +14,6 @@ test("school admin can update term", async ({ page }) => {
       name: 'Close' 
   }).click()
 
-  await page.getByRole('button', { name: 'Dismiss' }).click();
-
-
   await page.getByRole('button', { 
     name: 'Manage term Update the',
   }).click();

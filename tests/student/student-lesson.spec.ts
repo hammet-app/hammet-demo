@@ -15,8 +15,6 @@ test("student can login", async ({ page }) => {
       name: 'Close' 
   }).click();
   
-  await page.getByRole('button', { name: 'Dismiss' }).click();
-
   await expect(page).toHaveURL(
     /student/
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, FormEvent } from "react";
 import { ApiError, apiClient } from "@/lib/api/api-client";
 import { fromApplyForm, Role } from "@/lib/api/types/apply";
@@ -28,7 +29,7 @@ interface FormErrors {
 
 function LogoMark() {
   return (
-    <img
+    <Image
       src="/favicon.ico"
       alt="logo"
       className="w-8 h-8"

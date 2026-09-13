@@ -158,7 +158,7 @@ export default function AdminModulesListPage() {
                   onClick={() =>
                     router.push(`/admin/modules/${level}`)
                   }
-                  className="group w-full text-left bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6 hover:border-[var(--color-purple)] hover:shadow-md transition-all"
+                  className="cursor-pointer group w-full text-left bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6 hover:border-[var(--color-purple)] hover:shadow-md transition-all"
                 >
                   <div
                     className={`w-12 h-12 rounded-xl ${accent.bg} border ${accent.border} flex items-center justify-center mb-4`}

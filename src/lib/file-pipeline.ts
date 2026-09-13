@@ -205,6 +205,7 @@ export async function uploadFilesForModule(
   let signResponse: UploadResponses
   try {
     signResponse = await buildPath(toUpload, accessToken)
+    console.log(signResponse)
   } catch {
     // Can't reach backend — mark all failed, caller will queue offline
     await Promise.all(toUpload.map((e) => markFileFailed(e.id)))
@@ -212,6 +213,7 @@ export async function uploadFilesForModule(
   }
 
   const allSigned = signResponse.signeds
+  console.log(allSigned)
 
   // Upload each file in parallel
   const results = await Promise.allSettled(

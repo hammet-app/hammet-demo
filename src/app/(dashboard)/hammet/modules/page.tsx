@@ -131,7 +131,7 @@ export default function HammetModulesPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/hammet/modules/bulk")}
-            className="inline-flex items-center px-4 py-2 rounded-md bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
+            className="cursor-pointer inline-flex items-center px-4 py-2 rounded-md bg-[var(--color-purple)] text-white text-sm font-medium hover:opacity-90 transition"
           >
             <Upload size={16} className="mr-2 shrink-0" />
             Upload CSV
@@ -139,7 +139,7 @@ export default function HammetModulesPage() {
 
           <button
             onClick={() => router.push("/hammet/modules/update")}
-            className="inline-flex items-center px-4 py-2 rounded-md bg-white/80 text-purple text-sm font-medium hover:opacity-90 transition"
+            className="cursor-pointer inline-flex items-center px-4 py-2 rounded-md bg-white/80 text-purple text-sm font-medium hover:opacity-90 transition"
           >
             <Pencil size={16} className="mr-2 shrink-0" />
             Update Modules

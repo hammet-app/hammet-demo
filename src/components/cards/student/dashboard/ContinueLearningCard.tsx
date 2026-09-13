@@ -28,7 +28,7 @@ export function ContinueLearningCard({
           <motion.article
             whileHover={{ y: -3, }}
             transition={{ duration: 0.2, ease: "easeOut", }}
-            className="overflow-hidden rounded-2xl border border-border bg-bg-card shadow-sm shadow-slate-200/10"
+            className="cursor-pointer overflow-hidden rounded-2xl border border-border bg-bg-card shadow-sm shadow-slate-200/10"
           >
             <motion.div 
               className="h-1 origin-left bg-purple" 

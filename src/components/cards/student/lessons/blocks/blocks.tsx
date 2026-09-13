@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image";
 import { AlertTriangle, ImageOff, ExternalLink } from "lucide-react";
 import { motion } from "motion/react";
 import { 

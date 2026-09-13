@@ -1,4 +1,5 @@
 import { CurriculumModuleDto } from "../module";
+import { PaginationDto } from "../support";
 
 type UserStatus = "pending" | "active" | "suspended"| "graduated" | "inactive"; 
 
@@ -61,7 +62,7 @@ export type AdminStudentDto = {
 
 export type AdminStudentsResponseDto = {
   students: AdminStudentDto[];
-  total: number;
+  pagination: PaginationDto;
 };
 
 // PATCH /admin/students/[id]

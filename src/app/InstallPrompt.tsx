@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import styles from './InstallPrompt.module.css'
 
@@ -83,7 +84,7 @@ export default function InstallPrompt() {
     return (
       <div className={styles.banner}>
         <div className={styles.bannerIcon}>
-          <img src="/icons/icon-72x72.png" alt="AI Studies" width={36} height={36} />
+          <Image src="/icons/icon-72x72.png" alt="AI Studies" width={36} height={36} />
         </div>
         <div className={styles.bannerText}>
           <p className={styles.bannerTitle}>Add to Home Screen</p>

@@ -11,3 +11,10 @@ export type CallbackForm = {
   phone: string;
   city: string;
 }
+
+export type Pagination = {
+  page: number
+  pageSize: number;
+  total: number;
+  totalPages: number
+}

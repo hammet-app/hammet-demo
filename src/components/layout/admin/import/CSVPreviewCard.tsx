@@ -140,7 +140,7 @@ export function CSVPreviewCard({
             onClick={() => 
               setExpanded(!expanded)
             }
-            className="text-sm font-medium text-purple-mid hover:underline"
+            className="cursor-pointer text-sm font-medium text-purple-mid hover:underline"
           >
             {expanded
               ? "Show Less"

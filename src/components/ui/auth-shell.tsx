@@ -4,6 +4,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 import { AlertCircle, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/lib/use-theme";
 import { cn } from "@/lib/utils/utils";
+import Image from "next/image";
 
 // ── AuthShell ────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ export function AuthShell({ children, wide = false }: AuthShellProps) {
       const lerp = 0.08;
       current.current.rx += (target.current.rx - current.current.rx) * lerp;
       current.current.ry += (target.current.ry - current.current.ry) * lerp;
-      card!.style.transform = `perspective(1000px) rotateX(${current.current.rx}deg) rotateY(${current.current.ry}deg)`;
+      //card!.style.transform = `perspective(1000px) rotateX(${current.current.rx}deg) rotateY(${current.current.ry}deg)`;
       raf.current = requestAnimationFrame(animate);
     }
 
@@ -94,7 +95,7 @@ export function AuthShell({ children, wide = false }: AuthShellProps) {
           "transition-colors duration-300 will-change-transform",
           wide ? "max-w-lg" : "max-w-sm"
         )}
-        style={{ transformStyle: "preserve-3d" }}
+        //style={{ transformStyle: "preserve-3d" }}
       >
         <AuthLogo />
         {children}
@@ -116,7 +117,7 @@ function AuthLogo() {
         }}
         aria-hidden="true"
       >
-        <img
+        <Image
           src="/favicon.ico"
           alt=""
           className="w-5 h-5 rounded-[5px]"

@@ -113,7 +113,7 @@ export default function UpdateStudentPage() {
       title={"Update Student"}
       description={fullName}
       rounded={true}
-      backHref="/admin/students"
+      backHref={`/admin/students/${studentId}`}
       backLabel="Back to Students"
     >
       {isLoading ? (

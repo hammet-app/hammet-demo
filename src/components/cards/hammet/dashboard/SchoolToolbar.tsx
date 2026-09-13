@@ -81,7 +81,7 @@ export function SchoolToolbar({
 
         <button
           onClick={onCreateSchool}
-          className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-purple)] px-5 py-2.5
+          className="cursor-pointer inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-purple)] px-5 py-2.5
             font-medium text-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg
             active:translate-y-0
           "
@@ -109,7 +109,7 @@ export function SchoolToolbar({
             <button
               key={filter}
               onClick={() => onTierChange(filter)}
-              className={`rounded-full border px-4 py-2 text-sm transition-all duration-200
+              className={`cursor-pointer rounded-full border px-4 py-2 text-sm transition-all duration-200
                 ${tierFilter === filter
                     ? "border-[var(--color-purple)] bg-[var(--color-purple)] text-white shadow-sm"
                     : "border-[var(--color-border)] bg-[var(--color-bg-card)] text-[var(--color-text-muted)] hover:border-[var(--color-purple)] hover:text-[var(--color-purple)]"

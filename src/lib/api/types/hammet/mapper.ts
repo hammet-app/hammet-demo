@@ -20,6 +20,7 @@ import {
     SchoolListItemDto,
     SchoolsListResponseDto
 } from "@/lib/api/types/hammet/types-dto";
+import { toPagination } from "../support";
 
 /**
  * Naming convention:
@@ -83,7 +84,7 @@ export function toSchoolListItem(dto: SchoolListItemDto): SchoolListItem {
 export function toSchoolListResponse(dto: SchoolsListResponseDto): SchoolsListResponse {
     return {
         schools: dto.schools.map(toSchoolListItem),
-        total: dto.total
+        pagination: toPagination(dto.pagination)
     }
 }
 
@@ -129,6 +130,7 @@ export function toDispute(dto: DisputeDto): Dispute {
 
 export function toDisputes(dto: DisputesDto): Disputes {
     return {
-        disputes: dto.disputes.map(toDispute)
+        disputes: dto.disputes.map(toDispute),
+        pagination: toPagination(dto.pagination)
     }
 }

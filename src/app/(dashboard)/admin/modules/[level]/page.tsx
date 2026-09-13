@@ -75,7 +75,7 @@ export default function AdminModulesLevelsPage() {
                   onClick={() =>
                     router.push(`/admin/modules/${level}/${term}`)
                   }
-                  className="group w-full text-left bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6 hover:border-[var(--color-purple)] hover:shadow-md transition-all"
+                  className="cursor-pointer group w-full text-left bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-2xl p-6 hover:border-[var(--color-purple)] hover:shadow-md transition-all"
                 >
                   <div className="w-12 h-12 rounded-xl bg-[var(--color-purple-light)] flex items-center justify-center mb-4">
                     <span className="text-xl font-bold text-[var(--color-purple)]">

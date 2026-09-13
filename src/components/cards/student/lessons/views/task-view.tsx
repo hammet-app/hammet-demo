@@ -55,7 +55,7 @@ function SubmissionPill({
       </div>
       <button
         onClick={onRemove}
-        className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-border transition-all duration-200 shrink-0"
+        className="cursor-pointer w-5 h-5 rounded-full flex items-center justify-center hover:bg-border transition-all duration-200 shrink-0"
         aria-label="Remove link"
       >
         <X size={11} className="text-text-muted" />
@@ -283,7 +283,7 @@ function FilePill({
       </div>
       <button
         onClick={onRemove}
-        className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-border transition-all duration-200 shrink-0"
+        className="cursor-pointer w-5 h-5 rounded-full flex items-center justify-center hover:bg-border transition-all duration-200 shrink-0"
         aria-label="Remove file"
       >
         <X size={11} className="text-text-muted" />

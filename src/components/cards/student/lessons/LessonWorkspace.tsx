@@ -22,6 +22,7 @@ import {
   CurriculumModule, 
   PreviewLinkState,
   QuestionAnswer,
+  PreviewLink,
 } from "@/lib/api/types";
 import {
   compressAndEnqueue,
@@ -39,6 +40,7 @@ import {
   storeLinks,
   removeLink,
   clearLinksForModule,
+  submitLesson,
 } from "@/lib/db";
 import { isFeatureEnabled } from "@/lib/features/flags";
 import { useModuleStateStore, useModuleStore, useSubmissionStore } from "@/lib/store";
@@ -56,6 +58,7 @@ type LessonWorkspaceProps = {
   user: AuthUser;
   accessToken: string | null;
   refreshToken: () => Promise<string | null>;
+  hasScrolledToBottom?: boolean;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -72,6 +75,41 @@ const FONT_BODY = "var(--font-body)";
 
 const PROGRESS_DWELL_MS = 10_000;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Offline save helper
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function saveOffline(
+  id: string | null,
+  studentId: string,
+  moduleId: string,
+  fileUrls: PreviewLink[],
+  otherUrls: PreviewLink[],
+  aiForm: AiFormState|null,
+  syncStatus: 'pending' | 'synced' | 'failed' | 'draft',
+  activityText?: string,
+  reflectionText?: string,
+  accessToken?:string,
+): Promise<void> {
+  try {
+    await submitLesson({
+      id: null,
+      studentId,
+      moduleId,
+      fileUrls,
+      otherUrls,
+      activityText,
+      reflectionText,
+      aiForm,
+      submissionType: id ? "submit" : "resubmit",
+      syncStatus,
+      accessToken
+    });
+  } catch {
+    // best-effort — never throw
+  }
+}
+
 export function LessonWorkspace({
   initialData,
   currentModule,
@@ -79,6 +117,7 @@ export function LessonWorkspace({
   user,
   accessToken,
   refreshToken,
+  hasScrolledToBottom
 }: LessonWorkspaceProps) {
 
   const router = useRouter();
@@ -114,6 +153,44 @@ export function LessonWorkspace({
     "lesson_questions",
     user.schoolId,
   )
+  
+  // ── Auto-save to Dexie on input change ───────────────────────────────────
+  useEffect(() => {
+    if (!user || !module) return;
+    if (!activityText && !reflectionText) return;
+
+    const fileUrls = Object.values(taskFiles)
+      .flat()
+      .filter((e) => e.status === "done" && e.url)
+      .map((e) => ({
+        taskId: e.taskId,
+        url: e.url!,
+      }));
+
+    const otherUrls = Object.values(taskLinks)
+      .flat()
+      .map((e) => ({
+        taskId: e.taskId,
+        url: e.url,
+      }));
+
+    const t = setTimeout(async () => {
+      await saveOffline(
+        submission?.id ? submission.id : null,
+        user.id,
+        currentModule.id,
+        fileUrls,
+        otherUrls,
+        aiForm || undefined,
+        submission?.status ? "synced" : "draft",
+        activityText || undefined,
+        reflectionText || undefined
+      );
+      setSavedOffline(true);
+    }, 800);
+
+    return () => clearTimeout(t);
+  }, [submission, activityText, reflectionText, taskFiles, taskLinks, module.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Stable ref so saveSectionProgress inside the dwell effect doesn't
   // need to be in the dependency array and re-create the timer on every render
@@ -360,11 +437,11 @@ export function LessonWorkspace({
     setFurthestPageSeen((prev) => Math.max(prev, nextPage));
   }, [total]);
 
-  const goNext = useCallback(() => {
-    if (blocked) return;
+    const goNext = useCallback(() => {
+    if (blocked || !hasScrolledToBottom) return;
     if (isLastPage) { handleSubmit(); return; }
     navigateToPage(currentPage + 1);
-  }, [blocked, isLastPage, currentPage, total, navigateToPage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [blocked, hasScrolledToBottom, isLastPage, currentPage, total, navigateToPage]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goBack = useCallback(() => {
     if (currentPage === 0) {
@@ -493,10 +570,10 @@ export function LessonWorkspace({
           dispute: false,
         })
         setLessonView(LessonView.SUBMITTED)
-        await clearUploadedFilesForModule(currentModule.id);
-        await clearLinksForModule(user.id, currentModule.id)
         setShowCompletion(true)
         setIsSubmitting(false);
+        await clearUploadedFilesForModule(currentModule.id);
+        await clearLinksForModule(user.id, currentModule.id)
         return;
       } catch (err) {
         // Fall through to Dexie
@@ -532,7 +609,9 @@ export function LessonWorkspace({
     } catch {
       setSubmitError("Failed to save your work. Please try again.");
     } finally {
-      setShowCompletion(true)
+      if (submitError != "") {
+        setShowCompletion(true)
+      }
       setIsSubmitting(false);
       setLessonView(LessonView.LESSON)
     }
@@ -571,7 +650,7 @@ export function LessonWorkspace({
         <LessonCompletionPage
           lessonMode={lessonMode}
           status={submission?.status ?? "not_started"}
-          submittedAt={submission!.submittedAt}
+          submittedAt={submission?.submittedAt?? undefined}
           onNext={nextMod ? () => router.push(`/student/lessons/${nextMod.id}`) : undefined}
           onBack={() => router.push("/student/lessons")}
         />
@@ -640,10 +719,10 @@ export function LessonWorkspace({
                   {isLastPage ? (
                     <button
                       onClick={handleSubmit}
-                      disabled={isSubmitting || blocked || isReviewing}
+                      disabled={isSubmitting || blocked || isReviewing || !hasScrolledToBottom}
                       className={cn(
-                        "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
-                        !isSubmitting && !blocked
+                        "cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
+                        !isSubmitting && !blocked && hasScrolledToBottom
                           ? "bg-[#1D9E75] text-white hover:bg-[#178a65]"
                           : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
                       )}
@@ -659,10 +738,10 @@ export function LessonWorkspace({
                   ) : (
                     <button
                       onClick={goNext}
-                      disabled={blocked}
+                      disabled={blocked || !hasScrolledToBottom}
                       className={cn(
-                        "inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
-                        !blocked
+                        "cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
+                        !blocked && hasScrolledToBottom
                           ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]"
                           : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
                       )}
@@ -689,7 +768,7 @@ export function LessonWorkspace({
 type LessonCompletionPageProps = {
   lessonMode: LessonMode;
   status: string;
-  submittedAt: string;
+  submittedAt?: string;
   onNext?: () => void;
   onBack: () => void;
 };
@@ -701,11 +780,18 @@ function LessonCompletionPage({
   onNext,
   onBack,
 }: LessonCompletionPageProps) {
-  const date = new Date(submittedAt).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  let date = new Date().toLocaleDateString("en-GB",{
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  if (submittedAt){
+    date = new Date(submittedAt).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+  }
   const isReview = lessonMode === LessonMode.REVIEW
   const isApproved = status === "approved";
 
@@ -746,7 +832,7 @@ function LessonCompletionPage({
           {onNext && (
             <button
               onClick={onNext}
-              className="inline-flex items-center gap-1.5 text-[13px] font-bold bg-[#5B21B6] text-white px-4 py-2 rounded-[8px] hover:bg-[#4c1d95] transition-colors"
+              className="cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-bold bg-[#5B21B6] text-white px-4 py-2 rounded-[8px] hover:bg-[#4c1d95] transition-colors"
             >
               Next Module
               <ChevronRight size={14} />

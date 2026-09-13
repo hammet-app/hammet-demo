@@ -124,6 +124,11 @@ export default defineConfig({
         storageState: "playwright/.auth/hammet.json",
       },
     },
+
+    /*{
+      name: "load",
+      testMatch: /load\/.*\.spec\.ts/,
+    },*/
   ],
 
   /* Run your local dev server before starting the tests */

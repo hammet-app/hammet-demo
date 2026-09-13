@@ -48,7 +48,7 @@ export function StudentRowCard({
     <button
       onClick={onClick}
       className={cn(
-        "w-full text-left bg-bg-card border border-border rounded-[10px]",
+        "cursor-pointer w-full text-left bg-bg-card border border-border rounded-[10px]",
         "flex items-center gap-3 px-4 py-3",
         "transition-colors duration-150 hover:border-purple-light",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-mid",

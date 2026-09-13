@@ -1,5 +1,5 @@
-import { CallbackForm } from "@/lib/api/types/support/types";
-import { CallbackFormDto } from "@/lib/api/types/support/types-dto";
+import { CallbackForm, Pagination } from "@/lib/api/types/support/types";
+import { CallbackFormDto, PaginationDto } from "@/lib/api/types/support/types-dto";
 
 
 /**
@@ -21,5 +21,14 @@ export function fromCallbackForm(model: CallbackForm): CallbackFormDto {
         role: model.role,
         phone: model.phone,
         city: model.city
+    }
+}
+
+export function toPagination(model: PaginationDto): Pagination {
+    return {
+        page: model.page,
+        pageSize: model.page_size,
+        total: model.total,
+        totalPages: model.total_pages
     }
 }

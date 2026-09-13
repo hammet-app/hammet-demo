@@ -1,7 +1,7 @@
 "use client";
 
 import {  useRef, useEffect, useState } from "react";
-import { Check, Lock, Compass } from "lucide-react";
+import { Check, Lock, Compass, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { 
@@ -123,7 +123,7 @@ export function LessonStepper({
   className,
   lessonMode,
   lessonCoachEnabled,
-  learningMode
+  learningMode,
 }: LessonStepperProps) {
   const total = pages.length;
   const touchStartX = useRef<number | null>(null);
@@ -222,7 +222,7 @@ export function LessonStepper({
                 }
                 startTour(currentTour)
               }}
-              className="inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-text-secondary hover:text-purple transition-colors"
+              className="cursor-pointer inline-flex shrink-0 items-center gap-1.5 text-xs font-medium text-text-secondary hover:text-purple transition-colors"
               style={{ fontFamily: FONT_BODY }}
             >
               <Compass className="h-3.5 w-3.5" /> Show me around
@@ -260,7 +260,7 @@ export function LessonStepper({
                 <button
                   type="button"
                   onClick={() => setShowPagePicker((open) => !open)}
-                  className="text-xs font-semibold text-purple hover: text-purple/80 transition-colors"
+                  className="cursor-pointer text-xs font-semibold text-purple hover: text-purple/80 transition-colors"
                   style={{ fontFamily: FONT_BODY }}
                 >
                   Jump to page
@@ -298,7 +298,7 @@ export function LessonStepper({
                               setShowPagePicker(false);
                             }}
                             className={cn(
-                              "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors",
+                              "cursor-pointer flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors",
                               isCurrent
                                 ? "bg-purple/10 text-purple"
                                 : isSeen

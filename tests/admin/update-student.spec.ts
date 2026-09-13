@@ -16,8 +16,6 @@ test("school admin can update student", async ({ page }) => {
       name: 'Close' 
   }).click()
 
-  await page.getByRole('button', { name: 'Dismiss' }).click();
-
   await page.getByRole('link', { 
     name: 'Students' 
   }).click({timeout: 15000});
@@ -26,11 +24,11 @@ test("school admin can update student", async ({ page }) => {
     /\/admin\/students/
   );
 
-  await page.locator('.flex.items-center.justify-center.rounded-lg').first().click();
+  await page.getByTestId(/student-row-/).first().click();
 
-  await page.getByRole('button', { 
-    name: 'Update' 
-  }).first().click();
+  await page.pause();
+
+  await page.getByRole('button', { name: 'Edit Student' }).click();
 
   await expect(page).toHaveURL(
     /\/admin\/students\/.*\/edit$/

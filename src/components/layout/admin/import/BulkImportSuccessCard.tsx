@@ -71,7 +71,7 @@ export function BulkImportSuccessCard({
                 onClick={() =>
                   setExpanded(!expanded)
                 }
-                className="mt-4 text-sm text-purple-mid hover:underline"
+                className="cursor-pointer mt-4 text-sm text-purple-mid hover:underline"
               >
                 {expanded
                   ? "Show Less"

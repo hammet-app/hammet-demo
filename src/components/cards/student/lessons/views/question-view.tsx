@@ -87,7 +87,7 @@ export function SingleQuestion({
               disabled={answered || readOnly}
               onClick={() => handleSelect(option.id)}
               className={cn(
-                "w-full rounded-xl border p-4 text-left transition-all",
+                "cursor-pointer w-full rounded-xl border p-4 text-left transition-all",
                 "flex items-center gap-4",
                 selected
                   ? "border-purple bg-purple/5"

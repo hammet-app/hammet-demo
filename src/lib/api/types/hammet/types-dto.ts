@@ -2,6 +2,7 @@
 
 import { UserRole } from "@/lib/utils/roles";
 import { UserStatus } from "../admin";
+import { PaginationDto } from "../support";
 
 // Full list of all registered schools — hammet_admin only
 export type SchoolListItemDto = {
@@ -19,7 +20,7 @@ export type SchoolListItemDto = {
 
 export type SchoolsListResponseDto = {
   schools: SchoolListItemDto[];
-  total: number;
+  pagination: PaginationDto
 };
 
 export type SchoolDetailsDto = {
@@ -88,5 +89,6 @@ export type  DisputeDto = {
 
 export type DisputesDto = {
   disputes: DisputeDto[]
+  pagination: PaginationDto
 }
 

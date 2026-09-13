@@ -5,7 +5,6 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import {
   ArrowLeft,
-  BookOpen,
   CalendarDays,
   GraduationCap,
   KeyRound,
@@ -13,7 +12,6 @@ import {
   Pencil,
   ShieldAlert,
   Trash2,
-  UserRound,
   Users,
 } from "lucide-react";
 
@@ -155,7 +153,10 @@ export default function AdminStudentPage() {
         if (cancelled) return;
 
         setError("Failed to load student.");
-      });
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
 
     return () => {
       cancelled = true;

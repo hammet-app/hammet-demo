@@ -26,6 +26,8 @@ test("school admin can update student", async ({ page }) => {
 
   await page.getByTestId(/student-row-/).first().click();
 
+  await page.pause();
+
   await page.getByRole('button', { name: 'Edit Student' }).click();
 
   await expect(page).toHaveURL(

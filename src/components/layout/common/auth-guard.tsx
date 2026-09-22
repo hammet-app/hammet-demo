@@ -52,16 +52,16 @@ export function DashboardRedirect() {
     if (isResolved && user) {
       const route = getDashboardRoute(user.role as UserRole);
 
-      const scopes: UserScope[] = ["b2b", "platform"];
+      if (user?.scope !== "b2c") {
+        return;
+      }
 
-      if (!scopes.some(scope => user.scope === scope)) {
-        if (process.env.ENV == "production") {
-          window.location.replace("https://app.hammetedu.com")
-          return;
-        } else if (process.env.ENV == "development") {
-          window.location.replace("https://dev-app.hammetedu.com")
-          return;
-        }
+      if (process.env.ENV == "production") {
+        window.location.replace("https://app.hammetedu.com")
+        return;
+      } else if (process.env.ENV == "development") {
+        window.location.replace("https://dev-app.hammetedu.com")
+        return;
       }
       router.replace(route);
     }

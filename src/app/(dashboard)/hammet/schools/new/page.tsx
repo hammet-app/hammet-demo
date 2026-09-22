@@ -63,7 +63,7 @@ export default function NewSchoolPage() {
     adminFullName: "",
     adminEmail: "",
     arms: undefined,
-    roles: ["school_admin"],
+    role: "school_admin",
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -83,24 +83,32 @@ export default function NewSchoolPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    console.log("SUBMIT FIRED");
+
     const finalPhone = `${countryCode}${phone}`;
 
-    const finalRoles: UserRole[] = ["school_admin"]
+    const finalRole: UserRole = "school_admin"
 
     const payload: RegisterSchoolRequest = {
       ...form,
       phoneNumber: finalPhone,
-      roles: finalRoles,
+      role: finalRole,
       arms: parseArms(armsInput),
     };
 
     const result = registerSchoolSchema.safeParse(payload)
 
+    console.log(result);
+
     if (!result.success) {
-      setErrors(zodErrorsToFormErrors(result.error))
+      console.log("VALIDATION FAILED:", result.error.issues);
+      setErrors(zodErrorsToFormErrors(result.error));
       return;
     }
-    if (!accessToken) return;
+    console.log("PASSED VALIDATION");
+    if (!accessToken) {
+      console.log("NO ACCESS TOKEN");
+      return};
 
     setIsLoading(true);
     setErrors({});
@@ -209,7 +217,7 @@ export default function NewSchoolPage() {
               onChange={(e) => setPhone(e)}
               label=""
               placeholder="Phone number"
-              type="number"
+              type="tel"
               className="flex-1"
             />
 
@@ -275,7 +283,6 @@ export default function NewSchoolPage() {
           type="submit"
           disabled={isLoading}
           className="h-11 rounded-sm bg-purple text-white flex items-center justify-center gap-2 text-md cursor-pointer"
-          onClick={handleSubmit}
         >
           {isLoading ? (
             <>
@@ -283,7 +290,7 @@ export default function NewSchoolPage() {
               Registering…
             </>
           ) : (
-            "Register school"
+            "Register School"
           )}
         </button>
 

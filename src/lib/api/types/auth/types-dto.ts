@@ -1,4 +1,4 @@
-import { UserRole } from "@/lib/utils/roles";
+import { UserRole, UserAccess, UserScope } from "@/lib/utils/roles";
 
 // ============================================================
 // AUTH ROUTES
@@ -25,7 +25,9 @@ export type LoginResponseDto = {
     full_name: string;
     email: string;
     username: string;
-    roles: UserRole[];
+    role: UserRole;
+    scope: UserScope;
+    access: UserAccess[];
     school_id: string;
     cookie_consent: boolean;
     cookie_policy_version: string;
@@ -55,7 +57,9 @@ export type RefreshResponseDto = {
     full_name: string;
     email: string;
     username: string;
-    roles: UserRole[];
+    role: UserRole;
+    scope: UserScope;
+    access: UserAccess[];
     school_id: string;
     cookie_consent: boolean;
     cookie_policy_version: string;
@@ -78,7 +82,7 @@ export type RegisterSchoolRequestDto = {
   admin_full_name: string;
   admin_email: string;
   arms?: string[]
-  roles: UserRole[]
+  role: UserRole
 
 };
 
@@ -88,12 +92,12 @@ export type RegisterSchoolResponseDto = {
   message: boolean;              // invite email sent to admin
 };
 
-// POST /auth/register/admin
-export type RegisterAdminRequestDto = {
+// POST /auth/register/school/admin
+export type RegisterSchoolAdminRequestDto = {
   school_id: string;
   full_name: string;
   email: string;
-  roles: string[];
+  role: string;
 }
 
 

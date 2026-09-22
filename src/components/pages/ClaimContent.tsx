@@ -14,7 +14,7 @@ import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
 import { getDeviceId } from "@/lib/auth/device-id";
-import { getDefaultRoute } from "@/lib/auth/routes";
+import { getDashboardRoute } from "@/lib/auth/routes";
 import { cn } from "@/lib/utils/utils";
 import { validatePassword } from "@/utils/password";
 import {
@@ -118,7 +118,7 @@ export default function ClaimContent() {
       const data  = toClaimAccountResponse(raw_data)
       setSession(data.user, data.accessToken);
       setStep("success");
-      setTimeout(() => { router.replace(getDefaultRoute(data.user.roles)); }, 1200);
+      setTimeout(() => { router.replace(getDashboardRoute(data.user.role)); }, 1200);
     } catch (err) {
       if (err instanceof ApiError) {
         if (err.status === 401) setError("Invalid or expired token");
@@ -229,47 +229,6 @@ export default function ClaimContent() {
       </motion.div>
       
       <AnimatePresence mode="wait">
-        {/* STEP 1 */}
-        <motion.div
-          key="identify"
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 12 }}
-        >
-          {!token && step === "identify" && (
-            <motion.fieldset
-              disabled={isLoading}
-              animate={{ opacity: isLoading ? 0.75 : 1 }}
-            >
-              <motion.form 
-                initial="hidden"
-                animate="show"
-                variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 }, }, }}
-                onSubmit={handleIdentify} 
-                className="flex flex-col gap-4"
-              >
-                <motion.div variants={fadeUp}>
-                  <AuthInput id="email" label="Email" value={email} onChange={setEmail} />
-                </motion.div>
-
-                <motion.div variants={fadeUp}>
-                  <AuthInput id="code" label="Claim code" value={claimCode} onChange={setClaimCode} />
-                </motion.div>
-
-                <motion.div variants={fadeUp}>
-                  {error && <AuthAlert message={error} />}
-                </motion.div>
-
-                <motion.div variants={fadeUp}>
-                  <button type="submit" disabled={isLoading} className={submitBtnClass} style={submitBtnStyle}>
-                    {isLoading ? <><Loader2 size={15} className="animate-spin" />Checking…</> : "Continue"}
-                  </button>
-                </motion.div>
-              </motion.form>
-            </motion.fieldset>
-          )}
-        </motion.div>
-
         {/* STEP 2 */}
         <motion.div
           key="password"

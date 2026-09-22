@@ -1,4 +1,4 @@
-import { UserRole } from "@/lib/utils/roles";
+import { UserAccess, UserRole, UserScope } from "@/lib/utils/roles";
 
 export type InviteInfo = {
   fullName: string;
@@ -19,7 +19,9 @@ export type LoginResponse = {
     fullName: string;
     email: string;
     username: string;
-    roles: UserRole[];
+    role: UserRole;
+    scope: UserScope;
+    access: UserAccess[];
     schoolId: string;
     cookieConsent: boolean;
     cookiePolicyVersion: string;
@@ -45,11 +47,11 @@ export type ClaimAccountResponse = {
   user: LoginResponse["user"];
 };
 
-export type RegisterAdminRequest = {
+export type RegisterSchoolAdminRequest = {
   schoolId: string;
   fullName: string;
   email: string;
-  roles: string[]
+  role: string
 }
 
 // POST /auth/resend/student
@@ -72,7 +74,9 @@ export type RefreshResponse = {
     fullName: string;
     email: string;
     username: string;
-    roles: UserRole[];
+    role: UserRole;
+    scope: UserScope;
+    access: UserAccess[];
     schoolId: string;
     cookieConsent: boolean;
     cookiePolicyVersion: string;
@@ -101,7 +105,7 @@ export type RegisterSchoolRequest = {
   adminFullName: string;
   adminEmail: string;
   arms?: string[]
-  roles: UserRole[]
+  role: UserRole;
 
 };
 

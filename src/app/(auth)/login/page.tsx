@@ -7,7 +7,7 @@ import { AuthShell, AuthHeading, AuthAlert } from "@/components/ui/auth-shell";
 import { AuthInput } from "@/components/ui/auth-input";
 import { useAuth } from "@/lib/auth/auth-context";
 import { apiClient, ApiError } from "@/lib/api/api-client";
-import { getDefaultRoute } from "@/lib/auth/routes";
+import { getDashboardRoute } from "@/lib/auth/routes";
 import {
   type LoginRequestDto,
   type LoginResponseDto,
@@ -30,7 +30,6 @@ export default function LoginPage() {
   const router = useRouter();
   const deviceId = getDeviceId();
 
-  const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<FormErrors>({});
@@ -92,7 +91,7 @@ export default function LoginPage() {
 useEffect(() => {
   if (!isResolved || !accessToken || !user) return;
 
-  const route = getDefaultRoute(user.roles);
+  const route = getDashboardRoute(user.role);
 
   if (window.location.pathname !== route) {
     router.replace(route);

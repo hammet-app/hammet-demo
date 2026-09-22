@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/auth-context";
-import { getDefaultRoute } from "@/lib/auth/routes";
-import type { UserRole } from "@/lib/utils/roles";
+import { getDashboardRoute } from "@/lib/auth/routes";
+import type { UserAccess, UserRole, UserScope } from "@/lib/utils/roles";
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -50,7 +50,19 @@ export function DashboardRedirect() {
 
   useEffect(() => {
     if (isResolved && user) {
-      const route = getDefaultRoute(user.roles as UserRole[]);
+      const route = getDashboardRoute(user.role as UserRole);
+
+      if (user?.scope !== "b2c") {
+        return;
+      }
+
+      if (process.env.ENV == "production") {
+        window.location.replace("https://app.hammetedu.com")
+        return;
+      } else if (process.env.ENV == "development") {
+        window.location.replace("https://dev-app.hammetedu.com")
+        return;
+      }
       router.replace(route);
     }
   }, [isResolved, user, router]);

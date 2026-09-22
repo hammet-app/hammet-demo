@@ -10,7 +10,7 @@ import { FormSection } from "@/components/forms/FormSection";
 import { AuthInput } from "@/components/ui";
 import { Alert, Button } from "@/components/ui";
 import { registerAdmin } from "@/lib/api/hammet";
-import { RegisterAdminRequest } from "@/lib/api/types";
+import { RegisterSchoolAdminRequest } from "@/lib/api/types";
 import { ApiError } from "@/lib/api/api-client";
 
 export default function HammetRegisterAdmin() {
@@ -92,8 +92,8 @@ export default function HammetRegisterAdmin() {
           fullName: form.fullName.trim(),
           email: form.email.trim().toLowerCase(),
           schoolId: schoolId,
-          roles: ["school_admin"]
-        } satisfies RegisterAdminRequest,
+          role: "school_admin"
+        } satisfies RegisterSchoolAdminRequest,
         accessToken,
         refreshToken
       )

@@ -3,12 +3,26 @@ export type UserRole =
   | "school_admin"
   | "hammet_admin";
 
+export type UserAccess = 
+  | "module"
+  | "courses"
+  | "admin"
+  | "disputes"
+  | "schools"
+
+export type UserScope = 
+  | "b2b"
+  | "b2c"
+  | "platform"
+
 export interface AuthUser {
   id: string;
   fullName: string;
   email: string;
   username: string;
-  roles: UserRole[];
+  role: UserRole;
+  scope: UserScope;
+  access: UserAccess[];
   schoolId: string;
   cookieConsent: boolean;
   cookiePolicyVersion: string;
@@ -16,13 +30,6 @@ export interface AuthUser {
   classArm: string | null;
   term: number | null;
   learningMode?: "focus" | "guided";
-}
-
-/** Derives the primary display role from the roles array. */
-export function getPrimaryRole(roles: UserRole[]): UserRole {
-  if (roles.includes("hammet_admin")) return "hammet_admin";
-  if (roles.includes("school_admin")) return "school_admin";
-  return "student";
 }
 
 /** Returns the user's display label for a given role. */

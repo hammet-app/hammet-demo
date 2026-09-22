@@ -8,7 +8,7 @@ import {
     InviteInfoDto,
     LoginResponseDto,
     RefreshResponseDto,
-    RegisterAdminRequestDto,
+    RegisterSchoolAdminRequestDto,
     RegisterSchoolRequestDto,
     RegisterSchoolResponseDto,
     RegisterStudentRequestDto,
@@ -24,7 +24,7 @@ import {
     InviteInfo,
     LoginResponse,
     RefreshResponse,
-    RegisterAdminRequest,
+    RegisterSchoolAdminRequest,
     RegisterSchoolRequest,
     RegisterSchoolResponse,
     RegisterStudentRequest,
@@ -53,7 +53,9 @@ function toUser(dto: UserDto): User {
         fullName: dto.full_name,
         email: dto.email,
         username: dto.username,
-        roles: dto.roles,
+        role: dto.role,
+        scope: dto.scope,
+        access: dto.access,
         schoolId: dto.school_id,
         cookieConsent: dto.cookie_consent,
         cookiePolicyVersion: dto.cookie_policy_version,
@@ -122,16 +124,16 @@ export function fromRegisterSchoolRequest(model: RegisterSchoolRequest): Registe
         admin_full_name: model.adminFullName,
         admin_email: model.adminEmail,
         arms: model.arms,
-        roles: model.roles
+        role: model.role
     }
 }
 
-export function fromRegisterAdminRequest(model: RegisterAdminRequest): RegisterAdminRequestDto {
+export function fromRegisterSchoolAdminRequest(model: RegisterSchoolAdminRequest): RegisterSchoolAdminRequestDto {
     return {
         school_id: model.schoolId,
         email: model.email,
         full_name: model.fullName,
-        roles: model.roles
+        role: model.role
     }
 }
 

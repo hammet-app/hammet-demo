@@ -52,10 +52,8 @@ export default function NotFound() {
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [quipIndex, setQuipIndex] = useState(
-    () => Math.floor(Math.random() * QUIPS.length)
-  );
-
+  const [quipIndex, setQuipIndex] = useState(0);
+  
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;

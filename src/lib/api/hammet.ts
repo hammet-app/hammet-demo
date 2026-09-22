@@ -22,8 +22,8 @@ import {
   toAdminModulesResponse,
   fromRegisterSchoolRequest,
   toSchoolDetailsItem,
-  RegisterAdminRequest,
-  fromRegisterAdminRequest,
+  RegisterSchoolAdminRequest,
+  fromRegisterSchoolAdminRequest,
   fromCurriculumModule,
   Disputes,
   DisputesDto,
@@ -108,11 +108,11 @@ export async function registerSchool(
 }
 
 export async function registerAdmin(
-  body: RegisterAdminRequest,
+  body: RegisterSchoolAdminRequest,
   token: string,
   onRefresh: () => Promise<string | null>
 ): Promise<boolean> {
-  const payload = fromRegisterAdminRequest(body)
+  const payload = fromRegisterSchoolAdminRequest(body)
   return await apiClient.post<boolean>("/auth/register/admin", payload, token, { onRefresh })
 }
 

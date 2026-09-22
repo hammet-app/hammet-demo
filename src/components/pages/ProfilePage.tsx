@@ -34,7 +34,7 @@ export function ProfilePage({
   onUsernameChange,
   onPasswordChange,
 }: ProfilePageProps) {
-  const isStudent = user.roles.includes("student");
+  const isStudent = user.role == "student";
 
   const [learningMode, setLearningMode] = useState<LearningMode>(
     user.learningMode ?? "guided"

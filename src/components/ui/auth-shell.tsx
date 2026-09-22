@@ -121,6 +121,8 @@ function AuthLogo() {
           src="/favicon.ico"
           alt=""
           className="w-5 h-5 rounded-[5px]"
+          width={20}
+          height={20}
         />
       </div>
       <span

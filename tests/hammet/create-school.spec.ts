@@ -66,8 +66,10 @@ test("hammet admin can register a school", async ({ page, request }) => {
   await page.getByRole('combobox', { name: 'Tier' }).click();
   await page.getByRole('option', { name: 'Summer' }).click();
 
+  await page.pause()
+
   await page.getByRole("button", {
-    name: "Register school",
+    name: "Register School",
   }).click();
 
   await expect(
@@ -77,6 +79,8 @@ test("hammet admin can register a school", async ({ page, request }) => {
   ).not.toBeVisible({
     timeout: 15000,
   });
+
+  await page.pause()
 
   await expect(
     page.getByRole("button", {

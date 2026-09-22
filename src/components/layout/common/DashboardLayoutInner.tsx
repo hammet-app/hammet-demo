@@ -28,11 +28,9 @@ export function DashboardLayoutInner({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [bannerDismissed, setBannerDismissed] = useState(false);
 
-  if (!user || !user.roles) return null;
+  if (!user || !user.role) return null;
 
-  const activeRole = user.roles[0] as UserRole;
-
-  const isSchoolAdmin = activeRole === "school_admin";
+  const isSchoolAdmin = user.role === "school_admin";
   const hasConsented = !!user?.cookieConsent;
 
   // First-time gate: blocks the whole dashboard until the admin consents.
@@ -44,11 +42,11 @@ export function DashboardLayoutInner({
     !bannerDismissed;
 
   return (
-    <OnboardingProvider userId={user.id} role={activeRole}>
+    <OnboardingProvider userId={user.id} role={user.role}>
       <div className="flex flex-col h-screen overflow-hidden">
         <Topbar
           user={user}
-          activeRole={activeRole}
+          activeRole={user.role}
           onMenuClick={() => setDrawerOpen(true)}
         />
 
@@ -73,7 +71,7 @@ export function DashboardLayoutInner({
           {/* Desktop sidebar */}
           <div className="hidden md:block shrink-0">
             <Sidebar
-              activeRole={activeRole}
+              activeRole={user.role}
               activePath={pathname}
             />
           </div>
@@ -95,7 +93,7 @@ export function DashboardLayoutInner({
             </SheetHeader>
 
             <Sidebar
-              activeRole={activeRole}
+              activeRole={user.role}
               activePath={pathname}
               onNavigate={() => setDrawerOpen(false)}
               className="h-full"

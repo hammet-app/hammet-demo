@@ -42,5 +42,5 @@ export const registerSchoolSchema = z.object({
 
   arms: z.array(z.string()).optional(),
 
-  roles: z.array(z.string()),
+  role: z.string(),
 });

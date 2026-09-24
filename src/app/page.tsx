@@ -136,7 +136,7 @@ function Navbar({ onDemo }: { onDemo: () => void }) {
 
           <Link
             href="/login"
-            className="text-[13px] font-semibold text-[#3B0764] transition-colors hover:text-[#5B21B6] dark:text-purple-300 dark:hover:text-purple-200"
+            className="text-[13px] font-semibolld text-[#3B0764] transition-colors hover:text-[#5B21B6] dark:text-purple-300 dark:hover:text-purple-200"
           >
             Log in
           </Link>
@@ -189,6 +189,14 @@ function Navbar({ onDemo }: { onDemo: () => void }) {
                 className="rounded-xl px-3 py-3 text-sm font-medium hover:bg-[#F0EDF7] dark:hover:bg-white/5"
               >
                 Levels
+              </Link>
+
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="rounded-xl px-3 py-3 text-sm font-semibold text-[#3B0764] hover:bg-[#F0EDF7] dark:text-purple-300 dark:hover:bg-white/5"
+              >
+                Log in
               </Link>
 
               <div className="flex items-center gap-2 px-3 py-2">

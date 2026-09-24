@@ -4,7 +4,6 @@ import { useState } from "react";
 import {
   ArrowRight,
   Check,
-  ChevronRight,
   Database,
   Eye,
   GraduationCap,
@@ -19,6 +18,7 @@ import { AnimatePresence, motion, Variants } from "motion/react";
 import { sendCallback } from "@/lib/api/support";
 import Image from "next/image";
 import Link from "next/link";
+import { useTheme } from "@/lib/use-theme";
 
 type FormData = {
   schoolName: string;
@@ -57,7 +57,7 @@ export default function HomePage() {
   const [showCallback, setShowCallback] = useState(false);
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#FAF9FC] text-[#1E1B4B]">
+    <main className="min-h-screen overflow-x-hidden bg-[#FAF9FC] text-[#1E1B4B] transition-colors dark:bg-[#0F0B1A] dark:text-white">
       <Navbar onDemo={() => setShowCallback(true)} />
 
       <Hero onDemo={() => setShowCallback(true)} />
@@ -89,11 +89,12 @@ export default function HomePage() {
 
 function Navbar({ onDemo }: { onDemo: () => void }) {
   const [open, setOpen] = useState(false);
+  const { theme, toggle } = useTheme();
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 border-b border-[#E9E5F2]/80 bg-[#FAF9FC]/85 backdrop-blur-xl">
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-[#E9E5F2]/80 bg-[#FAF9FC]/85 backdrop-blur-xl dark:border-white/10 dark:bg-[#0F0B1A]/85">
       <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-5 lg:px-8">
-        <Link          
+        <Link
           href="#"
           className="flex items-center gap-2.5"
           aria-label="Hammet home"
@@ -101,9 +102,9 @@ function Navbar({ onDemo }: { onDemo: () => void }) {
           <Image
             src="/icon-512x512.png"
             alt="Hammet"
-            width={130}
-            height={34}
-            className="h-8 w-auto mb-4"
+            width={80}
+            height={24}
+            className="mb-4 h-8 w-auto"
           />
 
           <span className="text-[15px] font-extrabold tracking-tight">
@@ -112,36 +113,38 @@ function Navbar({ onDemo }: { onDemo: () => void }) {
         </Link>
 
         <nav className="hidden items-center gap-8 lg:flex">
-          <Link            
+          <Link
             href="#why"
-            className="text-[13px] font-medium text-[#625F73] transition-colors hover:text-[#3B0764]"
+            className="text-[13px] font-medium text-[#625F73] transition-colors hover:text-[#3B0764] dark:text-slate-400 dark:hover:text-purple-300"
           >
             Why Hammet
           </Link>
 
-          <Link            
+          <Link
             href="#school-gets"
-            className="text-[13px] font-medium text-[#625F73] transition-colors hover:text-[#3B0764]"
+            className="text-[13px] font-medium text-[#625F73] transition-colors hover:text-[#3B0764] dark:text-slate-400 dark:hover:text-purple-300"
           >
             What you get
           </Link>
 
-          <Link            
+          <Link
             href="#levels"
-            className="text-[13px] font-medium text-[#625F73] transition-colors hover:text-[#3B0764]"
+            className="text-[13px] font-medium text-[#625F73] transition-colors hover:text-[#3B0764] dark:text-slate-400 dark:hover:text-purple-300"
           >
             Levels
           </Link>
 
-          <Link            
+          <Link
             href="/login"
-            className="text-[13px] font-semibold text-[#3B0764] transition-colors hover:text-[#5B21B6]"
+            className="text-[13px] font-semibolld text-[#3B0764] transition-colors hover:text-[#5B21B6] dark:text-purple-300 dark:hover:text-purple-200"
           >
             Log in
           </Link>
         </nav>
 
-        <div className="hidden lg:block">
+        <div className="hidden items-center gap-3 lg:flex">
+          <ThemeToggle theme={theme} toggle={toggle} />
+
           <DemoButton onClick={onDemo} />
         </div>
 
@@ -149,7 +152,7 @@ function Navbar({ onDemo }: { onDemo: () => void }) {
           type="button"
           onClick={() => setOpen((value) => !value)}
           aria-label={open ? "Close menu" : "Open menu"}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#3B0764] hover:bg-[#EEEAF7] lg:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-[#3B0764] hover:bg-[#EEEAF7] dark:text-purple-300 dark:hover:bg-white/10 lg:hidden"
         >
           {open ? <X size={19} /> : <Menu size={19} />}
         </button>
@@ -161,32 +164,44 @@ function Navbar({ onDemo }: { onDemo: () => void }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#E9E5F2] lg:hidden"
+            className="overflow-hidden border-t border-[#E9E5F2] dark:border-white/10 lg:hidden"
           >
             <nav className="flex flex-col gap-1 px-5 py-4">
-              <Link                
+              <Link
                 href="#why"
                 onClick={() => setOpen(false)}
-                className="rounded-xl px-3 py-3 text-sm font-medium hover:bg-[#F0EDF7]"
+                className="rounded-xl px-3 py-3 text-sm font-medium hover:bg-[#F0EDF7] dark:hover:bg-white/5"
               >
                 Why Hammet
               </Link>
 
-              <Link                
+              <Link
                 href="#school-gets"
                 onClick={() => setOpen(false)}
-                className="rounded-xl px-3 py-3 text-sm font-medium hover:bg-[#F0EDF7]"
+                className="rounded-xl px-3 py-3 text-sm font-medium hover:bg-[#F0EDF7] dark:hover:bg-white/5"
               >
                 What you get
               </Link>
 
-              <Link                
+              <Link
                 href="#levels"
                 onClick={() => setOpen(false)}
-                className="rounded-xl px-3 py-3 text-sm font-medium hover:bg-[#F0EDF7]"
+                className="rounded-xl px-3 py-3 text-sm font-medium hover:bg-[#F0EDF7] dark:hover:bg-white/5"
               >
                 Levels
               </Link>
+
+              <Link
+                href="/login"
+                onClick={() => setOpen(false)}
+                className="rounded-xl px-3 py-3 text-sm font-semibold text-[#3B0764] hover:bg-[#F0EDF7] dark:text-purple-300 dark:hover:bg-white/5"
+              >
+                Log in
+              </Link>
+
+              <div className="flex items-center gap-2 px-3 py-2">
+                <ThemeToggle theme={theme} toggle={toggle} />
+              </div>
 
               <button
                 type="button"
@@ -194,7 +209,7 @@ function Navbar({ onDemo }: { onDemo: () => void }) {
                   setOpen(false);
                   onDemo();
                 }}
-                className="mt-2 rounded-xl bg-[#3B0764] px-4 py-3 text-sm font-bold text-white"
+                className="mt-2 rounded-xl bg-[#3B0764] px-4 py-3 text-sm font-bold text-white hover:bg-[#4C0A80]"
               >
                 Book a school demo
               </button>
@@ -206,14 +221,35 @@ function Navbar({ onDemo }: { onDemo: () => void }) {
   );
 }
 
+function ThemeToggle({
+  theme,
+  toggle,
+}: {
+  theme: string;
+  toggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+      className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition hover:bg-black/[0.05] hover:text-slate-950 dark:text-slate-400 dark:hover:bg-white/[0.06] dark:hover:text-white"
+    >
+      <span className="text-lg leading-none">
+        {theme === "dark" ? "☼" : "◐"}
+      </span>
+    </button>
+  );
+}
+
 /* ─────────────────────────────────────────────────────────────
    HERO
 ───────────────────────────────────────────────────────────── */
 
 function Hero({ onDemo }: { onDemo: () => void }) {
   return (
-    <section className="relative isolate overflow-hidden pt-[72px]">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.14),transparent_30%),radial-gradient(circle_at_85%_30%,rgba(6,182,212,0.12),transparent_28%)]" />
+    <section className="relative isolate overflow-hidden bg-[#FAF9FC] pt-[72px] dark:bg-[#0F0B1A]">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.14),transparent_30%),radial-gradient(circle_at_85%_30%,rgba(6,182,212,0.12),transparent_28%)] dark:bg-[radial-gradient(circle_at_20%_20%,rgba(124,58,237,0.18),transparent_30%),radial-gradient(circle_at_85%_30%,rgba(6,182,212,0.10),transparent_28%)]" />
 
       <div className="mx-auto grid min-h-[720px] max-w-7xl items-center gap-14 px-5 py-20 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-24">
         <motion.div
@@ -223,24 +259,24 @@ function Hero({ onDemo }: { onDemo: () => void }) {
           className="max-w-2xl"
         >
           <motion.div variants={fadeUp}>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#DCD4EA] bg-white/70 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-[#5B21B6]">
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#DCD4EA] bg-white/70 px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-[#5B21B6] dark:border-white/10 dark:bg-white/5 dark:text-purple-300">
               AI education for schools
             </span>
           </motion.div>
 
           <motion.h1
             variants={fadeUp}
-            className="mt-7 text-5xl font-black leading-[0.98] tracking-[-0.045em] text-[#1E1B4B] sm:text-6xl lg:text-[68px]"
+            className="mt-7 text-5xl font-black leading-[0.98] tracking-[-0.045em] text-[#1E1B4B] dark:text-white sm:text-6xl lg:text-[68px]"
           >
             AI is already in your students&apos; lives.
-            <span className="mt-2 block text-[#5B21B6]">
+            <span className="mt-2 block text-[#5B21B6] dark:text-purple-400">
               Bring it into your classroom properly.
             </span>
           </motion.h1>
 
           <motion.p
             variants={fadeUp}
-            className="mt-7 max-w-xl text-base leading-7 text-[#625F73] sm:text-lg"
+            className="mt-7 max-w-xl text-base leading-7 text-[#625F73] dark:text-slate-400 sm:text-lg"
           >
             Hammet gives your school a complete AI curriculum for JSS1 to
             JSS3, delivered through the platform, so you don&apos;t have to
@@ -253,7 +289,7 @@ function Hero({ onDemo }: { onDemo: () => void }) {
 
           <motion.div
             variants={fadeUp}
-            className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-[#777287]"
+            className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-xs font-medium text-[#777287] dark:text-slate-500"
           >
             <span>JSS1–JSS3</span>
             <span>3-year curriculum</span>
@@ -307,6 +343,7 @@ function HeroVisual() {
                   <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-cyan-400/15 text-[10px] font-bold text-cyan-300">
                     {index + 1}
                   </span>
+
                   <span className="text-xs font-medium text-white/90">
                     {item}
                   </span>
@@ -323,24 +360,25 @@ function HeroVisual() {
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="absolute bottom-[13%] right-[5%] w-[52%] rounded-2xl border border-[#DDD5ED] bg-white p-5 shadow-2xl"
+          className="absolute bottom-[13%] right-[5%] w-[52%] rounded-2xl border border-[#DDD5ED] bg-white p-5 shadow-2xl dark:border-white/10 dark:bg-[#181329]"
         >
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EEE8FA]">
-              <Eye size={15} className="text-[#5B21B6]" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EEE8FA] dark:bg-purple-500/10">
+              <Eye size={15} className="text-[#5B21B6] dark:text-purple-300" />
             </div>
 
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B8798]">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#8B8798] dark:text-slate-500">
                 Student progress
               </p>
-              <p className="text-sm font-bold text-[#1E1B4B]">
+
+              <p className="text-sm font-bold text-[#1E1B4B] dark:text-white">
                 JSS2 · Term 2
               </p>
             </div>
           </div>
 
-          <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#ECEAF0]">
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#ECEAF0] dark:bg-white/10">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: "72%" }}
@@ -349,7 +387,7 @@ function HeroVisual() {
             />
           </div>
 
-          <div className="mt-3 flex justify-between text-[10px] font-medium text-[#777287]">
+          <div className="mt-3 flex justify-between text-[10px] font-medium text-[#777287] dark:text-slate-500">
             <span>18 modules completed</span>
             <span>72%</span>
           </div>
@@ -370,21 +408,21 @@ function ParentSection() {
   return (
     <section
       id="why"
-      className="border-y border-[#E9E5F2] bg-white px-5 py-24 lg:px-8"
+      className="border-y border-[#E9E5F2] bg-white px-5 py-24 dark:border-white/10 dark:bg-[#151020] lg:px-8"
     >
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
         <div>
           <SectionEyebrow>For the parent who asks</SectionEyebrow>
 
-          <h2 className="mt-4 text-3xl font-black tracking-[-0.035em] text-[#1E1B4B] sm:text-4xl">
+          <h2 className="mt-4 text-3xl font-black tracking-[-0.035em] text-[#1E1B4B] dark:text-white sm:text-4xl">
             &ldquo;Does your school teach AI?&rdquo;
           </h2>
         </div>
 
-        <div className="border-l-2 border-[#7C3AED] pl-7 lg:pl-10">
-          <p className="max-w-2xl text-xl font-medium leading-9 text-[#4D4960] sm:text-2xl">
+        <div className="border-l-2 border-[#7C3AED] pl-7 dark:border-purple-500 lg:pl-10">
+          <p className="max-w-2xl text-xl font-medium leading-9 text-[#4D4960] dark:text-slate-300 sm:text-2xl">
             Parents are starting to ask whether your school teaches AI.
-            <span className="font-bold text-[#1E1B4B]">
+            <span className="font-bold text-[#1E1B4B] dark:text-white">
               {" "}
               Now you have an answer, with a full curriculum behind it.
             </span>
@@ -436,7 +474,7 @@ function SchoolGets() {
   return (
     <section
       id="school-gets"
-      className="relative overflow-hidden bg-[#F1EEFA] px-5 py-28 lg:px-8"
+      className="relative overflow-hidden bg-[#F1EEFA] px-5 py-28 dark:bg-[#100C1B] lg:px-8"
     >
       <div className="absolute -right-40 top-20 h-96 w-96 rounded-full bg-[#7C3AED]/10 blur-3xl" />
 
@@ -444,12 +482,12 @@ function SchoolGets() {
         <div className="max-w-2xl">
           <SectionEyebrow>What your school gets</SectionEyebrow>
 
-          <h2 className="mt-4 text-4xl font-black tracking-[-0.04em] text-[#1E1B4B] sm:text-5xl">
+          <h2 className="mt-4 text-4xl font-black tracking-[-0.04em] text-[#1E1B4B] dark:text-white sm:text-5xl">
             A curriculum your school can actually run.
           </h2>
         </div>
 
-        <div className="mt-14 grid gap-px overflow-hidden rounded-3xl border border-[#DDD6EA] bg-[#DDD6EA] md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-px overflow-hidden rounded-3xl border border-[#DDD6EA] bg-[#DDD6EA] dark:border-white/10 dark:bg-white/10 md:grid-cols-2 lg:grid-cols-3">
           {items.map((item, index) => {
             const Icon = item.icon;
 
@@ -460,23 +498,23 @@ function SchoolGets() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ delay: index * 0.06 }}
-                className="group bg-[#FAF9FC] p-7 transition-colors hover:bg-white lg:p-8"
+                className="group bg-[#FAF9FC] p-7 transition-colors hover:bg-white dark:bg-[#171329] dark:hover:bg-[#1D1830] lg:p-8"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#3B0764] text-white transition-transform duration-300 group-hover:scale-105">
                     <Icon size={17} />
                   </div>
 
-                  <span className="text-xs font-bold text-[#A29DAF]">
+                  <span className="text-xs font-bold text-[#A29DAF] dark:text-slate-600">
                     {item.number}
                   </span>
                 </div>
 
-                <h3 className="mt-7 text-lg font-extrabold tracking-tight text-[#1E1B4B]">
+                <h3 className="mt-7 text-lg font-extrabold tracking-tight text-[#1E1B4B] dark:text-white">
                   {item.title}
                 </h3>
 
-                <p className="mt-3 text-sm leading-6 text-[#706B7C]">
+                <p className="mt-3 text-sm leading-6 text-[#706B7C] dark:text-slate-400">
                   {item.text}
                 </p>
               </motion.article>
@@ -499,9 +537,10 @@ function Levels({ onDemo }: { onDemo: () => void }) {
       subtitle: "AI Awareness",
       price: "₦25,000",
       suffix: "per term",
-      description: "A straightforward starting point for bringing AI into school.",
-      accent: "bg-[#EEE8FA]",
-      text: "text-[#5B21B6]",
+      description:
+        "A straightforward starting point for bringing AI into school.",
+      accent: "bg-[#EEE8FA] dark:bg-purple-500/10",
+      text: "text-[#5B21B6] dark:text-purple-300",
     },
     {
       name: "Academy",
@@ -509,18 +548,17 @@ function Levels({ onDemo }: { onDemo: () => void }) {
       price: "₦5,000",
       suffix: "per student, per term",
       description: "Build practical AI competence across your students.",
-      accent: "bg-[#E6F8FB]",
-      text: "text-[#0891B2]",
+      accent: "bg-[#E6F8FB] dark:bg-cyan-500/10",
+      text: "text-[#0891B2] dark:text-cyan-300",
     },
     {
       name: "Premier",
       subtitle: "AI Application",
       price: "₦25,000 + ₦12,000",
       suffix: "per student, per term",
-      description:
-        "Adds career pathways for Science, Arts and Commerce.",
-      accent: "bg-[#EEE8FA]",
-      text: "text-[#5B21B6]",
+      description: "Adds career pathways for Science, Arts and Commerce.",
+      accent: "bg-[#EEE8FA] dark:bg-purple-500/10",
+      text: "text-[#5B21B6] dark:text-purple-300",
       featured: true,
     },
     {
@@ -530,27 +568,27 @@ function Levels({ onDemo }: { onDemo: () => void }) {
       suffix: "per student, per term",
       description:
         "Adds the Fellowship, AI in Entrepreneurship and study abroad support.",
-      accent: "bg-[#E6F8FB]",
-      text: "text-[#0891B2]",
+      accent: "bg-[#E6F8FB] dark:bg-cyan-500/10",
+      text: "text-[#0891B2] dark:text-cyan-300",
     },
   ];
 
   return (
     <section
       id="levels"
-      className="bg-white px-5 py-28 lg:px-8"
+      className="bg-white px-5 py-28 dark:bg-[#151020] lg:px-8"
     >
       <div className="mx-auto max-w-7xl">
         <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
           <div>
             <SectionEyebrow>Choose your level</SectionEyebrow>
 
-            <h2 className="mt-4 max-w-xl text-4xl font-black tracking-[-0.04em] text-[#1E1B4B] sm:text-5xl">
+            <h2 className="mt-4 max-w-xl text-4xl font-black tracking-[-0.04em] text-[#1E1B4B] dark:text-white sm:text-5xl">
               Start where your school is.
             </h2>
           </div>
 
-          <p className="max-w-sm text-sm leading-6 text-[#706B7C] lg:text-right">
+          <p className="max-w-sm text-sm leading-6 text-[#706B7C] dark:text-slate-400 lg:text-right">
             Not sure which fits? Tell us your class size and we&apos;ll point
             you to one.
           </p>
@@ -564,10 +602,10 @@ function Levels({ onDemo }: { onDemo: () => void }) {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.07 }}
-              className={`relative flex min-h-[380px] flex-col overflow-hidden rounded-3xl border p-7 transition-transform duration-300 hover:-translate-y-1 ${
+              className={`relative flex min-h-[380px] flex-col overflow-hidden rounded-3xl border bg-white p-7 transition-transform duration-300 hover:-translate-y-1 dark:bg-[#171329] ${
                 level.featured
-                  ? "border-[#5B21B6] shadow-xl shadow-[#5B21B6]/10"
-                  : "border-[#E5E1EC]"
+                  ? "border-[#5B21B6] shadow-xl shadow-[#5B21B6]/10 dark:border-purple-500"
+                  : "border-[#E5E1EC] dark:border-white/10"
               }`}
             >
               {level.featured && (
@@ -584,25 +622,27 @@ function Levels({ onDemo }: { onDemo: () => void }) {
                 </span>
               </div>
 
-              <p className={`mt-7 text-xs font-bold uppercase tracking-[0.14em] ${level.text}`}>
+              <p
+                className={`mt-7 text-xs font-bold uppercase tracking-[0.14em] ${level.text}`}
+              >
                 {level.subtitle}
               </p>
 
-              <h3 className="mt-2 text-2xl font-black tracking-tight text-[#1E1B4B]">
+              <h3 className="mt-2 text-2xl font-black tracking-tight text-[#1E1B4B] dark:text-white">
                 {level.name}
               </h3>
 
               <div className="mt-7">
-                <p className="text-xl font-black tracking-tight text-[#1E1B4B]">
+                <p className="text-xl font-black tracking-tight text-[#1E1B4B] dark:text-white">
                   {level.price}
                 </p>
 
-                <p className="mt-1 text-xs text-[#888394]">
+                <p className="mt-1 text-xs text-[#888394] dark:text-slate-500">
                   {level.suffix}
                 </p>
               </div>
 
-              <p className="mt-6 text-sm leading-6 text-[#706B7C]">
+              <p className="mt-6 text-sm leading-6 text-[#706B7C] dark:text-slate-400">
                 {level.description}
               </p>
 
@@ -628,20 +668,20 @@ function Levels({ onDemo }: { onDemo: () => void }) {
 
 function TrustSection() {
   return (
-    <section className="border-y border-[#E9E5F2] bg-[#F7F5FB] px-5 py-12 lg:px-8">
+    <section className="border-y border-[#E9E5F2] bg-[#F7F5FB] px-5 py-12 dark:border-white/10 dark:bg-[#100C1B] lg:px-8">
       <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-5 text-center sm:flex-row sm:text-left">
         <div className="flex items-center gap-3">
-          <ShieldCheck size={20} className="text-[#5B21B6]" />
+          <ShieldCheck size={20} className="text-[#5B21B6] dark:text-purple-300" />
 
-          <p className="text-sm font-medium text-[#625F73]">
+          <p className="text-sm font-medium text-[#625F73] dark:text-slate-400">
             In partnership with{" "}
-            <span className="font-bold text-[#1E1B4B]">
+            <span className="font-bold text-[#1E1B4B] dark:text-white">
               NAPPS Oyo State
             </span>
           </p>
         </div>
 
-        <p className="text-xs text-[#8A8596]">
+        <p className="text-xs text-[#8A8596] dark:text-slate-500">
           Built for schools. Designed for the realities of the classroom.
         </p>
       </div>
@@ -701,10 +741,7 @@ function CallbackModal({ onClose }: { onClose: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  function set(
-    key: keyof FormData,
-    value: string
-  ) {
+  function set(key: keyof FormData, value: string) {
     setForm((previous) => ({
       ...previous,
       [key]: value,
@@ -724,9 +761,7 @@ function CallbackModal({ onClose }: { onClose: () => void }) {
         setSubmitted(true);
       }
     } catch {
-      setError(
-        "We couldn't send your request. Please try again."
-      );
+      setError("We couldn't send your request. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -752,13 +787,13 @@ function CallbackModal({ onClose }: { onClose: () => void }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="callback-title"
-        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-[#FAF9FC] shadow-2xl"
+        className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-[#FAF9FC] shadow-2xl dark:bg-[#151020]"
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-[#625F73] transition-colors hover:bg-black/10"
+          className="absolute right-5 top-5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/5 text-[#625F73] transition-colors hover:bg-black/10 dark:bg-white/10 dark:text-slate-300 dark:hover:bg-white/15"
         >
           <X size={17} />
         </button>
@@ -822,23 +857,23 @@ function CallbackModal({ onClose }: { onClose: () => void }) {
                   <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#06B6D4]/12">
                     <Check
                       size={25}
-                      className="text-[#0891B2]"
+                      className="text-[#0891B2] dark:text-cyan-300"
                       strokeWidth={2.5}
                     />
                   </div>
 
-                  <h3 className="mt-5 text-xl font-black text-[#1E1B4B]">
+                  <h3 className="mt-5 text-xl font-black text-[#1E1B4B] dark:text-white">
                     Request received
                   </h3>
 
-                  <p className="mt-2 text-sm leading-6 text-[#706B7C]">
+                  <p className="mt-2 text-sm leading-6 text-[#706B7C] dark:text-slate-400">
                     We&apos;ll be in touch within 24 hours.
                   </p>
 
                   <button
                     type="button"
                     onClick={onClose}
-                    className="mt-7 rounded-xl bg-[#3B0764] px-5 py-3 text-sm font-bold text-white"
+                    className="mt-7 rounded-xl bg-[#3B0764] px-5 py-3 text-sm font-bold text-white hover:bg-[#4C0A80]"
                   >
                     Close
                   </button>
@@ -852,24 +887,24 @@ function CallbackModal({ onClose }: { onClose: () => void }) {
                   className="flex flex-col gap-3.5"
                 >
                   <div className="mb-2">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#5B21B6]">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#5B21B6] dark:text-purple-300">
                       Book a school demo
                     </p>
 
                     <h2
                       id="callback-title"
-                      className="mt-2 text-2xl font-black tracking-tight text-[#1E1B4B]"
+                      className="mt-2 text-2xl font-black tracking-tight text-[#1E1B4B] dark:text-white"
                     >
                       Tell us about your school
                     </h2>
 
-                    <p className="mt-2 text-sm leading-5 text-[#777287]">
+                    <p className="mt-2 text-sm leading-5 text-[#777287] dark:text-slate-400">
                       A member of our team will contact you within 24 hours.
                     </p>
                   </div>
 
                   {error && (
-                    <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-600">
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
                       {error}
                     </div>
                   )}
@@ -958,7 +993,7 @@ function CallbackModal({ onClose }: { onClose: () => void }) {
                       : "Request a school demo"}
                   </motion.button>
 
-                  <p className="pt-1 text-center text-[10.5px] leading-4 text-[#9994A4]">
+                  <p className="pt-1 text-center text-[10.5px] leading-4 text-[#9994A4] dark:text-slate-600">
                     By submitting, you agree to be contacted by the Hammet
                     Ltd team about your school&apos;s needs.
                   </p>
@@ -978,7 +1013,7 @@ function CallbackModal({ onClose }: { onClose: () => void }) {
 
 function SectionEyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#5B21B6]">
+    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#5B21B6] dark:text-purple-300">
       {children}
     </p>
   );
@@ -1017,7 +1052,7 @@ function DemoButton({
 }
 
 const modalInput =
-  "h-11 w-full rounded-xl border border-[#DDD9E5] bg-white px-3.5 text-[13px] text-[#1E1B4B] outline-none transition-all placeholder:text-[#A19CAA] focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/10";
+  "h-11 w-full rounded-xl border border-[#DDD9E5] bg-white px-3.5 text-[13px] text-[#1E1B4B] outline-none transition-all placeholder:text-[#A19CAA] focus:border-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/10 dark:border-white/10 dark:bg-[#1D1830] dark:text-white dark:placeholder:text-slate-500 dark:focus:border-purple-500 dark:focus:ring-purple-500/10";
 
 function Footer() {
   return (

@@ -74,14 +74,6 @@ export type UserUpdateRequest = {
   parentEmail?:string
 };
 
-export type UserUpdateResponse = {
-  message: boolean
-}
-
-// DELETE /admin/students/[id] — reuses DeleteResponse
-export type DeleteResponse = {
-  message: boolean;
-};
 
 // POST /admin/parent-links/[studentId]/send
 // Token stored in Redis (48hr TTL) — not in DB

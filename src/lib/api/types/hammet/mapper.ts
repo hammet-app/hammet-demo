@@ -1,6 +1,5 @@
 import { 
     AdminDetails,
-    DeactivateSchoolResponse,
     Dispute,
     DisputeReviewPayload,
     Disputes,
@@ -11,7 +10,6 @@ import {
 } from "@/lib/api/types/hammet/types";
 import { 
     AdminDetailsDto,
-    DeactivateSchoolResponseDto,
     DisputeDto,
     DisputeReviewPayloadDto,
     DisputesDto,
@@ -60,6 +58,7 @@ function toAdminDetails(dto: AdminDetailsDto): AdminDetails {
         fullName: dto.full_name,
         email: dto.email,
         role: dto.role,
+        scope: dto.scope,
         status: dto.status,
         lastLogin: dto.last_login
     }
@@ -92,14 +91,6 @@ export function toSchoolDetailsItem(dto: SchoolDetailsItemDto): SchoolDetailsIte
     return {
         school: toSchoolDetails(dto.school),
         admins: dto.admins.map(toAdminDetails)
-    }
-}
- 
-export function toDeactivateSchoolResponse(dto: DeactivateSchoolResponseDto): DeactivateSchoolResponse {
-    return {
-        schoolId: dto.school_id,
-        tier: dto.tier,
-        message: dto.message
     }
 }
 

@@ -1,6 +1,6 @@
 // GET /hammet/schools
 
-import { UserRole } from "@/lib/utils/roles";
+import { UserRole, UserScope } from "@/lib/utils/roles";
 import { UserStatus } from "../admin";
 import { PaginationDto } from "../support";
 
@@ -44,7 +44,8 @@ export type AdminDetailsDto = {
   id: string;
   full_name: string;
   email: string;
-  role: UserRole[];
+  role: UserRole;
+  scope: UserScope;
   status: UserStatus;
   last_login: string | null;
 }
@@ -56,15 +57,6 @@ export type SchoolDetailsItemDto ={
   admins: AdminDetailsDto[]
 
 }
-
-// POST /hammet/schools/[schoolId]/deactivate
-// Sets tier to "suspended" — hammet_admin only
-// No request body needed
-export type DeactivateSchoolResponseDto = {
-  school_id: string;
-  tier: "suspended";
-  message: string;
-};
 
 
 export type DisputeReviewPayloadDto = {

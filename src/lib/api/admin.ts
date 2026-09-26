@@ -1,17 +1,11 @@
 import { apiClient } from "./api-client";
 import {
-  type DeleteResponse,
-  //type RegisterTeacherRequest,
-  //type RegisterTeacherResponse,
   type RegisterStudentRequest,
   type RegisterStudentResponse,
   type BulkRegisterResponse,
   type ParentLinkSendResponse,
   type SchoolProfileDto,
   type AdminStudent,
-  //PromotionPreviewResponse,
-  //PromotionConfirmRequest,
-  //PromotionConfirmResponse,
   type AdminModulesResponse,
   type CurriculumModule,
   type SchoolProfile,
@@ -24,7 +18,6 @@ import {
   type ResendVerificationRequest,
   type ResendVerificationResponse,
   type UserUpdateRequest,
-  type UserUpdateResponse,
   type AdminStudentsResponseDto,
   type ParentLinkSendResponseDto,
   type UpdateTerm,
@@ -122,17 +115,17 @@ export async function updateStudent(
   body: UserUpdateRequest,
   token: string,
   onRefresh: () => Promise<string | null> 
-): Promise<UserUpdateResponse> {
+): Promise<boolean> {
   const payload = fromUpdateUserRequest(body)
-  return await apiClient.patch<UserUpdateResponse>(`/admin/students/${studentId}`, payload, token, { onRefresh })
+  return await apiClient.patch<boolean>(`/admin/students/${studentId}`, payload, token, { onRefresh })
 }
 
 export async function deleteStudent(
   studentId: string,
   token: string,
   onRefresh: () => Promise<string | null>
-): Promise<DeleteResponse> {
-  return apiClient.delete<DeleteResponse>(
+): Promise<boolean> {
+  return apiClient.delete<boolean>(
     `/admin/students/${studentId}`,
     null,
     token,
@@ -239,8 +232,8 @@ export async function revokeParentLink(
   studentId: string,
   token: string,
   onRefresh: () => Promise<string | null>
-): Promise<DeleteResponse> {
-  return apiClient.post<DeleteResponse>(
+): Promise<boolean> {
+  return apiClient.post<boolean>(
     `/admin/parent-links/${studentId}/revoke`,
     {},
     token,

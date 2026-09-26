@@ -47,7 +47,7 @@ export default function HammetSchoolPage() {
 
     try {
       await resendCode(
-        {id: admin.id, role: admin.role[0], reset: false},
+        {id: admin.id, role: admin.role, reset: false},
         accessToken,
         refreshToken
       );

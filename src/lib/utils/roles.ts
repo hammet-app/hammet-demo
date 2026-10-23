@@ -1,19 +1,11 @@
-export type UserRole =
-  | "student"
-  | "school_admin"
-  | "hammet_admin";
+import { ProfileDetails, SchoolDetails, SessionDetails } from "../api/types";
 
-export type UserAccess = 
-  | "module"
-  | "courses"
-  | "admin"
-  | "disputes"
-  | "schools"
+export type UserRole = "student" | "school_admin" | "hammet_admin";
 
-export type UserScope = 
-  | "b2b"
-  | "b2c"
-  | "platform"
+export type UserAccess =
+  "module" | "courses" | "admin" | "disputes" | "schools" | "beta_access";
+
+export type UserScope = "b2b" | "b2c" | "platform";
 
 export interface AuthUser {
   id: string;
@@ -23,13 +15,9 @@ export interface AuthUser {
   role: UserRole;
   scope: UserScope;
   access: UserAccess[];
-  schoolId: string;
-  cookieConsent: boolean;
-  cookiePolicyVersion: string;
-  classLevel: string | null;
-  classArm: string | null;
-  term: number | null;
-  learningMode?: "focus" | "guided";
+  schoolDetails: SchoolDetails | null;
+  profileDetails: ProfileDetails | null;
+  sessionDetails: SessionDetails | null;
 }
 
 /** Returns the user's display label for a given role. */
@@ -44,7 +32,7 @@ export function getRoleLabel(role: UserRole): string {
 
 /** Returns initials from a full name (max 2 chars). */
 export function getInitials(name: string): string {
-  if (!name) return ""
+  if (!name) return "";
   const parts = name.trim().split(/\s+/);
 
   if (parts.length > 1) {
@@ -55,4 +43,4 @@ export function getInitials(name: string): string {
   }
 
   return name.trim().slice(0, 2).toUpperCase();
-  }
+}

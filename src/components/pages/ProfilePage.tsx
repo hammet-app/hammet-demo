@@ -24,7 +24,7 @@ type ProfilePageProps = {
   onUsernameChange?: (username: string) => Promise<void> | void;
   onPasswordChange?: (
     currentPassword: string,
-    newPassword: string
+    newPassword: string,
   ) => Promise<void> | void;
 };
 
@@ -37,7 +37,7 @@ export function ProfilePage({
   const isStudent = user.role == "student";
 
   const [learningMode, setLearningMode] = useState<LearningMode>(
-    user.learningMode ?? "guided"
+    user.profileDetails?.learningMode ?? "guided",
   );
 
   const [username, setUsername] = useState(user.username ?? "");
@@ -61,14 +61,14 @@ export function ProfilePage({
 
   async function handleLearningModeChange(mode: LearningMode) {
     if (mode === learningMode) return;
-    
+
     setLearningMode(mode);
     setLearningModeSaving(true);
 
     try {
       await onLearningModeChange?.(mode);
     } catch {
-      setLearningMode(user.learningMode ?? "guided");
+      setLearningMode(user.profileDetails?.learningMode ?? "guided");
     } finally {
       setLearningModeSaving(false);
     }
@@ -189,9 +189,7 @@ export function ProfilePage({
         {/* Account */}
         <section className="rounded-2xl border border-border bg-bg-card p-5 sm:p-6">
           <div className="mb-5">
-            <h2 className="text-lg font-semibold text-text-primary">
-              Account
-            </h2>
+            <h2 className="text-lg font-semibold text-text-primary">Account</h2>
 
             <p className="mt-1 text-sm leading-6 text-text-secondary">
               Manage the details you use to access your account.
@@ -215,7 +213,7 @@ export function ProfilePage({
                     "text-sm text-text-primary outline-none transition-colors",
                     usernameEditing &&
                       "focus:border-purple focus:ring-2 focus:ring-purple/10",
-                    !usernameEditing && "cursor-default"
+                    !usernameEditing && "cursor-default",
                   )}
                 />
 
@@ -307,9 +305,7 @@ export function ProfilePage({
               value={currentPassword}
               visible={showCurrentPassword}
               onChange={setCurrentPassword}
-              onToggle={() =>
-                setShowCurrentPassword((visible) => !visible)
-              }
+              onToggle={() => setShowCurrentPassword((visible) => !visible)}
             />
 
             <PasswordField
@@ -325,15 +321,11 @@ export function ProfilePage({
               value={confirmPassword}
               visible={showConfirmPassword}
               onChange={setConfirmPassword}
-              onToggle={() =>
-                setShowConfirmPassword((visible) => !visible)
-              }
+              onToggle={() => setShowConfirmPassword((visible) => !visible)}
             />
 
             {passwordError && (
-              <p className="text-sm text-red-600">
-                {passwordError}
-              </p>
+              <p className="text-sm text-red-600">{passwordError}</p>
             )}
 
             {passwordMessage && (
@@ -389,14 +381,14 @@ function LearningModeOption({
         selected
           ? "border-purple bg-purple/5 ring-2 ring-purple/10"
           : "border-border bg-bg-page hover:border-purple/40",
-        disabled && "cursor-not-allowed opacity-70"
+        disabled && "cursor-not-allowed opacity-70",
       )}
     >
       <div className="mb-3 flex w-full items-center justify-between">
         <div
           className={cn(
             "flex h-9 w-9 items-center justify-center rounded-lg",
-            selected ? "bg-purple text-white" : "bg-purple/10 text-purple"
+            selected ? "bg-purple text-white" : "bg-purple/10 text-purple",
           )}
         >
           {icon}
@@ -409,9 +401,7 @@ function LearningModeOption({
         )}
       </div>
 
-      <p className="font-semibold text-text-primary">
-        {title}
-      </p>
+      <p className="font-semibold text-text-primary">{title}</p>
 
       <p className="mt-1 text-sm leading-6 text-text-secondary">
         {description}

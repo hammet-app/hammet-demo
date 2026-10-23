@@ -8,16 +8,13 @@ import {
   type RegisterSchoolResponse,
   type SchoolsListResponseDto,
   type RegisterSchoolResponseDto,
-  type DeactivateSchoolResponseDto,
   type CurriculumModuleDto,
   type AdminModulesResponseDto,
   type SchoolsListResponse,
-  type DeactivateSchoolResponse,
   type SchoolDetailsItemDto,
   type SchoolDetailsItem,
   toSchoolListResponse,
   toRegisterSchoolResponse,
-  toDeactivateSchoolResponse,
   toCurriculumModule,
   toAdminModulesResponse,
   fromRegisterSchoolRequest,
@@ -120,15 +117,15 @@ export async function deactivateSchool(
   schoolId: string,
   token: string,
   onRefresh: () => Promise<string | null>
-): Promise<DeactivateSchoolResponse> {
-  const response = await apiClient.post<DeactivateSchoolResponseDto>(
+): Promise<boolean> {
+  const response = await apiClient.post<boolean>(
     `/hammet/schools/${schoolId}/deactivate`,
     {},
     token,
     { onRefresh }
   );
 
-  return toDeactivateSchoolResponse(response)
+  return response
 }
 
 

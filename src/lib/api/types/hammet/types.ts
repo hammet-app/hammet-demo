@@ -1,5 +1,5 @@
 import { CurriculumModuleBlock } from "@/lib/api/types/module";
-import { UserRole } from "@/lib/utils/roles";
+import { UserRole, UserScope } from "@/lib/utils/roles";
 import { UserStatus } from "../admin";
 import { Pagination, PaginationDto } from "../support";
 
@@ -53,8 +53,9 @@ export type AdminDetails = {
   id: string;
   fullName: string;
   email: string;
-  role: UserRole[];
-  status: UserStatus;
+  role: UserRole;
+  scope: UserScope;
+  status: UserStatus
   lastLogin: string | null;
 };
 
@@ -70,14 +71,6 @@ export type SchoolsListResponse = {
   pagination: Pagination;
 };
 
-// POST /hammet/schools/[schoolId]/deactivate
-// Sets tier to "suspended" — hammet_admin only
-// No request body needed
-export type DeactivateSchoolResponse = {
-  schoolId: string;
-  tier: "suspended";
-  message: string;
-};
 
 // PUT /admin/modules/[moduleId] — full replace, no partial update
 // reuses CreateModuleRequest as request body

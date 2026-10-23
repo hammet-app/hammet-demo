@@ -6,6 +6,25 @@ export type InviteInfo = {
   roles: UserRole[];
 }
 
+export type SessionDetails = {
+  country: string;
+  city: string;
+}
+
+export type SchoolDetails = {
+  schoolId: string;
+  cookieConsent: boolean;
+  cookiePolicyVersion: string;
+  classLevel: string | null; // null for non-students
+  classArm: string | null;
+  term: number | null;
+}
+
+export type ProfileDetails = {
+  learningMode?:  "guided" | "focus"
+  tier: string | null;
+}
+
 export type LoginRequest = {
   email: string;
   password: string;
@@ -22,13 +41,9 @@ export type LoginResponse = {
     role: UserRole;
     scope: UserScope;
     access: UserAccess[];
-    schoolId: string;
-    cookieConsent: boolean;
-    cookiePolicyVersion: string;
-    classLevel: string | null; // null for non-students
-    classArm: string | null;
-    term: number | null;
-    learningMode?: "guided" | "focus"
+    schoolDetails: SchoolDetails | null;
+    profileDetails: ProfileDetails | null;
+    sessionDetails: SessionDetails | null;
   };
 };
 
@@ -77,13 +92,9 @@ export type RefreshResponse = {
     role: UserRole;
     scope: UserScope;
     access: UserAccess[];
-    schoolId: string;
-    cookieConsent: boolean;
-    cookiePolicyVersion: string;
-    classLevel: string | null; // null for non-students
-    classArm: string | null;
-    term: number | null;
-    learningMode?: "guided" | "focus"
+    schoolDetails: SchoolDetails | null;
+    profileDetails: ProfileDetails | null;
+    sessionDetails: SessionDetails | null;
   };
 };
 

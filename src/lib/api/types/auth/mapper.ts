@@ -7,12 +7,15 @@ import {
     forgotPasswordResponseDto,
     InviteInfoDto,
     LoginResponseDto,
+    ProfileDetailsDto,
     RefreshResponseDto,
     RegisterSchoolAdminRequestDto,
     RegisterSchoolRequestDto,
     RegisterSchoolResponseDto,
     RegisterStudentRequestDto,
     RegisterStudentResponseDto,
+    SessionDetailsDto,
+    SchoolDetailsDto,
     UpdatePasswordDto
 } from "@/lib/api/types/auth/types-dto";
 import {
@@ -23,12 +26,15 @@ import {
     ClaimAccountResponse,
     InviteInfo,
     LoginResponse,
+    ProfileDetails,
     RefreshResponse,
     RegisterSchoolAdminRequest,
     RegisterSchoolRequest,
     RegisterSchoolResponse,
     RegisterStudentRequest,
     RegisterStudentResponse,
+    SessionDetails,
+    SchoolDetails,
     UpdatePassword
 } from "@/lib/api/types/auth/types";
 
@@ -47,6 +53,31 @@ import {
 type UserDto = LoginResponseDto["user"]
 type User = LoginResponse["user"]
 
+function toSessionDetails(dto: SessionDetailsDto): SessionDetails {
+    return {
+        country: dto.country,
+        city: dto.city
+    }
+}
+
+function toSchoolDetails(dto: SchoolDetailsDto): SchoolDetails {
+    return {
+        schoolId: dto.school_id,
+        cookieConsent: dto.cookie_consent,
+        cookiePolicyVersion: dto.cookie_policy_version,
+        classArm: dto.class_arm,
+        classLevel: dto.class_level,
+        term: dto.term
+    }
+}
+
+function toProfileDetails(dto: ProfileDetailsDto): ProfileDetails {
+    return {
+        learningMode: dto.learning_mode,
+        tier: dto.tier
+    }
+}
+
 function toUser(dto: UserDto): User {
     return {
         id: dto.id,
@@ -56,13 +87,9 @@ function toUser(dto: UserDto): User {
         role: dto.role,
         scope: dto.scope,
         access: dto.access,
-        schoolId: dto.school_id,
-        cookieConsent: dto.cookie_consent,
-        cookiePolicyVersion: dto.cookie_policy_version,
-        classLevel: dto.class_level,
-        classArm: dto.class_arm,
-        term: dto.term,
-        learningMode: dto.learning_mode
+        schoolDetails: dto.school_details ? toSchoolDetails(dto.school_details) : null,
+        profileDetails: dto.profile_details ? toProfileDetails(dto.profile_details) : null,
+        sessionDetails: dto.session_details ? toSessionDetails(dto.session_details) : null
     }
 }
 

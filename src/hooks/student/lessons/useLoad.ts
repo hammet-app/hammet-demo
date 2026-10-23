@@ -2,29 +2,43 @@
 import { useEffect, useState } from "react";
 import { EMPTY_AI_FORM } from "@/components/cards/student/lessons";
 import { studentApi } from "@/lib/api/student";
-import { AiFormState, PreviewLink, PreviewLinkState, Submission, TaskFilesState, TaskLinksState } from "@/lib/api/types";
-import { getDraftForModule, getFilesForPendingSubmissions, getLinks } from "@/lib/db";
+import {
+  AiFormState,
+  PreviewLink,
+  PreviewLinkState,
+  Submission,
+  TaskFilesState,
+  TaskLinksState,
+} from "@/lib/api/types";
+import {
+  getDraftForModule,
+  getFilesForPendingSubmissions,
+  getLinks,
+} from "@/lib/db";
 import { LessonView } from "@/lib/student/lessons/build";
 import { AuthUser } from "@/lib/utils/roles";
-import { useSubmissionStore, useModuleStore, useModuleStateStore} from "@/lib/store";
+import {
+  useSubmissionStore,
+  useModuleStore,
+  useModuleStateStore,
+} from "@/lib/store";
 
 export type LessonInitialData = {
   reflectionText: string;
   activityText: string;
   status: string | null;
   aiForm: AiFormState;
-  taskFiles: TaskFilesState,
-  taskLinks: TaskLinksState,
-  previewLinks: PreviewLinkState,
-  lessonView: LessonView,
-}
-
+  taskFiles: TaskFilesState;
+  taskLinks: TaskLinksState;
+  previewLinks: PreviewLinkState;
+  lessonView: LessonView;
+};
 
 type UseLessonLoaderProps = {
   user: AuthUser | null;
   moduleId: string;
   accessToken: string | null;
-  refreshToken: () => Promise<string|null>;
+  refreshToken: () => Promise<string | null>;
 };
 
 export function useLessonLoader({
@@ -34,28 +48,31 @@ export function useLessonLoader({
   refreshToken,
 }: UseLessonLoaderProps) {
   const { currentModule } = useModuleStore();
-  const { submission } = useSubmissionStore()
-  const [loadState, setLoadState] =
-    useState<"loading" | "ready" | "error">("loading");
+  const { submission } = useSubmissionStore();
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
 
-  const [initialData, setInitialData] = useState<LessonInitialData | null>(null);
+  const [initialData, setInitialData] = useState<LessonInitialData | null>(
+    null,
+  );
 
   function previewKey(preview: PreviewLink): string {
-      if (preview.type === "link") {
-        return preview.url;
-      }
-  
-      const url = new URL(preview.url);
-  
-      // Stable object path, ignores the signed token.
-      return decodeURIComponent(
-        url.pathname.replace("/storage/v1/object/sign/", "")
-      );
+    if (preview.type === "link") {
+      return preview.url;
     }
-  
+
+    const url = new URL(preview.url);
+
+    // Stable object path, ignores the signed token.
+    return decodeURIComponent(
+      url.pathname.replace("/storage/v1/object/sign/", ""),
+    );
+  }
+
   function addPreviews(
     current: PreviewLinkState,
-    previews?: PreviewLink[]
+    previews?: PreviewLink[],
   ): PreviewLinkState {
     if (!previews) return current;
 
@@ -69,7 +86,12 @@ export function useLessonLoader({
 
   useEffect(() => {
     if (!user) return;
-    if (!accessToken || !user.classLevel || !user.term) return;
+    if (
+      !accessToken ||
+      !user.schoolDetails?.classLevel ||
+      !user.schoolDetails.term
+    )
+      return;
 
     let cancelled = false;
 
@@ -78,17 +100,17 @@ export function useLessonLoader({
         let mod = currentModule;
 
         if (!mod || mod.id !== moduleId) {
-          await studentApi.getModule(moduleId, accessToken!, refreshToken)
+          await studentApi.getModule(moduleId, accessToken!, refreshToken);
 
-          mod = useModuleStore.getState().currentModule
+          mod = useModuleStore.getState().currentModule;
         }
         if (!mod) {
           throw new Error("Module was not loaded");
         }
 
         await studentApi
-            .getSubmission(mod.id, accessToken!, refreshToken)
-            .catch(() => ({ submissions: [] }))
+          .getSubmission(mod.id, accessToken!, refreshToken)
+          .catch(() => ({ submissions: [] }));
 
         if (cancelled) return;
 
@@ -110,7 +132,7 @@ export function useLessonLoader({
             ...l.url.map((url) => ({
               taskId: l.blockId,
               url,
-            }))
+            })),
           );
         }
 
@@ -159,12 +181,12 @@ export function useLessonLoader({
 
             initial.previewLinks = addPreviews(
               initial.previewLinks,
-              submission?.fileUrls ?? undefined
+              submission?.fileUrls ?? undefined,
             );
 
             initial.previewLinks = addPreviews(
               initial.previewLinks,
-              submission?.otherUrls ?? undefined
+              submission?.otherUrls ?? undefined,
             );
 
             initial.lessonView = LessonView.LESSON;
@@ -190,8 +212,8 @@ export function useLessonLoader({
     moduleId,
     refreshToken,
     user?.id,
-    user?.classLevel,
-    user?.term,
+    user?.schoolDetails?.classLevel,
+    user?.schoolDetails?.term,
   ]);
 
   return {

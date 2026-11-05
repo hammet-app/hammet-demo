@@ -11,6 +11,25 @@ export type InviteInfoDto = {
   roles: UserRole[];
 }
 
+export type SessionDetailsDto = {
+  country: string;
+  city: string;
+}
+
+export type SchoolDetailsDto = {
+  school_id: string;
+  cookie_consent: boolean;
+  cookie_policy_version: string;
+  class_level: string | null; // null for non-students
+  class_arm: string | null;
+  term: number | null;
+}
+
+export type ProfileDetailsDto = {
+  learning_mode?:  "guided" | "focus"
+  tier: string | null;
+}
+
 // POST /auth/login
 export type LoginRequestDto = {
   email: string;
@@ -28,13 +47,9 @@ export type LoginResponseDto = {
     role: UserRole;
     scope: UserScope;
     access: UserAccess[];
-    school_id: string;
-    cookie_consent: boolean;
-    cookie_policy_version: string;
-    class_level: string | null; // null for non-students
-    class_arm: string | null;
-    term: number | null;
-    learning_mode?: "guided" | "focus"
+    school_details: SchoolDetailsDto | null;
+    profile_details: ProfileDetailsDto | null;
+    session_details: SessionDetailsDto | null;
   };
 };
 
@@ -60,13 +75,9 @@ export type RefreshResponseDto = {
     role: UserRole;
     scope: UserScope;
     access: UserAccess[];
-    school_id: string;
-    cookie_consent: boolean;
-    cookie_policy_version: string;
-    class_level: string | null; // null for non-students
-    class_arm: string | null;
-    term: number | null;
-    learning_mode?: "guided" | "focus"
+    school_details: SchoolDetailsDto | null;
+    profile_details: ProfileDetailsDto | null;
+    session_details: SessionDetailsDto | null;
   };
 };
 

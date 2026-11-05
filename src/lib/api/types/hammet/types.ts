@@ -8,7 +8,14 @@ import { Pagination, PaginationDto } from "../support";
 export type SchoolListItem = {
   id: string;
   name: string;
-  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
+  tier:
+    | "pilot"
+    | "summer"
+    | "spark"
+    | "academy"
+    | "premier"
+    | "global"
+    | "suspended";
   term: number;
   stats: {
     totalStudents: number;
@@ -18,10 +25,17 @@ export type SchoolListItem = {
   createdAt: string; // ISO 8601
 };
 
-export type SchoolDetails = {
+export type AdminSchoolDetails = {
   id: string;
   name: string;
-  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
+  tier:
+    | "pilot"
+    | "summer"
+    | "spark"
+    | "academy"
+    | "premier"
+    | "global"
+    | "suspended";
   email: string;
   address: string;
   phoneNumber: string;
@@ -29,11 +43,11 @@ export type SchoolDetails = {
   term: string;
   createdAt: string;
   stats: {
-    totalStudents: number
+    totalStudents: number;
     activeStudents: number;
     pendingStudents: number;
-  }
-}
+  };
+};
 
 export type AdminDetails = {
   id: string;
@@ -43,19 +57,18 @@ export type AdminDetails = {
   scope: UserScope;
   status: UserStatus
   lastLogin: string | null;
-}
+};
 
 // GET /hammet/schools/{school_id}
 // Details of registered school
-export type SchoolDetailsItem ={
-  school: SchoolDetails;
-  admins: AdminDetails[]
-
-}
+export type SchoolDetailsItem = {
+  school: AdminSchoolDetails;
+  admins: AdminDetails[];
+};
 
 export type SchoolsListResponse = {
   schools: SchoolListItem[];
-  pagination: Pagination
+  pagination: Pagination;
 };
 
 
@@ -71,7 +84,7 @@ export type CreateModuleRequest = {
   term: number;
   week_number: number;
   level: string;
-  published: boolean;           // false = draft, not visible to students yet
+  published: boolean; // false = draft, not visible to students yet
   content_json: {
     blocks: CurriculumModuleBlock[];
   };
@@ -79,10 +92,10 @@ export type CreateModuleRequest = {
 
 export type DisputeReviewPayload = {
   id: string;
-  reviewNote: string
-}
+  reviewNote: string;
+};
 
-export type  Dispute = {
+export type Dispute = {
   id: string;
   studentId: string;
   moduleTitle: string;
@@ -94,11 +107,10 @@ export type  Dispute = {
   disputedAt: string;
   reviewedBy: string | null;
   reviewed: boolean;
-  reviewNote: string | null
-}
+  reviewNote: string | null;
+};
 
 export type Disputes = {
   disputes: Dispute[];
-  pagination: Pagination
-}
-
+  pagination: Pagination;
+};

@@ -8,7 +8,14 @@ import { PaginationDto } from "../support";
 export type SchoolListItemDto = {
   id: string;
   name: string;
-  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
+  tier:
+    | "pilot"
+    | "summer"
+    | "spark"
+    | "academy"
+    | "premier"
+    | "global"
+    | "suspended";
   term: number;
   stats: {
     total_students: number;
@@ -20,13 +27,20 @@ export type SchoolListItemDto = {
 
 export type SchoolsListResponseDto = {
   schools: SchoolListItemDto[];
-  pagination: PaginationDto
+  pagination: PaginationDto;
 };
 
-export type SchoolDetailsDto = {
+export type AdminSchoolDetailsDto = {
   id: string;
   name: string;
-  tier: "pilot" | "summer" | "spark" | "academy" | "premier" | "global" | "suspended";
+  tier:
+    | "pilot"
+    | "summer"
+    | "spark"
+    | "academy"
+    | "premier"
+    | "global"
+    | "suspended";
   email: string;
   address: string;
   phone_number: string;
@@ -34,11 +48,11 @@ export type SchoolDetailsDto = {
   term: string;
   created_at: string;
   stats: {
-    total_students: number
+    total_students: number;
     active_students: number;
     pending_students: number;
-  }
-}
+  };
+};
 
 export type AdminDetailsDto = {
   id: string;
@@ -48,23 +62,22 @@ export type AdminDetailsDto = {
   scope: UserScope;
   status: UserStatus;
   last_login: string | null;
-}
+};
 
 // GET /hammet/schools/{school_id}
 // Details of registered school
-export type SchoolDetailsItemDto ={
-  school: SchoolDetailsDto;
-  admins: AdminDetailsDto[]
-
-}
+export type SchoolDetailsItemDto = {
+  school: AdminSchoolDetailsDto;
+  admins: AdminDetailsDto[];
+};
 
 
 export type DisputeReviewPayloadDto = {
   id: string;
-  review_note: string
-}
+  review_note: string;
+};
 
-export type  DisputeDto = {
+export type DisputeDto = {
   id: string;
   student_id: string;
   module_title: string;
@@ -76,11 +89,10 @@ export type  DisputeDto = {
   disputed_at: string;
   reviewed_by: string | null;
   reviewed: boolean;
-  review_note: string | null
-}
+  review_note: string | null;
+};
 
 export type DisputesDto = {
-  disputes: DisputeDto[]
-  pagination: PaginationDto
-}
-
+  disputes: DisputeDto[];
+  pagination: PaginationDto;
+};

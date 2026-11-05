@@ -22,7 +22,8 @@ export default function LessonsPage() {
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const profileIncomplete = !!user && (!user.classLevel || !user.term);
+  const profileIncomplete =
+    !!user && (!user.schoolDetails?.classLevel || !user.schoolDetails.term);
 
   useEffect(() => {
     if (!isResolved) return;
@@ -32,18 +33,23 @@ export default function LessonsPage() {
     }
 
     async function load() {
-      if (!accessToken || !user || profileIncomplete || !user.term  || !user.classLevel) {
-            return;
+      if (
+        !accessToken ||
+        !user ||
+        profileIncomplete ||
+        !user.schoolDetails?.term ||
+        !user.schoolDetails.classLevel
+      ) {
+        return;
       }
       setError("");
 
       if (modules.length > 0) {
         setIsLoading(false);
 
-        const progressData = await studentApi.getProgress(
-          accessToken,
-          refreshToken
-        ).catch(() => null);
+        const progressData = await studentApi
+          .getProgress(accessToken, refreshToken)
+          .catch(() => null);
 
         if (progressData) {
           setProgress(progressData);
@@ -53,23 +59,17 @@ export default function LessonsPage() {
 
       try {
         const [progressData] = await Promise.all([
-          studentApi.getProgress(
-            accessToken!,
-            refreshToken
-          ),
+          studentApi.getProgress(accessToken!, refreshToken),
           studentApi.getModules(
-            user.term,
-            user.classLevel,
+            user.schoolDetails.term,
+            user.schoolDetails.classLevel,
             accessToken,
             refreshToken,
           ),
-          
-          
-          studentApi.getModuleState(
-            user.id,
-            accessToken,
-            refreshToken,
-          ).catch(() => null),
+
+          studentApi
+            .getModuleState(user.id, accessToken, refreshToken)
+            .catch(() => null),
         ]);
 
         if (progressData) {
@@ -116,8 +116,8 @@ export default function LessonsPage() {
     <PageShell
       title="My Lessons"
       description={
-        user?.classLevel
-          ? `Term ${progress?.currentTerm ?? "—"} · ${user.classLevel}${user.classArm ?? ""}`
+        user?.schoolDetails?.classLevel
+          ? `Term ${progress?.currentTerm ?? "—"} · ${user.schoolDetails?.classLevel}${user.schoolDetails?.classArm ?? ""}`
           : undefined
       }
     >
@@ -126,7 +126,10 @@ export default function LessonsPage() {
           {/* Stats skeleton */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-bg-card border border-border rounded-[10px] h-24 animate-pulse" />
+              <div
+                key={i}
+                className="bg-bg-card border border-border rounded-[10px] h-24 animate-pulse"
+              />
             ))}
           </div>
           <ListSkeleton rows={6} />
@@ -142,7 +145,6 @@ export default function LessonsPage() {
       ) : (
         <>
           <div className="relative overflow-hidden bg-purple-light border-t border-border rounded-b-[20px] p-6 shadow-sm shadow-slate-200/10 mb-6">
-
             {/* Term progress stats */}
             {tp && (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
@@ -184,7 +186,8 @@ export default function LessonsPage() {
                       Term {progress?.currentTerm} progress
                     </span>
                     <span className="text-cyan font-semibold">
-                      {Math.round((tp.approvedModules / tp.totalModules) * 100)}%
+                      {Math.round((tp.approvedModules / tp.totalModules) * 100)}
+                      %
                     </span>
                   </div>
                   <div className="h-2 bg-border rounded-full overflow-hidden">
@@ -200,7 +203,9 @@ export default function LessonsPage() {
                   <p className="text-[13px] font-semibold text-text-primary">
                     {tp.approvedModules} / {tp.totalModules}
                   </p>
-                  <p className="text-[11px] text-text-muted">modules approved</p>
+                  <p className="text-[11px] text-text-muted">
+                    modules approved
+                  </p>
                 </div>
               </div>
             )}
@@ -212,13 +217,13 @@ export default function LessonsPage() {
             .sort((a, b) => a - b)
             .map((week, index, arr) => {
               const lessonModule = byWeek[week][0]; // only one module per week
-              
+
               let unlocked = true;
 
               if (index > 0) {
                 const prevWeek = arr[index - 1];
                 const prevModule = byWeek[prevWeek][0];
-                const prevStatus = moduleState[prevModule.id]?.submissionStatus
+                const prevStatus = moduleState[prevModule.id]?.submissionStatus;
 
                 unlocked =
                   prevStatus === "submitted" || prevStatus === "approved";

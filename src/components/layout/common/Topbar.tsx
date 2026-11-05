@@ -18,40 +18,47 @@ interface TopbarProps {
 }
 
 const roleBadgeStyles: Record<UserRole, string> = {
-  student:       "bg-cyan/20 text-cyan",
+  student: "bg-cyan/20 text-cyan",
   //teacher:       "bg-purple-mid/25 text-purple-light",
-  school_admin:  "bg-success/20 text-emerald-300",
-  hammet_admin:  "bg-warning/20 text-yellow-300",
+  school_admin: "bg-success/20 text-emerald-300",
+  hammet_admin: "bg-warning/20 text-yellow-300",
 };
 
 const avatarStyles: Record<UserRole, string> = {
-  student:       "bg-cyan text-purple-dark",
+  student: "bg-cyan text-purple-dark",
   //teacher:       "bg-purple-mid text-white",
-  school_admin:  "bg-success text-white",
-  hammet_admin:  "bg-warning text-text-primary",
+  school_admin: "bg-success text-white",
+  hammet_admin: "bg-warning text-text-primary",
 };
 
-export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps) {
+export function Topbar({
+  user,
+  activeRole,
+  onMenuClick,
+  className,
+}: TopbarProps) {
   const initials = getInitials(user.fullName);
   const primaryRole = activeRole;
   const roleLabel = getRoleLabel(primaryRole);
   const lessonCoachEnabled = isFeatureEnabled(
-      "lesson_coach",
-      user.schoolId
-    );
+    "lesson_coach",
+    user.schoolDetails?.schoolId,
+  );
 
-  const { theme, toggle } = useTheme();  
+  const { theme, toggle } = useTheme();
 
   const metaLine =
-    primaryRole === "student" && user.classLevel
-      ? [user.classLevel, user.classArm].filter(Boolean).join("")
+    primaryRole === "student" && user.schoolDetails?.classLevel
+      ? [user.schoolDetails?.classLevel, user.schoolDetails?.classArm]
+          .filter(Boolean)
+          .join("")
       : roleLabel;
 
   return (
     <header
       className={cn(
         "h-[56px] bg-purple-dark flex items-center px-5 gap-3 shrink-0 z-30",
-        className
+        className,
       )}
     >
       {/* Hamburger — visible on mobile only */}
@@ -83,7 +90,6 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
         </div>
       </Link>
 
-
       <div className="flex-1" />
       {/* Dark theme */}
       <button
@@ -91,11 +97,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
         className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-xl text-white hover:bg-white/10 transition-colors"
         aria-label="Toggle theme"
       >
-        {theme === "dark" ? (
-          <Sun size={16} />
-        ) : (
-          <Moon size={16} />
-        )}
+        {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
       </button>
 
       {/* Role badge }
@@ -109,16 +111,12 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
       </span>
 
       {/* User */}
-      <Link
-        href="/profile"
-        aria-label="Profile"
-        className="..."
-      >
+      <Link href="/profile" aria-label="Profile" className="...">
         <div className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-white/[0.08] transition-colors cursor-pointer active:scale-[0.98]">
           <div
             className={cn(
               "w-9 h-9 rounded-full flex items-center justify-center text-[13px] font-bold shrink-0",
-              avatarStyles[primaryRole]
+              avatarStyles[primaryRole],
             )}
             style={{ fontFamily: "var(--font-head)" }}
           >
@@ -129,9 +127,7 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
             <span className="text-[13px] font-medium text-white">
               {user.fullName}
             </span>
-            <span className="text-[11px] text-white/40">
-              {metaLine}
-            </span>
+            <span className="text-[11px] text-white/40">{metaLine}</span>
           </div>
 
           {lessonCoachEnabled && (
@@ -148,12 +144,5 @@ export function Topbar({ user, activeRole, onMenuClick, className }: TopbarProps
 }
 
 function LogoMark() {
-  return (
-    <Image
-      src="/favicon.ico"
-      alt="Hammet Logos"
-      width={24}
-      height={24}
-    />
-  );
+  return <Image src="/favicon.ico" alt="Hammet Logos" width={24} height={24} />;
 }

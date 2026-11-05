@@ -8,20 +8,20 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/api-client";
 import type { StudentProgress } from "@/lib/api/types";
-import { 
-  Award ,
+import {
+  Award,
   BarChart2,
   BookOpen,
   CircleHelp,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
-import { 
-  StudentHero, 
-  ContinueLearningCard, 
-  NavigationTiles, 
-  ProgressOverviewCard, 
-  RecentActivity, 
-  type StudentActivity 
+import {
+  StudentHero,
+  ContinueLearningCard,
+  NavigationTiles,
+  ProgressOverviewCard,
+  RecentActivity,
+  type StudentActivity,
 } from "@/components/cards/student/dashboard";
 import { Alert, Button } from "@/components/ui";
 import { Section } from "@/components/cards/common";
@@ -36,12 +36,13 @@ export default function StudentHomePage() {
   const { moduleState, currentTerm } = useModuleStateStore();
 
   const [progress, setProgress] = useState<StudentProgress | null>(null);
-  const [activities] = useState<StudentActivity[]>([])
+  const [activities] = useState<StudentActivity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const firstName = user?.fullName.split(" ")[0]
-  const profileIncomplete = !!user && (!user.classLevel || !user.term);
+  const firstName = user?.fullName.split(" ")[0];
+  const profileIncomplete =
+    !!user && (!user.schoolDetails?.classLevel || !user.schoolDetails.term);
 
   const actions = [
     {
@@ -63,12 +64,12 @@ export default function StudentHomePage() {
       href: "/student/portfolio",
     },
     //{
-      //title: "Performance",
-      //description: "See your academic performance.",
-      //icon: TrendingUp,
-      //href: "/student/performance",
+    //title: "Performance",
+    //description: "See your academic performance.",
+    //icon: TrendingUp,
+    //href: "/student/performance",
     //},
-  ]
+  ];
 
   useEffect(() => {
     if (!isResolved) return;
@@ -81,31 +82,30 @@ export default function StudentHomePage() {
       setError("");
 
       try {
-        if (!accessToken || !user || profileIncomplete || !user.term  || !user.classLevel) {
-            return;
+        if (
+          !accessToken ||
+          !user ||
+          profileIncomplete ||
+          !user.schoolDetails?.term ||
+          !user.schoolDetails.classLevel
+        ) {
+          return;
         }
 
         if (modules.length === 0) {
           await studentApi.getModules(
-            user.term,
-            user.classLevel,
+            user.schoolDetails.term,
+            user.schoolDetails.classLevel,
             accessToken,
             refreshToken,
-          )
+          );
         }
 
         if (currentTerm === null) {
-          await studentApi.getModuleState(
-            user.id,
-            accessToken,
-            refreshToken
-          )
+          await studentApi.getModuleState(user.id, accessToken, refreshToken);
         }
         const [progressData] = await Promise.all([
-          studentApi.getProgress(
-            accessToken!,
-            refreshToken
-          ).catch(() => null),
+          studentApi.getProgress(accessToken!, refreshToken).catch(() => null),
         ]);
 
         if (progressData) {
@@ -140,7 +140,7 @@ export default function StudentHomePage() {
   }, [isResolved, accessToken, refreshToken, user, profileIncomplete]);
 
   const sortedModules = [...modules].sort(
-    (a, b) => a.weekNumber - b.weekNumber
+    (a, b) => a.weekNumber - b.weekNumber,
   );
 
   const currentModule =
@@ -151,20 +151,24 @@ export default function StudentHomePage() {
     }) ?? sortedModules[sortedModules.length - 1];
 
   const completedModules = progress
-    ? Math.max(progress.termProgress.submittedModules - progress.termProgress.flaggedModules, 0)
+    ? Math.max(
+        progress.termProgress.submittedModules -
+          progress.termProgress.flaggedModules,
+        0,
+      )
     : 0;
 
   return (
-    <PageShell
-      title="Home"
-      description="Continue your AI learning journey."
-    >
+    <PageShell title="Home" description="Continue your AI learning journey.">
       {isLoading ? (
         <>
           {/* Stats skeleton */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="bg-bg-card border border-border rounded-[10px] h-24 animate-pulse" />
+              <div
+                key={i}
+                className="bg-bg-card border border-border rounded-[10px] h-24 animate-pulse"
+              />
             ))}
           </div>
           <ListSkeleton rows={6} />
@@ -180,12 +184,12 @@ export default function StudentHomePage() {
       ) : (
         <div className="space-y-10">
           <FadeIn>
-            < div data-tour="student-hero">
-              <StudentHero 
+            <div data-tour="student-hero">
+              <StudentHero
                 firstName={firstName ?? ""}
-                classLevel={user?.classLevel ?? ""}
-                classArm={user?.classArm ?? ""}
-                term={(user?.term)?.toString() ?? ""}            
+                classLevel={user?.schoolDetails?.classLevel ?? ""}
+                classArm={user?.schoolDetails?.classArm ?? ""}
+                term={user?.schoolDetails?.term?.toString() ?? ""}
               />
               <Button
                 variant="ghost"
@@ -204,13 +208,12 @@ export default function StudentHomePage() {
               description="Pick up right where you left off"
             >
               <div data-tour="continue-learning">
-                <ContinueLearningCard 
+                <ContinueLearningCard
                   module={currentModule}
                   onContinue={() => {
-                    if (currentModule){
-                      router.push(
-                        `/student/lessons/${currentModule.id}`
-                      )}
+                    if (currentModule) {
+                      router.push(`/student/lessons/${currentModule.id}`);
+                    }
                   }}
                 />
               </div>
@@ -233,7 +236,7 @@ export default function StudentHomePage() {
               </div>
             </div>
           </FadeIn>
-          
+
           {/*
           <FadeIn delay={0.4}>
             <RecentActivity activities={activities} />
@@ -257,7 +260,6 @@ export default function StudentHomePage() {
             */}
         </div>
       )}
-    
     </PageShell>
   );
 }

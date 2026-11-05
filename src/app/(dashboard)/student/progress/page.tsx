@@ -3,7 +3,11 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { studentApi } from "@/lib/api/student";
-import { PageShell, StatsSkeleton, ListSkeleton } from "@/components/layout/common/PageShell";
+import {
+  PageShell,
+  StatsSkeleton,
+  ListSkeleton,
+} from "@/components/layout/common/PageShell";
 import { StatCard } from "@/components/cards/stat-card";
 import { BookOpen, CheckCircle2, Flag, Clock } from "lucide-react";
 import type { StudentProgress, ModuleProgress } from "@/lib/api/types";
@@ -16,7 +20,6 @@ export default function ProgressPage() {
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  
 
   useEffect(() => {
     if (!accessToken) return;
@@ -57,40 +60,42 @@ export default function ProgressPage() {
     weeks.at(-1) ??
     0;
 
-  const summaryStats = tp ? [
-    {
-      label: "Completed",
-      value: completedModules,
-      icon: CheckCircle2,
-      iconVariant: "green" as const,
-    },
-    {
-      label: "Submitted",
-      value: tp.submittedModules,
-      icon: Clock,
-      iconVariant: "cyan" as const
-    },
-    {
-      label: "Remaining",
-      value: Math.max(tp.totalModules - completedModules, 0),
-      icon: BookOpen,
-      iconVariant: "purple" as const,
-    },
-    {
-      label: "Flagged",
-      value: tp.flaggedModules,
-      icon: Flag,
-      iconVariant: tp.flaggedModules>0 ? ("amber" as const) : ("green" as const),
-    },
-  ]
-  : [];
+  const summaryStats = tp
+    ? [
+        {
+          label: "Completed",
+          value: completedModules,
+          icon: CheckCircle2,
+          iconVariant: "green" as const,
+        },
+        {
+          label: "Submitted",
+          value: tp.submittedModules,
+          icon: Clock,
+          iconVariant: "cyan" as const,
+        },
+        {
+          label: "Remaining",
+          value: Math.max(tp.totalModules - completedModules, 0),
+          icon: BookOpen,
+          iconVariant: "purple" as const,
+        },
+        {
+          label: "Flagged",
+          value: tp.flaggedModules,
+          icon: Flag,
+          iconVariant:
+            tp.flaggedModules > 0 ? ("amber" as const) : ("green" as const),
+        },
+      ]
+    : [];
 
   return (
     <PageShell
       title="My Progress"
       description={
         progress
-          ? `Term ${progress.currentTerm} · ${progress.currentLevel}${user?.classArm ?? ""}`
+          ? `Term ${progress.currentTerm} · ${progress.currentLevel}${user?.schoolDetails?.classArm ?? ""}`
           : undefined
       }
     >
@@ -113,19 +118,15 @@ export default function ProgressPage() {
                 submittedModules={tp.submittedModules}
                 currentWeek={currentWeek}
               />
-            
-              <div className="relative">
 
+              <div className="relative">
                 {tp && (
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
                     {summaryStats.map((stat) => (
-                      <StatCard key={stat.label} {...stat}/>
-                    ))
-
-                    }
+                      <StatCard key={stat.label} {...stat} />
+                    ))}
                   </div>
                 )}
-
 
                 <div className="bg-bg-page border border-border rounded-[14px] p-4 mb-0 flex flex-col gap-4">
                   <ProgressBar
@@ -144,11 +145,8 @@ export default function ProgressPage() {
               </div>
             </>
           )}
-            
-          <WeeklyProgressSection
-            weeks={byWeek}
-            currentWeek={currentWeek}
-          />
+
+          <WeeklyProgressSection weeks={byWeek} currentWeek={currentWeek} />
         </>
       )}
     </PageShell>
@@ -174,11 +172,13 @@ function ProgressBar({
       </div>
       <div className="h-2 bg-border rounded-full overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-500", color)}
+          className={cn(
+            "h-full rounded-full transition-all duration-500",
+            color,
+          )}
           style={{ width: `${pct}%` }}
         />
       </div>
     </div>
   );
 }
-

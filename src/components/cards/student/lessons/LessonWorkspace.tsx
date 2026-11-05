@@ -1,25 +1,29 @@
-"use client"
+"use client";
 
 import { useRef, useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import {
-  ChevronRight,
-  ChevronLeft,
-  CheckCircle2,
-  Clock,
-} from "lucide-react";
+import { ChevronRight, ChevronLeft, CheckCircle2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils/utils";
 import { studentApi } from "@/lib/api/student";
 import { ApiError } from "@/lib/api/api-client";
 import { LessonStepper } from "@/components/cards/student/lessons/LessonStepper";
-import { LessonMode, LessonView, buildPages, isPageBlocked, } from "@/lib/student/lessons/build";
-import { LessonInitialData, useLessonMode, useResumeLesson } from "@/hooks/student/lessons";
-import { 
-  Submission, 
+import {
+  LessonMode,
+  LessonView,
+  buildPages,
+  isPageBlocked,
+} from "@/lib/student/lessons/build";
+import {
+  LessonInitialData,
+  useLessonMode,
+  useResumeLesson,
+} from "@/hooks/student/lessons";
+import {
+  Submission,
   AiFormState,
   TaskFilesState,
   TaskLinksState,
-  CurriculumModule, 
+  CurriculumModule,
   PreviewLinkState,
   QuestionAnswer,
   PreviewLink,
@@ -43,13 +47,15 @@ import {
   submitLesson,
 } from "@/lib/db";
 import { isFeatureEnabled } from "@/lib/features/flags";
-import { useModuleStateStore, useModuleStore, useSubmissionStore } from "@/lib/store";
+import {
+  useModuleStateStore,
+  useModuleStore,
+  useSubmissionStore,
+} from "@/lib/store";
 import { AuthUser } from "@/lib/utils/roles";
 import { Alert } from "@/components/ui";
 import { MissionPage } from "./MissionPage";
 import { useOnboardingContext } from "@/components/onboarding/onboarding-provider";
-
-
 
 type LessonWorkspaceProps = {
   initialData: LessonInitialData;
@@ -59,7 +65,7 @@ type LessonWorkspaceProps = {
   accessToken: string | null;
   refreshToken: () => Promise<string | null>;
   hasScrolledToBottom?: boolean;
-}
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Font constants
@@ -85,11 +91,11 @@ async function saveOffline(
   moduleId: string,
   fileUrls: PreviewLink[],
   otherUrls: PreviewLink[],
-  aiForm: AiFormState|null,
-  syncStatus: 'pending' | 'synced' | 'failed' | 'draft',
+  aiForm: AiFormState | null,
+  syncStatus: "pending" | "synced" | "failed" | "draft",
   activityText?: string,
   reflectionText?: string,
-  accessToken?:string,
+  accessToken?: string,
 ): Promise<void> {
   try {
     await submitLesson({
@@ -103,7 +109,7 @@ async function saveOffline(
       aiForm,
       submissionType: id ? "submit" : "resubmit",
       syncStatus,
-      accessToken
+      accessToken,
     });
   } catch {
     // best-effort — never throw
@@ -117,23 +123,32 @@ export function LessonWorkspace({
   user,
   accessToken,
   refreshToken,
-  hasScrolledToBottom
+  hasScrolledToBottom,
 }: LessonWorkspaceProps) {
-
   const router = useRouter();
   const { moduleState } = useModuleStateStore();
   const { modules } = useModuleStore();
   const { startTour } = useOnboardingContext();
 
-  const [reflectionText, setReflectionText] = useState(initialData.reflectionText);
+  const [reflectionText, setReflectionText] = useState(
+    initialData.reflectionText,
+  );
   const [activityText, setActivityText] = useState(initialData.activityText);
-  const [taskFiles, setTaskFiles] = useState<TaskFilesState>(initialData.taskFiles);
-  const [taskLinks, setTaskLinks] = useState<TaskLinksState>(initialData.taskLinks);
-  const [previewLinks, setPreviewLinks]  = useState<PreviewLinkState>(initialData.previewLinks)
+  const [taskFiles, setTaskFiles] = useState<TaskFilesState>(
+    initialData.taskFiles,
+  );
+  const [taskLinks, setTaskLinks] = useState<TaskLinksState>(
+    initialData.taskLinks,
+  );
+  const [previewLinks, setPreviewLinks] = useState<PreviewLinkState>(
+    initialData.previewLinks,
+  );
   const [questionAnswers, setQuestionAnswers] = useState<QuestionAnswer[]>([]);
-  
+
   const [aiForm, setAiForm] = useState<AiFormState>(initialData.aiForm);
-  const [lessonView, setLessonView] = useState<LessonView>(initialData.lessonView)
+  const [lessonView, setLessonView] = useState<LessonView>(
+    initialData.lessonView,
+  );
   const [lessonMode, setLessonMode] = useState<LessonMode>(0);
   const [furthestPageSeen, setFurthestPageSeen] = useState(0);
 
@@ -146,14 +161,14 @@ export function LessonWorkspace({
 
   const lessonCoachEnabled = isFeatureEnabled(
     "lesson_coach",
-    user.schoolId
+    user.schoolDetails?.schoolId,
   );
 
   const lessonQuestionsEnabled = isFeatureEnabled(
     "lesson_questions",
-    user.schoolId,
-  )
-  
+    user.schoolDetails?.schoolId,
+  );
+
   // ── Auto-save to Dexie on input change ───────────────────────────────────
   useEffect(() => {
     if (!user || !module) return;
@@ -184,29 +199,52 @@ export function LessonWorkspace({
         aiForm || undefined,
         submission?.status ? "synced" : "draft",
         activityText || undefined,
-        reflectionText || undefined
+        reflectionText || undefined,
       );
       setSavedOffline(true);
     }, 800);
 
     return () => clearTimeout(t);
-  }, [submission, activityText, reflectionText, taskFiles, taskLinks, module.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    submission,
+    activityText,
+    reflectionText,
+    taskFiles,
+    taskLinks,
+    module.id,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Stable ref so saveSectionProgress inside the dwell effect doesn't
   // need to be in the dependency array and re-create the timer on every render
-  const saveSectionProgressRef = useRef<((pageIdx: number) => Promise<void>) | null>(null);
+  const saveSectionProgressRef = useRef<
+    ((pageIdx: number) => Promise<void>) | null
+  >(null);
 
   const pages = useMemo(() => {
     if (!currentModule) return [];
-    return buildPages(currentModule.contentJson.sections, currentModule.title, lessonQuestionsEnabled);
+    return buildPages(
+      currentModule.contentJson.sections,
+      currentModule.title,
+      lessonQuestionsEnabled,
+    );
   }, [currentModule, lessonQuestionsEnabled]);
 
-  const stoppedAt = moduleState[currentModule.id]?.stoppedAt
+  const stoppedAt = moduleState[currentModule.id]?.stoppedAt;
 
   // Setup Lesson Mode
-  useLessonMode({status:submission?.status ?? null, stoppedAt, setLessonMode})
+  useLessonMode({
+    status: submission?.status ?? null,
+    stoppedAt,
+    setLessonMode,
+  });
 
-  useResumeLesson({currentModule, stoppedAt, pages, setCurrentPage, setFurthestPageSeen});
+  useResumeLesson({
+    currentModule,
+    stoppedAt,
+    pages,
+    setCurrentPage,
+    setFurthestPageSeen,
+  });
 
   // ── Section progress save ─────────────────────────────────────────────────
   const saveSectionProgress = useCallback(
@@ -230,9 +268,9 @@ export function LessonWorkspace({
       if (!isPending) {
         try {
           await studentApi.saveProgress(
-            { studentId: user.id, moduleId:currentModule.id, sectionId },
+            { studentId: user.id, moduleId: currentModule.id, sectionId },
             accessToken!,
-            refreshToken
+            refreshToken,
           );
           await clearPendingProgress(user.id);
         } catch {
@@ -240,7 +278,7 @@ export function LessonWorkspace({
         }
       }
     },
-    [pages, lessonMode, currentModule.id, accessToken, refreshToken, user]
+    [pages, lessonMode, currentModule.id, accessToken, refreshToken, user],
   );
 
   // Keep the ref in sync so the dwell timer always calls the latest version
@@ -267,14 +305,14 @@ export function LessonWorkspace({
       if (!user) return;
 
       const incoming = Array.from(files);
-      const placeholders = incoming.map(file => ({
-          id: crypto.randomUUID(),
-          taskId: blockId,
-          url: null,
-          file,
-          fileName: file.name,
-          status: "uploading" as const,
-        }))
+      const placeholders = incoming.map((file) => ({
+        id: crypto.randomUUID(),
+        taskId: blockId,
+        url: null,
+        file,
+        fileName: file.name,
+        status: "uploading" as const,
+      }));
 
       setTaskFiles((prev) => {
         const existing = prev[blockId] ?? [];
@@ -285,7 +323,12 @@ export function LessonWorkspace({
         const placeholder = placeholders[i];
         const file = incoming[i];
 
-        const enqueueResult = await compressAndEnqueue(file, user.id, currentModule.id, blockId);
+        const enqueueResult = await compressAndEnqueue(
+          file,
+          user.id,
+          currentModule.id,
+          blockId,
+        );
 
         if (!enqueueResult.ok) {
           const msg =
@@ -293,28 +336,31 @@ export function LessonWorkspace({
               ? `Video too large (${enqueueResult.error.sizeMb} MB). Max is ${enqueueResult.error.maxMb} MB.`
               : "File could not be processed.";
 
-          setTaskFiles(prev => ({
+          setTaskFiles((prev) => ({
             ...prev,
-            [blockId]: (prev[blockId] ?? []).map(entry =>
+            [blockId]: (prev[blockId] ?? []).map((entry) =>
               entry.id === placeholder.id
                 ? {
                     ...entry,
                     status: "error",
                     errorMsg: msg,
                   }
-                : entry
+                : entry,
             ),
           }));
           continue;
         }
 
         const { dexieId } = enqueueResult;
-        const uploaded = await uploadFilesForModule(currentModule.id, accessToken);
+        const uploaded = await uploadFilesForModule(
+          currentModule.id,
+          accessToken,
+        );
         const match = uploaded.find((u) => u.dexieId === dexieId);
 
-        setTaskFiles(prev => ({
+        setTaskFiles((prev) => ({
           ...prev,
-          [blockId]: (prev[blockId] ?? []).map(entry =>
+          [blockId]: (prev[blockId] ?? []).map((entry) =>
             entry.id === placeholder.id
               ? {
                   ...entry,
@@ -322,12 +368,12 @@ export function LessonWorkspace({
                   dexieId,
                   status: match ? "done" : "queued",
                 }
-              : entry
+              : entry,
           ),
         }));
       }
     },
-    [user, currentModule.id, accessToken]
+    [user, currentModule.id, accessToken],
   );
 
   const handleTaskFileRemove = useCallback(
@@ -335,7 +381,7 @@ export function LessonWorkspace({
       setTaskFiles((prev) => {
         const entries = [...(prev[blockId] ?? [])];
         const removed = entries[index];
-        const id = user?.id
+        const id = user?.id;
 
         if (removed?.url) {
           deleteUploadedFile(
@@ -344,7 +390,7 @@ export function LessonWorkspace({
             currentModule.id,
             blockId,
             accessToken,
-            removed.dexieId
+            removed.dexieId,
           ).catch(() => {});
         } else if (removed?.dexieId) {
           removeQueuedFile(removed.dexieId).catch(() => {});
@@ -354,34 +400,35 @@ export function LessonWorkspace({
         return { ...prev, [blockId]: entries };
       });
     },
-    [user?.id, currentModule.id, accessToken]
+    [user?.id, currentModule.id, accessToken],
   );
 
   const handleTaskLinkAdd = useCallback(
     (blockId: string, url: string) => {
       if (!user) return;
       setTaskLinks((prev) => {
-        const existing = prev[blockId] ??[];
-        return{  
+        const existing = prev[blockId] ?? [];
+        return {
           ...prev,
           [blockId]: [
             ...existing,
             {
               taskId: blockId,
-              url
+              url,
             },
-          ],};
+          ],
+        };
       });
       storeLinks({
         id: crypto.randomUUID(),
         studentId: user?.id,
         moduleId: currentModule.id,
         blockId,
-        url: [url]
-      })
+        url: [url],
+      });
     },
-    [user, currentModule.id]
-  )
+    [user, currentModule.id],
+  );
 
   const handleTaskLinkRemove = useCallback(
     (blockId: string, index: number) => {
@@ -402,18 +449,20 @@ export function LessonWorkspace({
 
       removeLink(user.id, currentModule.id, blockId, link.url);
     },
-    [taskLinks, user, currentModule.id]
+    [taskLinks, user, currentModule.id],
   );
-  
-  function toPreview(file: {taskId: string,  url: string}) {
+
+  function toPreview(file: { taskId: string; url: string }) {
     return {
       taskId: file.taskId,
-      url: file.url
-    }
+      url: file.url,
+    };
   }
 
   // ── Navigation helpers ────────────────────────────────────────────────────
-  const sortedModules = [...modules].sort((a, b) => a.weekNumber - b.weekNumber);
+  const sortedModules = [...modules].sort(
+    (a, b) => a.weekNumber - b.weekNumber,
+  );
   const currentIdx = sortedModules.findIndex((m) => m.id === currentModule.id);
   const nextMod =
     currentIdx !== -1 && currentIdx < sortedModules.length - 1
@@ -425,32 +474,52 @@ export function LessonWorkspace({
   const total = pages.length;
   const isLastPage = currentPage === total - 1;
   const blocked = currentModule
-    ? isPageBlocked(pages[currentPage], activityText, reflectionText, taskFiles, aiForm, questionAnswers)
+    ? isPageBlocked(
+        pages[currentPage],
+        activityText,
+        reflectionText,
+        taskFiles,
+        aiForm,
+        questionAnswers,
+      )
     : false;
 
   // Saves the furthest part reached so students can jump back to a previous class
 
-  const navigateToPage = useCallback((page: number) => {
-    const nextPage = Math.max(0, Math.min(total - 1, page));
+  const navigateToPage = useCallback(
+    (page: number) => {
+      const nextPage = Math.max(0, Math.min(total - 1, page));
 
-    setCurrentPage(nextPage);
-    setFurthestPageSeen((prev) => Math.max(prev, nextPage));
-  }, [total]);
+      setCurrentPage(nextPage);
+      setFurthestPageSeen((prev) => Math.max(prev, nextPage));
+    },
+    [total],
+  );
 
-    const goNext = useCallback(() => {
+  const goNext = useCallback(() => {
     if (blocked || !hasScrolledToBottom) return;
-    if (isLastPage) { handleSubmit(); return; }
+    if (isLastPage) {
+      handleSubmit();
+      return;
+    }
     navigateToPage(currentPage + 1);
-  }, [blocked, hasScrolledToBottom, isLastPage, currentPage, total, navigateToPage]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [
+    blocked,
+    hasScrolledToBottom,
+    isLastPage,
+    currentPage,
+    total,
+    navigateToPage,
+  ]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const goBack = useCallback(() => {
     if (currentPage === 0) {
       if (prevMod) {
-        router.push(`/student/lessons/${prevMod.id}`)
+        router.push(`/student/lessons/${prevMod.id}`);
         return;
       }
     }
-    navigateToPage(currentPage - 1)
+    navigateToPage(currentPage - 1);
   }, [currentPage, prevMod, navigateToPage]);
 
   function handleQuestionAnswer(answer: QuestionAnswer) {
@@ -474,7 +543,10 @@ export function LessonWorkspace({
     setIsSubmitting(true);
     setSubmitError("");
 
-    const freshUploads = await uploadFilesForModule(currentModule.id, accessToken);
+    const freshUploads = await uploadFilesForModule(
+      currentModule.id,
+      accessToken,
+    );
 
     if (freshUploads.length > 0) {
       setTaskFiles((prev) => {
@@ -510,9 +582,9 @@ export function LessonWorkspace({
 
     const allOtherPaths = Object.values(taskLinks)
       .flat()
-      .map((e) =>({
+      .map((e) => ({
         taskId: e.taskId,
-        url: e.url!
+        url: e.url!,
       }));
 
     const existing = await getDraftForModule(user.id, currentModule.id);
@@ -533,22 +605,36 @@ export function LessonWorkspace({
     // Try backend first
     if (accessToken) {
       let res;
-      
+
       try {
         if (submission?.status === "flagged") {
           const resubmission = {
             id: submission.id,
             activityText: activityText,
             reflectionText: reflectionText,
-            fileUrls: submission.fileUrls ?? (uploadedFiles.length > 0 ? uploadedFiles.map(toPreview) : null),
-            otherUrls: submission.otherUrls ?? (allOtherPaths.length > 0 ? allOtherPaths.map(toPreview) : null),
+            fileUrls:
+              submission.fileUrls ??
+              (uploadedFiles.length > 0 ? uploadedFiles.map(toPreview) : null),
+            otherUrls:
+              submission.otherUrls ??
+              (allOtherPaths.length > 0 ? allOtherPaths.map(toPreview) : null),
             questionAnswers,
             aiForm: submission.aiForm,
             localId: submission.localId,
           };
-          res = await studentApi.resubmitModule(user.id, resubmission, accessToken, refreshToken);
+          res = await studentApi.resubmitModule(
+            user.id,
+            resubmission,
+            accessToken,
+            refreshToken,
+          );
         } else {
-          res = await studentApi.submitModule(user.id, payload, accessToken, refreshToken);
+          res = await studentApi.submitModule(
+            user.id,
+            payload,
+            accessToken,
+            refreshToken,
+          );
         }
         useSubmissionStore.getState().setSubmission({
           id: res.id,
@@ -559,8 +645,10 @@ export function LessonWorkspace({
           moduleId: currentModule.id,
           activityText,
           reflectionText: reflectionText || null,
-          fileUrls: uploadedFiles.length > 0 ? uploadedFiles.map(toPreview) : null,
-          otherUrls: allOtherPaths.length > 0 ? allOtherPaths.map(toPreview) : null,
+          fileUrls:
+            uploadedFiles.length > 0 ? uploadedFiles.map(toPreview) : null,
+          otherUrls:
+            allOtherPaths.length > 0 ? allOtherPaths.map(toPreview) : null,
           questionAnswers,
           syncedAt: null,
           localId: payload.localId,
@@ -568,17 +656,17 @@ export function LessonWorkspace({
           status: "submitted",
           teacherNote: null,
           dispute: false,
-        })
-        setLessonView(LessonView.SUBMITTED)
-        setShowCompletion(true)
+        });
+        setLessonView(LessonView.SUBMITTED);
+        setShowCompletion(true);
         setIsSubmitting(false);
         await clearUploadedFilesForModule(currentModule.id);
-        await clearLinksForModule(user.id, currentModule.id)
+        await clearLinksForModule(user.id, currentModule.id);
         return;
       } catch (err) {
         // Fall through to Dexie
         if (err instanceof ApiError) {
-          backendError = err.message
+          backendError = err.message;
         }
       }
     }
@@ -598,35 +686,46 @@ export function LessonWorkspace({
         questionAnswers,
         submittedAt: new Date().toISOString(),
         syncStatus: "pending",
-        submissionType: submission?.status === "flagged" ? "resubmit" : "submit",
+        submissionType:
+          submission?.status === "flagged" ? "resubmit" : "submit",
       });
       setSavedOffline(true);
       const errorMessage = [
         backendError,
-        "Your work has been saved, so you won't lose it. Once this issue is resolved, you can submit again."
-      ].filter(Boolean).join("\n\n");
+        "Your work has been saved, so you won't lose it. Once this issue is resolved, you can submit again.",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
       setSubmitError(errorMessage);
     } catch {
       setSubmitError("Failed to save your work. Please try again.");
     } finally {
       if (submitError != "") {
-        setShowCompletion(true)
+        setShowCompletion(true);
       }
       setIsSubmitting(false);
-      setLessonView(LessonView.LESSON)
+      setLessonView(LessonView.LESSON);
     }
   }
-  
+
   function handleSetMode(mode: number) {
-    setLessonMode(mode as LessonMode)
-    setLessonView(mode as LessonView)
+    setLessonMode(mode as LessonMode);
+    setLessonView(mode as LessonView);
   }
 
-  const showStepper = submission?.status === null || submission?.status === "flagged" || (lessonView === LessonView.LESSON );
-  const submitLabel = submission?.status === "flagged" ? "Resubmit revision" : lessonMode === LessonMode.REVIEW ? "Complete Review" : undefined;
+  const showStepper =
+    submission?.status === null ||
+    submission?.status === "flagged" ||
+    lessonView === LessonView.LESSON;
+  const submitLabel =
+    submission?.status === "flagged"
+      ? "Resubmit revision"
+      : lessonMode === LessonMode.REVIEW
+        ? "Complete Review"
+        : undefined;
 
   if (lessonView === LessonView.MISSION) {
-    return(
+    return (
       <MissionPage
         title={currentModule.title}
         description={currentModule.description}
@@ -634,9 +733,8 @@ export function LessonWorkspace({
         onStart={() => handleSetMode(1)}
         onShowTour={() => startTour("student-mission")}
       />
-    )
+    );
   }
-
 
   return (
     <>
@@ -645,13 +743,17 @@ export function LessonWorkspace({
           {submitError}
         </Alert>
       )}
-      
+
       {showCompletion && (
         <LessonCompletionPage
           lessonMode={lessonMode}
           status={submission?.status ?? "not_started"}
-          submittedAt={submission?.submittedAt?? undefined}
-          onNext={nextMod ? () => router.push(`/student/lessons/${nextMod.id}`) : undefined}
+          submittedAt={submission?.submittedAt ?? undefined}
+          onNext={
+            nextMod
+              ? () => router.push(`/student/lessons/${nextMod.id}`)
+              : undefined
+          }
           onBack={() => router.push("/student/lessons")}
         />
       )}
@@ -694,18 +796,25 @@ export function LessonWorkspace({
 
             lessonMode={lessonMode}
             lessonCoachEnabled={lessonCoachEnabled}
-            learningMode={user.learningMode ?? "focus"}
+            learningMode={user.profileDetails?.learningMode ?? "focus"}
           />
           {showStepper && (
             <div className="fixed bottom-0 left-0 right-0 md:left-[240px] z-10 bg-bg-page border-t border-border">
               <div className="w-full max-w-[680px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-3">
-
-                <div className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]" style={{ fontFamily: FONT_BODY }}>
+                <div
+                  className="flex items-center gap-1.5 text-[12px] text-[#0F6E56]"
+                  style={{ fontFamily: FONT_BODY }}
+                >
                   <span className="w-[6px] h-[6px] rounded-full bg-[#1D9E75] shrink-0" />
-                  {savedOffline ? "Saved offline · syncs automatically" : "Saving…"}
+                  {savedOffline
+                    ? "Saved offline · syncs automatically"
+                    : "Saving…"}
                 </div>
 
-                <div className="flex items-center gap-2" data-tour="lesson-navigation">
+                <div
+                  className="flex items-center gap-2"
+                  data-tour="lesson-navigation"
+                >
                   {(currentPage > 0 || prevMod) && (
                     <button
                       onClick={goBack}
@@ -719,20 +828,25 @@ export function LessonWorkspace({
                   {isLastPage ? (
                     <button
                       onClick={handleSubmit}
-                      disabled={isSubmitting || blocked || isReviewing || !hasScrolledToBottom}
+                      disabled={
+                        isSubmitting ||
+                        blocked ||
+                        isReviewing ||
+                        !hasScrolledToBottom
+                      }
                       className={cn(
                         "cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
                         !isSubmitting && !blocked && hasScrolledToBottom
                           ? "bg-[#1D9E75] text-white hover:bg-[#178a65]"
-                          : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed"
+                          : "bg-[#1D9E75]/50 text-white/60 cursor-not-allowed",
                       )}
                       style={{ fontFamily: FONT_BODY }}
                     >
-                      {isSubmitting 
+                      {isSubmitting
                         ? "Submitting…"
                         : isReviewing
-                        ? "Reviewing…"
-                        : (submitLabel ?? "Submit lesson")}
+                          ? "Reviewing…"
+                          : (submitLabel ?? "Submit lesson")}
                       {!isSubmitting && <ChevronRight size={14} />}
                     </button>
                   ) : (
@@ -743,7 +857,7 @@ export function LessonWorkspace({
                         "cursor-pointer inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-1.5 rounded-[8px] transition-colors",
                         !blocked && hasScrolledToBottom
                           ? "bg-[#5B21B6] text-white hover:bg-[#4c1d95]"
-                          : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed"
+                          : "bg-[#5B21B6]/40 text-white/50 cursor-not-allowed",
                       )}
                       style={{ fontFamily: FONT_BODY }}
                     >
@@ -758,7 +872,6 @@ export function LessonWorkspace({
       )}
     </>
   );
-
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -780,19 +893,19 @@ function LessonCompletionPage({
   onNext,
   onBack,
 }: LessonCompletionPageProps) {
-  let date = new Date().toLocaleDateString("en-GB",{
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  if (submittedAt){
+  let date = new Date().toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+  if (submittedAt) {
     date = new Date(submittedAt).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
     });
   }
-  const isReview = lessonMode === LessonMode.REVIEW
+  const isReview = lessonMode === LessonMode.REVIEW;
   const isApproved = status === "approved";
 
   return (
@@ -809,15 +922,15 @@ function LessonCompletionPage({
             style={{ fontFamily: "var(--font-head)" }}
           >
             {isReview
-                ? "Lesson Complete"
-                : isApproved 
-                ? "Module approved" 
+              ? "Lesson Complete"
+              : isApproved
+                ? "Module approved"
                 : "Submitted — awaiting review"}
           </p>
           <p className="text-[13px] text-text-muted leading-[1.6]">
             {isReview
-                ? "You've completed this lesson. Your work has been saved and can be reviewed anytime."
-                : isApproved
+              ? "You've completed this lesson. Your work has been saved and can be reviewed anytime."
+              : isApproved
                 ? `Approved and added to your portfolio. Submitted ${date}.`
                 : `Submitted ${date}. Your teacher will review this soon.`}
           </p>

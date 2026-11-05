@@ -14,7 +14,7 @@ import { Sidebar } from "@/components/layout/common/sidebar";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { UserRole } from "@/lib/utils/roles";
 import { CookieConsentModal } from "@/components/layout/legal/CookieConsentModal";
-import { OnboardingProvider } from '@/components/onboarding/onboarding-provider'
+import { OnboardingProvider } from "@/components/onboarding/onboarding-provider";
 
 const CURRENT_COOKIE_POLICY_VERSION = "2026-07-12"; // bump when policy changes materially
 
@@ -31,14 +31,14 @@ export function DashboardLayoutInner({
   if (!user || !user.role) return null;
 
   const isSchoolAdmin = user.role === "school_admin";
-  const hasConsented = !!user?.cookieConsent;
+  const hasConsented = !!user?.schoolDetails?.cookieConsent;
 
   // First-time gate: blocks the whole dashboard until the admin consents.
   const needsInitialConsent = isSchoolAdmin && !hasConsented;
 
   const showPolicyUpdateBanner =
     needsInitialConsent && // only nag consenting schools — non-consenting schools get the hard gate on registration instead
-    user.cookiePolicyVersion !== CURRENT_COOKIE_POLICY_VERSION &&
+    user.schoolDetails?.cookiePolicyVersion !== CURRENT_COOKIE_POLICY_VERSION &&
     !bannerDismissed;
 
   return (
@@ -53,8 +53,12 @@ export function DashboardLayoutInner({
         {showPolicyUpdateBanner && (
           <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 flex items-center justify-between gap-4">
             <p className="text-xs text-amber-800">
-              We&apos;ve updated our Cookie Policy. Continued use of Hammet confirms your school&apos;s acceptance of the updated terms.{" "}
-              <a href="/cookie-policy" className="underline underline-offset-2 font-medium">
+              We&apos;ve updated our Cookie Policy. Continued use of Hammet
+              confirms your school&apos;s acceptance of the updated terms.{" "}
+              <a
+                href="/cookie-policy"
+                className="underline underline-offset-2 font-medium"
+              >
                 Review changes
               </a>
             </p>
@@ -70,14 +74,14 @@ export function DashboardLayoutInner({
         <div className="flex flex-1 overflow-hidden">
           {/* Desktop sidebar */}
           <div className="hidden md:block shrink-0">
-            <Sidebar
-              activeRole={user.role}
-              activePath={pathname}
-            />
+            <Sidebar activeRole={user.role} activePath={pathname} />
           </div>
 
           {/* Page content */}
-          <main id="lesson-scroll" className="flex-1 overflow-y-auto bg-bg-page">
+          <main
+            id="lesson-scroll"
+            className="flex-1 overflow-y-auto bg-bg-page"
+          >
             {children}
           </main>
         </div>
